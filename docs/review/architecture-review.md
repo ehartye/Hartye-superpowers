@@ -232,6 +232,8 @@ The system has a session-start hook but no skill-invocation hooks. There is no w
 
 The `team-driven-development` skill describes a `~/.claude/teams/<team-name>/` directory structure with `tasks.json` and per-agent inbox files, but there are no utilities in `lib/` or `skills/` to create, read, or manage this structure. The skill assumes this infrastructure will be created manually or by the agent at runtime. Given the complexity of multi-agent coordination, this is a significant gap — the absence of initialization tooling (even a simple shell script) means agents must reconstruct the shared state protocol from the skill documentation at each invocation.
 
+> **Update (2026-03-02):** `scripts/init-team.sh` was added to partially address this gap. It creates the team directory structure and initializes `tasks.json` and inbox files. The race condition concern for concurrent `tasks.json` writes remains open.
+
 ### Gap 4: OpenCode Tool-Name Mismatch Has No Compile-Time Check
 
 The adapter's tool mapping comment is documentation, not enforcement. An agent running in OpenCode that follows a skill's `TodoWrite` instruction literally will fail at runtime. There is no mechanism to detect this mismatch before the agent attempts the tool call.

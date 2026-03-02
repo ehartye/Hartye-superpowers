@@ -1,5 +1,38 @@
 # Superpowers Release Notes
 
+## Hartye-superpowers Fork Changes
+
+This fork ([ehartye/Hartye-superpowers](https://github.com/ehartye/Hartye-superpowers)) diverges from [obra/superpowers](https://github.com/obra/superpowers) with the following additions:
+
+### Plugin Identity
+- Renamed plugin from `superpowers` to `h-superpowers` (plugin.json, marketplace.json, all references)
+- Updated plugin author to Eric Hartye
+- Updated all support links, contributing URLs, and issue trackers to point to this fork
+
+### Agent Teams Support
+- Added `team-driven-development` skill for collaborative multi-agent execution (experimental, Opus 4.6+)
+- Added team member prompt templates: `team-lead-prompt.md`, `team-implementer-prompt.md`, `team-reviewer-prompt.md`
+- Added `example-auth-feature.md` walkthrough showing a complete team session
+- Added `scripts/init-team.sh` for team directory initialization
+- Added comparison guide (`docs/comparison-agent-teams-vs-subagents.md`)
+- Added analysis document (`docs/analysis-agent-teams.md`)
+
+### Per-Agent Worktree Isolation
+- Added per-agent worktree isolation so each teammate works in its own git worktree
+- Added `test-team-worktree-integration.sh` integration test
+
+### Test Suite
+- Added unit tests for team-driven-development (`test-team-driven-development.sh`)
+- Added integration tests for team workflows (`test-team-driven-development-integration.sh`)
+- Added worktree integration tests (`test-team-worktree-integration.sh`)
+
+### Documentation
+- Added `docs/IMPLEMENTATION-SUMMARY.md` for the agent teams feature
+- Added 5-agent consolidated review (`docs/review/consolidated-review-2026-03-02.md`)
+- Updated README with fork attribution, team-driven-development references, and corrected install instructions
+
+---
+
 ## v4.3.0 (2026-02-12)
 
 This fix should dramatically improve superpowers skills compliance and should reduce the chances of Claude entering its native plan mode unintentionally.

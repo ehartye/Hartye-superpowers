@@ -78,6 +78,11 @@ assert_not_contains() {
     local pattern="$2"
     local test_name="${3:-test}"
 
+    if [ -z "$output" ] || [ "$output" = " " ]; then
+        echo "  [FAIL] $test_name (output was empty — cannot verify absence)"
+        return 1
+    fi
+
     if echo "$output" | grep -q "$pattern"; then
         echo "  [FAIL] $test_name"
         echo "  Did not expect to find: $pattern"

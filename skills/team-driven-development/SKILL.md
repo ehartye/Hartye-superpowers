@@ -220,8 +220,8 @@ digraph process {
 Use the `init-team.sh` script to create the team directory structure:
 
 ```bash
-# From the skills/team-driven-development/ directory
-./init-team.sh feature-authentication lead implementer-1 implementer-2 reviewer-1
+# From the plugin root: bash skills/team-driven-development/init-team.sh <team-name> <members...>
+bash skills/team-driven-development/init-team.sh feature-authentication lead implementer-1 implementer-2 reviewer-1
 ```
 
 This creates:

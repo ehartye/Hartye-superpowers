@@ -15,6 +15,9 @@ Load plan, review critically, execute tasks in batches, report for review betwee
 
 ## The Process
 
+### Step 0: Set Up Workspace
+Before starting: Use `h-superpowers:using-git-worktrees` to set up an isolated workspace.
+
 ### Step 1: Load and Review Plan
 1. Read plan file
 2. Review critically - identify any questions or concerns about the plan

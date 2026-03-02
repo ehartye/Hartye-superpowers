@@ -1,5 +1,5 @@
 ---
-description: "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores requirements and design before implementation."
+description: Use when starting any creative work — adding features, building components, modifying behavior, or planning implementation — before writing code
 disable-model-invocation: true
 ---
 

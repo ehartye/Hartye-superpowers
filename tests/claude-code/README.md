@@ -70,10 +70,10 @@ source "$SCRIPT_DIR/test-helpers.sh"
 echo "=== Test: My Skill ==="
 
 # Ask Claude about the skill
-output=$(run_claude "What does the my-skill skill do?" 30)
+run_claude "What does the my-skill skill do?" 30
 
-# Verify response
-assert_contains "$output" "expected behavior" "Skill describes behavior"
+# Verify response (run_claude stores result in CLAUDE_OUTPUT)
+assert_contains "$CLAUDE_OUTPUT" "expected behavior" "Skill describes behavior"
 
 echo "=== All tests passed ==="
 ```

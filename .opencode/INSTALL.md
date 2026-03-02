@@ -37,7 +37,7 @@ ln -s ~/.config/opencode/superpowers/skills ~/.config/opencode/skills/superpower
 
 Restart OpenCode. The plugin will automatically inject superpowers context.
 
-Verify by asking: "do you have superpowers?"
+Verify by asking: "What h-superpowers skills are available?"
 
 ## Usage
 
