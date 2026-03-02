@@ -5,6 +5,8 @@ description: Use when receiving code review feedback, before implementing sugges
 
 # Code Review Reception
 
+> Note: "your human partner" refers to the project owner/user who initiated this session.
+
 ## Overview
 
 Code review requires technical evaluation, not emotional performance.

@@ -27,17 +27,22 @@ If Superpowers has been useful to you and you'd like to support the original aut
 
 **Note:** Installation differs by platform. Claude Code has a built-in plugin system. Codex and OpenCode require manual setup.
 
-### Claude Code (via Plugin Marketplace)
+### Claude Code
 
-In Claude Code, register the marketplace first:
+> **Current state:** There is no published marketplace registration yet. Install locally for development/testing:
+
+```bash
+# Clone the repository
+git clone https://github.com/ehartye/Hartye-superpowers.git
+
+# From the cloned directory, enable the local dev plugin in Claude Code settings:
+# Add "h-superpowers@superpowers-dev": true to enabledPlugins in ~/.claude/settings.json
+```
+
+Once a marketplace entry is published, install will be:
 
 ```bash
 /plugin marketplace add ehartye/Hartye-superpowers
-```
-
-Then install the plugin:
-
-```bash
 /plugin install h-superpowers@Hartye-superpowers
 ```
 

@@ -4,6 +4,8 @@
 **Date:** 2026-03-02
 **Scope:** All user-facing documentation, SKILL.md files, installation guides, commands, and platform-specific docs
 
+> **Status note (2026-03-02):** Several findings from this review have been addressed in subsequent commits. In particular: fork identity issues in README/plugin.json/marketplace.json were fixed, install commands were updated for `h-superpowers`, the FUNDING.yml question was resolved (kept as-is to credit upstream), and `superpowers.js` references in OpenCode docs were corrected to `h-superpowers.js`. Findings below should be read with this context in mind.
+
 ---
 
 ## Executive Summary

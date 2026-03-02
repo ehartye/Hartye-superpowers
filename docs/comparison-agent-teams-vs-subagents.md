@@ -83,7 +83,7 @@ This guide helps you choose between Claude's Agent Teams and the traditional Sub
 
 ### Cost Structure
 
-> **Note:** Cost estimates below are approximate and based on early-2025 pricing. Actual costs may vary based on model, usage patterns, and pricing changes.
+> **Note (as of 2025):** Cost estimates below are approximate and based on early-2025 pricing. Actual costs will vary based on the model used, usage patterns, and pricing changes. Verify current pricing at [Anthropic's pricing page](https://www.anthropic.com/pricing) before budgeting.
 
 **Subagent Approach:**
 ```

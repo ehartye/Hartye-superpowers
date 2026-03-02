@@ -1,6 +1,6 @@
 ---
 name: using-superpowers
-description: Use when starting any conversation - establishes how to find and use skills
+description: Use at the start of any task or conversation to decide which skills to invoke before acting
 ---
 
 <EXTREMELY-IMPORTANT>

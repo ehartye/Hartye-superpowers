@@ -2,3 +2,7 @@
 .private-journal/
 .claude/
 skills/*/diagrams/
+research-results/
+node_modules/
+.DS_Store
+*.log

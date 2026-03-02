@@ -258,7 +258,7 @@ Skills written for Claude Code are automatically adapted for OpenCode. The boots
 
 ### Plugin Structure
 
-**Location:** `~/.config/opencode/superpowers/.opencode/plugins/superpowers.js`
+**Location:** `~/.config/opencode/superpowers/.opencode/plugins/h-superpowers.js`
 
 **Components:**
 - `experimental.chat.system.transform` hook for bootstrap injection
@@ -283,7 +283,7 @@ Restart OpenCode to load the updates.
 
 ### Plugin not loading
 
-1. Check plugin exists: `ls ~/.config/opencode/superpowers/.opencode/plugins/superpowers.js`
+1. Check plugin exists: `ls ~/.config/opencode/superpowers/.opencode/plugins/h-superpowers.js`
 2. Check symlink/junction: `ls -l ~/.config/opencode/plugins/` (macOS/Linux) or `dir /AL %USERPROFILE%\.config\opencode\plugins` (Windows)
 3. Check OpenCode logs: `opencode run "test" --print-logs --log-level DEBUG`
 4. Look for plugin loading message in logs

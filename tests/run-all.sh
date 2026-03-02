@@ -3,6 +3,7 @@
 #
 # Usage:
 #   ./tests/run-all.sh              # Claude Code unit tests only (fastest)
+#   ./tests/run-all.sh --integration # + Claude Code integration tests (slow)
 #   ./tests/run-all.sh --opencode   # + OpenCode unit tests
 #   ./tests/run-all.sh --triggers   # + skill triggering tests
 #   ./tests/run-all.sh --all        # Everything (requires Claude API access, ~10 min)
@@ -22,16 +23,19 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 RUN_OPENCODE=false
 RUN_TRIGGERS=false
 RUN_EXPLICIT=false
+RUN_INTEGRATION=false
 
 for arg in "$@"; do
     case "$arg" in
         --opencode) RUN_OPENCODE=true ;;
         --triggers) RUN_TRIGGERS=true ;;
         --explicit) RUN_EXPLICIT=true ;;
+        --integration) RUN_INTEGRATION=true ;;
         --all)
             RUN_OPENCODE=true
             RUN_TRIGGERS=true
             RUN_EXPLICIT=true
+            RUN_INTEGRATION=true
             ;;
         --help|-h)
             sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'
@@ -85,6 +89,17 @@ if command -v claude &>/dev/null; then
     run_suite "Claude Code unit tests" "$SCRIPT_DIR/claude-code/run-skill-tests.sh"
 else
     echo "[SKIP] Claude Code unit tests — 'claude' CLI not found"
+fi
+
+# --- Suite: Claude Code integration tests (slow) ---
+if $RUN_INTEGRATION; then
+    if command -v claude &>/dev/null; then
+        run_suite "Claude Code integration tests" "$SCRIPT_DIR/claude-code/run-skill-tests.sh" --integration
+    else
+        echo "[SKIP] Claude Code integration tests — 'claude' CLI not found"
+    fi
+else
+    echo "[SKIP] Claude Code integration tests — pass --integration to enable"
 fi
 
 # --- Suite: OpenCode plugin tests ---
