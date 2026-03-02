@@ -228,7 +228,7 @@ const skills = findSkillsInDir('$TEST_HOME/skills-dir', 'test', 3);
 console.log(JSON.stringify(skills, null, 2));
 " 2>&1)
 
-skill_count=$(echo "$result" | grep -c '"name":' || echo "0")
+skill_count=$(echo "$result" | grep -c '"name":') || skill_count=0
 
 if [ "$skill_count" -ge 3 ]; then
     echo "  [PASS] findSkillsInDir found all skills (found $skill_count)"

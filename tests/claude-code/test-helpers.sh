@@ -18,8 +18,10 @@ run_claude() {
     CLAUDE_OUTPUT=""
 
     # Build command as array to avoid bash -c quoting issues
-    # --max-turns limits tool invocations to prevent infinite skill-loading loops
-    local -a cmd_args=(-p "$prompt" --plugin-dir "$PLUGIN_DIR" --max-turns 10)
+    # No --plugin-dir needed: tests run from within the repo, so Claude Code
+    # discovers the plugin from .claude-plugin/ automatically (upstream approach).
+    # No --max-turns: the timeout is the safety net (upstream approach).
+    local -a cmd_args=(-p "$prompt")
     if [ -n "$allowed_tools" ]; then
         cmd_args+=(--allowed-tools="$allowed_tools")
     fi
@@ -103,7 +105,8 @@ assert_count() {
     local expected="$3"
     local test_name="${4:-test}"
 
-    local actual=$(echo "$output" | grep -c "$pattern" || echo "0")
+    local actual
+    actual=$(echo "$output" | grep -c "$pattern") || actual=0
 
     if [ "$actual" -eq "$expected" ]; then
         echo "  [PASS] $test_name (found $actual instances)"

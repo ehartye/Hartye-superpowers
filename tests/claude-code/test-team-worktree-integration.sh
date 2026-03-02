@@ -63,21 +63,19 @@ sigterm_handler() {
 }
 trap sigterm_handler SIGTERM
 
-# Check for agent teams env var
+# Agent teams require these env vars
 if [ "${CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS:-}" != "1" ]; then
     echo "NOTE: Setting CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 for this test"
     export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 fi
 
-# TaskCreate/TaskList/TaskUpdate are gated behind a separate TTY check.
-# In headless -p mode they're disabled unless explicitly enabled.
 if [ "${CLAUDE_CODE_ENABLE_TASKS:-}" != "true" ]; then
     echo "NOTE: Setting CLAUDE_CODE_ENABLE_TASKS=true for this test"
     export CLAUDE_CODE_ENABLE_TASKS=true
 fi
 
 # Kill any stale claude integration test processes from previous runs.
-STALE=$(pgrep -f "claude -p.*--plugin-dir.*Hartye-superpowers" 2>/dev/null || true)
+STALE=$(pgrep -f "claude -p.*Hartye-superpowers" 2>/dev/null || true)
 if [ -n "$STALE" ]; then
     echo "Cleaning up $(echo "$STALE" | wc -w | tr -d ' ') stale claude process(es) from previous runs..."
     kill $STALE 2>/dev/null || true
@@ -200,97 +198,34 @@ echo ""
 # Run Claude with team-driven-development
 OUTPUT_FILE="$TEST_PROJECT/claude-output.txt"
 
+# IMPORTANT: Run from superpowers directory so local dev skills are available
+# (see upstream commit 0aba33b — skills are discovered from the working directory)
 PROMPT="Change to directory $TEST_PROJECT and then execute the implementation plan at docs/plans/implementation-plan.md using the team-driven-development skill.
 
 Use team name 'test-worktree-integration'.
 
-IMPORTANT: The plan specifies per-agent worktrees. Follow the team-driven-development skill exactly:
+IMPORTANT: The plan specifies per-agent worktrees. Follow the team-driven-development skill exactly. I will be verifying that you:
 1. Create a team using TeamCreate
-2. Create a shared task list with TaskCreate (two tasks: math module, text module)
-3. For each implementer, create a worktree using 'git worktree add' (e.g. git worktree add .claude/worktrees/implementer-1 -b implementer-1)
-4. Spawn at least 2 implementer teammates, assigning each a worktree path
-5. Each implementer works in their worktree, creates their module + tests, and updates src/index.js in their branch
-6. After all tasks complete, merge each implementer branch into main (git merge <branch> --no-ff) and run npm test after each merge
-7. Clean up worktrees (git worktree remove) after merging
-8. Send shutdown_request to each teammate, then TeamDelete
-
-CRITICAL - HEADLESS MODE INSTRUCTIONS:
-You are running in headless (-p) mode. Follow these rules exactly:
-
-PHASE A - SETUP: Create the team, task list, create worktrees via git worktree add
-for each implementer, spawn agents with their worktree paths, send initial messages.
-This should take about 10-15 tool calls.
-
-PHASE B - POLL FOR IMPLEMENTATION: After setup, poll TaskList repeatedly
-(NO sleep commands) until ALL tasks show 'completed' status.
-
-PHASE C - REVIEW: After all tasks are completed, send a message to the reviewer
-asking them to review the completed work. Then poll TaskList a few MORE times
-to give the reviewer time to finish. Poll at least 5 more times after tasks
-are completed to allow the review cycle to complete.
-
-PHASE D - MERGE: After review, merge each implementer branch into main:
-  cd $TEST_PROJECT && git merge implementer-1 --no-ff
-  npm test
-  git merge implementer-2 --no-ff
-  npm test
-If a merge conflict occurs on src/index.js, resolve it by keeping both export lines.
-
-PHASE E - CLEANUP: Remove worktrees (git worktree remove), send shutdown_request
-to each agent, poll TaskList ONCE, then call TeamDelete exactly ONCE.
-If TeamDelete fails, that is OK — the test harness handles cleanup.
-
-PHASE F - FINISH: End your turn immediately after the TeamDelete attempt.
-Do NOT loop or retry TeamDelete. The test is done.
+2. Create worktrees for each implementer (git worktree add)
+3. Spawn at least 2 implementer teammates, each working in their own worktree
+4. Each implementer creates their module, tests, and updates the barrel file
+5. After tasks complete, merge branches into main and run npm test
+6. Clean up worktrees and shut down team members
 
 Begin now. Execute the plan with a team using per-agent worktrees."
 
-progress "Pre-flight: verifying claude invocation..."
-PREFLIGHT_FILE=$(mktemp)
-timeout 30 env -u CLAUDECODE claude -p "Reply with just the word OK." \
-    --plugin-dir "$PLUGIN_DIR" \
-    --max-turns 3 \
-    < /dev/null > "$PREFLIGHT_FILE" 2>&1 || true
-PREFLIGHT_OUTPUT=$(cat "$PREFLIGHT_FILE")
-rm -f "$PREFLIGHT_FILE"
-if [ -z "$PREFLIGHT_OUTPUT" ]; then
-    echo "  [FAIL] claude produced no output — invocation is broken"
-    echo "  Command: env -u CLAUDECODE claude -p '...' --plugin-dir $PLUGIN_DIR --max-turns 3 < /dev/null"
-    exit 1
-fi
-echo "  [PASS] claude responded: ${PREFLIGHT_OUTPUT:0:80}"
-echo ""
-
-# Create a timestamp marker so we can distinguish the main session from preflight
-TIMESTAMP_MARKER=$(mktemp)
-
 progress "Running Claude with team-driven-development skill (worktree mode)..."
-echo "  Live output: $OUTPUT_FILE"
+echo "  Output: $OUTPUT_FILE"
 echo "================================================================================"
-
-# Touch the file first so tail -f can open it immediately
-touch "$OUTPUT_FILE"
-
-# Tail the output file to terminal for live viewing
-tail -f "$OUTPUT_FILE" &
-TAIL_PID=$!
-
-# Run claude — use > file 2>&1 (no pipeline) to match the pattern that works in unit tests.
-# --permission-mode bypassPermissions: Critical for background agents.
-cd "$TEST_PROJECT" && timeout 3500 env -u CLAUDECODE claude -p "$PROMPT" \
-    --plugin-dir "$PLUGIN_DIR" \
-    --model claude-opus-4-6 \
+cd "$SCRIPT_DIR/../.." && timeout 3500 env -u CLAUDECODE claude -p "$PROMPT" \
+    --allowed-tools=all \
+    --add-dir "$TEST_PROJECT" \
     --permission-mode bypassPermissions \
-    --max-turns 60 \
-    < /dev/null > "$OUTPUT_FILE" 2>&1 || {
+    2>&1 | tee "$OUTPUT_FILE" || {
     echo ""
+    echo "================================================================================"
     echo "EXECUTION FAILED (exit code: $?)"
 }
-
-# Stop tail
-kill "$TAIL_PID" 2>/dev/null || true
-wait "$TAIL_PID" 2>/dev/null || true
-echo "================================================================================"
 echo "================================================================================"
 progress "Phase 2/4: Claude execution complete."
 echo ""
@@ -298,12 +233,14 @@ progress "Phase 3/4: Analyzing session transcript..."
 echo ""
 
 # Find the session transcript
-WORKING_DIR_ESCAPED=$(echo "$TEST_PROJECT" | sed 's/[\/.]/-/g')
+# We run from $SCRIPT_DIR/../.. (the plugin repo root), so derive from that.
+PLUGIN_DIR_RESOLVED=$(cd "$SCRIPT_DIR/../.." && pwd -P)
+WORKING_DIR_ESCAPED=$(echo "$PLUGIN_DIR_RESOLVED" | sed 's/[\/.]/-/g')
 SESSION_DIR="$HOME/.claude/projects/$WORKING_DIR_ESCAPED"
 
-# Find the main session file (created AFTER the preflight check).
-SESSION_FILE=$({ find "$SESSION_DIR" -maxdepth 1 -name "*.jsonl" -type f -newer "$TIMESTAMP_MARKER" 2>/dev/null || true; } | sort -r | head -1)
-rm -f "$TIMESTAMP_MARKER"
+# Find the most recent session file (created during this test run).
+# The { ... || true; } prevents pipefail from aborting if SESSION_DIR doesn't exist.
+SESSION_FILE=$({ find "$SESSION_DIR" -maxdepth 1 -name "*.jsonl" -type f -mmin -60 2>/dev/null || true; } | sort -r | head -1)
 
 # Also collect subagent session files (background agents write here)
 SUBAGENT_FILES=$({ find "$SESSION_DIR" -path "*/subagents/*.jsonl" -type f -mmin -60 2>/dev/null || true; } | sort)
@@ -354,8 +291,8 @@ echo ""
 # Test 2: Multiple agents were spawned
 echo "Test 2: Agent spawning..."
 if [ -n "$SESSION_FILE" ]; then
-    agent_count=$(grep -c '"name":"Agent"' "$SESSION_FILE" 2>/dev/null || echo "0")
-    subagent_file_count=$(echo "$SUBAGENT_FILES" | grep -c . 2>/dev/null || echo "0")
+    agent_count=$(grep -c '"name":"Agent"' "$SESSION_FILE" 2>/dev/null) || agent_count=0
+    subagent_file_count=$(echo "$SUBAGENT_FILES" | grep -c . 2>/dev/null) || subagent_file_count=0
     if [ "$subagent_file_count" -ge 2 ]; then
         echo "  [PASS] $subagent_file_count subagent session files created"
     elif [ "$agent_count" -ge 2 ]; then
@@ -376,24 +313,20 @@ echo ""
 
 # Test 3: Worktree creation
 echo "Test 3: Worktree creation..."
-worktree_evidence=0
 if [ -n "$SESSION_FILE" ]; then
     # Check for git worktree add in transcripts
-    wt_count=$(cat $ALL_SESSION_FILES 2>/dev/null | grep -c 'git worktree add\|EnterWorktree\|worktree.*add' || echo "0")
+    wt_count=$(cat $ALL_SESSION_FILES 2>/dev/null | grep -c 'git worktree add\|EnterWorktree\|worktree.*add') || wt_count=0
     if [ "$wt_count" -ge 2 ]; then
         echo "  [PASS] Worktree creation found $wt_count time(s) in transcripts"
-        worktree_evidence=2
     elif [ "$wt_count" -ge 1 ]; then
         echo "  [WARN] Only $wt_count worktree creation found (expected >= 2)"
         WARNED=$((WARNED + 1))
-        worktree_evidence=1
     else
         # Fallback: check output file
-        wt_output=$(grep -c 'worktree\|work.tree' "$OUTPUT_FILE" 2>/dev/null || echo "0")
+        wt_output=$(grep -c 'worktree\|work.tree' "$OUTPUT_FILE" 2>/dev/null) || wt_output=0
         if [ "$wt_output" -ge 1 ]; then
             echo "  [WARN] Worktree mentioned in output but no git worktree add found in transcripts"
             WARNED=$((WARNED + 1))
-            worktree_evidence=1
         else
             echo "  [FAIL] No evidence of worktree creation"
             FAILED=$((FAILED + 1))
@@ -415,13 +348,11 @@ echo "Test 4: Math module..."
 if [ -f "$TEST_PROJECT/src/math.js" ]; then
     echo "  [PASS] src/math.js created"
 
-    math_pass=true
     if grep -q "export.*function.*add\|export.*add" "$TEST_PROJECT/src/math.js"; then
         echo "  [PASS] add function exists"
     else
         echo "  [FAIL] add function missing"
         FAILED=$((FAILED + 1))
-        math_pass=false
     fi
 
     if grep -q "export.*function.*subtract\|export.*subtract" "$TEST_PROJECT/src/math.js"; then
@@ -429,7 +360,6 @@ if [ -f "$TEST_PROJECT/src/math.js" ]; then
     else
         echo "  [FAIL] subtract function missing"
         FAILED=$((FAILED + 1))
-        math_pass=false
     fi
 
     if grep -q "export.*function.*multiply\|export.*multiply" "$TEST_PROJECT/src/math.js"; then
@@ -437,7 +367,6 @@ if [ -f "$TEST_PROJECT/src/math.js" ]; then
     else
         echo "  [FAIL] multiply function missing"
         FAILED=$((FAILED + 1))
-        math_pass=false
     fi
 
     if [ -f "$TEST_PROJECT/test/math.test.js" ]; then
@@ -558,7 +487,7 @@ echo ""
 # Test 9: Worktree cleanup
 echo "Test 9: Worktree cleanup..."
 if [ -n "$SESSION_FILE" ]; then
-    cleanup_evidence=$(cat $ALL_SESSION_FILES 2>/dev/null | grep -c 'git worktree remove\|git worktree prune\|worktree.*remove\|worktree.*prune' || echo "0")
+    cleanup_evidence=$(cat $ALL_SESSION_FILES 2>/dev/null | grep -c 'git worktree remove\|git worktree prune\|worktree.*remove\|worktree.*prune') || cleanup_evidence=0
     if [ "$cleanup_evidence" -ge 1 ]; then
         echo "  [PASS] Worktree cleanup commands found in transcripts"
     else
