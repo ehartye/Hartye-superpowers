@@ -59,24 +59,19 @@ sigterm_handler() {
 }
 trap sigterm_handler SIGTERM
 
-# Check for agent teams env var
+# Agent teams require these env vars
 if [ "${CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS:-}" != "1" ]; then
     echo "NOTE: Setting CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 for this test"
     export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 fi
 
-# TaskCreate/TaskList/TaskUpdate are gated behind a separate TTY check.
-# In headless -p mode they're disabled unless explicitly enabled.
-# See: https://github.com/anthropics/claude-code/issues/20463
 if [ "${CLAUDE_CODE_ENABLE_TASKS:-}" != "true" ]; then
     echo "NOTE: Setting CLAUDE_CODE_ENABLE_TASKS=true for this test"
     export CLAUDE_CODE_ENABLE_TASKS=true
 fi
 
 # Kill any stale claude integration test processes from previous runs.
-# Pattern matches only headless claude instances pointing at macOS temp dirs
-# (our test projects are always created via mktemp -d under /var/folders or /tmp).
-STALE=$(pgrep -f "claude -p.*--plugin-dir.*Hartye-superpowers" 2>/dev/null || true)
+STALE=$(pgrep -f "claude -p.*Hartye-superpowers" 2>/dev/null || true)
 if [ -n "$STALE" ]; then
     echo "Cleaning up $(echo "$STALE" | wc -w | tr -d ' ') stale claude process(es) from previous runs..."
     kill $STALE 2>/dev/null || true
@@ -182,99 +177,37 @@ echo ""
 # Run Claude with team-driven-development
 OUTPUT_FILE="$TEST_PROJECT/claude-output.txt"
 
+# IMPORTANT: Run from superpowers directory so local dev skills are available
+# (see upstream commit 0aba33b — skills are discovered from the working directory)
 PROMPT="Change to directory $TEST_PROJECT and then execute the implementation plan at docs/plans/implementation-plan.md using the team-driven-development skill.
 
 Use team name 'test-team-integration'.
 
-IMPORTANT: Follow the team-driven-development skill exactly:
+IMPORTANT: Follow the team-driven-development skill exactly. I will be verifying that you:
 1. Create a team using TeamCreate
-2. Create a shared task list with TaskCreate
-3. Spawn at least 2 teammates (implementer + reviewer)
-4. Have the implementer claim and implement tasks
-5. Have the reviewer review the implementation
-6. Use SendMessage for inter-agent communication
-7. Shut down team members when done using shutdown_request
+2. Spawn at least 2 teammates
+3. Use a shared task list for coordination
+4. Agents communicate via SendMessage
+5. Tasks are claimed and completed by different agents
+6. Shut down team members when done
 
 The plan has 2 tasks where Task 2 depends on Task 1.
 This tests that your team coordinates properly.
 
-CRITICAL - HEADLESS MODE INSTRUCTIONS:
-You are running in headless (-p) mode. Follow these rules exactly:
-
-PHASE A - SETUP: Create the team, task list, spawn agents, send initial
-messages. This should take about 10 tool calls.
-
-PHASE B - POLL FOR IMPLEMENTATION: After setup, poll TaskList repeatedly
-(NO sleep commands) until ALL tasks show 'completed' status.
-
-PHASE C - WAIT FOR REVIEW: After all tasks are completed, send a message
-to the reviewer asking them to review the completed work. Then poll
-TaskList a few MORE times to give the reviewer time to finish. The review
-happens asynchronously - the reviewer reads code, runs tests, and sends
-approval messages. Poll at least 5 more times after tasks are completed
-to allow the review cycle to complete.
-
-PHASE D - VERIFY AND SHUTDOWN: Run 'npm test' to verify all tests pass.
-Then send shutdown_request to each teammate. After sending all shutdown
-requests, poll TaskList ONCE to give agents time to process the shutdown.
-Then call TeamDelete exactly ONCE.
-If TeamDelete fails, that is OK - the test harness handles cleanup.
-
-PHASE E - FINISH: End your turn immediately after the TeamDelete attempt.
-Do NOT loop or retry TeamDelete. The test is done.
-
 Begin now. Execute the plan with a team."
 
-progress "Pre-flight: verifying claude invocation..."
-PREFLIGHT_FILE=$(mktemp)
-timeout 30 env -u CLAUDECODE claude -p "Reply with just the word OK." \
-    --plugin-dir "$PLUGIN_DIR" \
-    --max-turns 3 \
-    < /dev/null > "$PREFLIGHT_FILE" 2>&1 || true
-PREFLIGHT_OUTPUT=$(cat "$PREFLIGHT_FILE")
-rm -f "$PREFLIGHT_FILE"
-if [ -z "$PREFLIGHT_OUTPUT" ]; then
-    echo "  [FAIL] claude produced no output — invocation is broken"
-    echo "  Command: env -u CLAUDECODE claude -p '...' --plugin-dir $PLUGIN_DIR --max-turns 3 < /dev/null"
-    exit 1
-fi
-echo "  [PASS] claude responded: ${PREFLIGHT_OUTPUT:0:80}"
-echo ""
-
-# Create a timestamp marker so we can distinguish the main session from preflight
-TIMESTAMP_MARKER=$(mktemp)
-
 progress "Running Claude with team-driven-development skill..."
-echo "  Live output: $OUTPUT_FILE"
+echo "  Output: $OUTPUT_FILE"
 echo "================================================================================"
-
-# Touch the file first so tail -f can open it immediately
-touch "$OUTPUT_FILE"
-
-# Tail the output file to terminal for live viewing
-tail -f "$OUTPUT_FILE" &
-TAIL_PID=$!
-
-# Run claude — use > file 2>&1 (no pipeline) to match the pattern that works in unit tests.
-# --permission-mode bypassPermissions: Critical for background agents.
-# In -p mode the LEAD auto-approves tools, but background agents spawned
-# with Agent(run_in_background=true) do NOT inherit the lead's permission
-# context. Without this flag, agents freeze on Write/Edit calls waiting
-# for a TTY approval prompt that will never come.
-cd "$TEST_PROJECT" && timeout 3500 env -u CLAUDECODE claude -p "$PROMPT" \
-    --plugin-dir "$PLUGIN_DIR" \
-    --model claude-opus-4-6 \
+cd "$SCRIPT_DIR/../.." && timeout 3500 env -u CLAUDECODE claude -p "$PROMPT" \
+    --allowed-tools=all \
+    --add-dir "$TEST_PROJECT" \
     --permission-mode bypassPermissions \
-    --max-turns 50 \
-    < /dev/null > "$OUTPUT_FILE" 2>&1 || {
+    2>&1 | tee "$OUTPUT_FILE" || {
     echo ""
+    echo "================================================================================"
     echo "EXECUTION FAILED (exit code: $?)"
 }
-
-# Stop tail
-kill "$TAIL_PID" 2>/dev/null || true
-wait "$TAIL_PID" 2>/dev/null || true
-echo "================================================================================"
 echo "================================================================================"
 progress "Phase 2/4: Claude execution complete."
 echo ""
@@ -282,17 +215,14 @@ progress "Phase 3/4: Analyzing session transcript..."
 echo ""
 
 # Find the session transcript
-# Claude Code names project dirs by replacing / and . with - in the canonical path.
-# create_test_project() returns the symlink-resolved path so this matches Claude Code.
-WORKING_DIR_ESCAPED=$(echo "$TEST_PROJECT" | sed 's/[\/.]/-/g')
+# We run from $SCRIPT_DIR/../.. (the plugin repo root), so derive from that.
+PLUGIN_DIR_RESOLVED=$(cd "$SCRIPT_DIR/../.." && pwd -P)
+WORKING_DIR_ESCAPED=$(echo "$PLUGIN_DIR_RESOLVED" | sed 's/[\/.]/-/g')
 SESSION_DIR="$HOME/.claude/projects/$WORKING_DIR_ESCAPED"
 
-# Find the main session file (created AFTER the preflight check).
-# The timestamp marker was created between preflight and main run, so -newer
-# excludes the preflight "OK" session and picks only the main team session.
+# Find the most recent session file (created during this test run).
 # The { ... || true; } prevents pipefail from aborting if SESSION_DIR doesn't exist.
-SESSION_FILE=$({ find "$SESSION_DIR" -maxdepth 1 -name "*.jsonl" -type f -newer "$TIMESTAMP_MARKER" 2>/dev/null || true; } | sort -r | head -1)
-rm -f "$TIMESTAMP_MARKER"
+SESSION_FILE=$({ find "$SESSION_DIR" -maxdepth 1 -name "*.jsonl" -type f -mmin -60 2>/dev/null || true; } | sort -r | head -1)
 
 # Also collect subagent session files (background agents write here)
 SUBAGENT_FILES=$({ find "$SESSION_DIR" -path "*/subagents/*.jsonl" -type f -mmin -60 2>/dev/null || true; } | sort)
@@ -312,6 +242,12 @@ if [ -n "$SESSION_FILE" ]; then
     echo "Analyzing session transcript: $(basename "$SESSION_FILE")"
 fi
 echo ""
+
+# Combine all session files for searching
+ALL_SESSION_FILES="$SESSION_FILE"
+if [ -n "$SUBAGENT_FILES" ]; then
+    ALL_SESSION_FILES="$SESSION_FILE $SUBAGENT_FILES"
+fi
 
 # Verification tests
 FAILED=0
@@ -337,9 +273,9 @@ echo ""
 echo "Test 2: Agent spawning..."
 if [ -n "$SESSION_FILE" ]; then
     # Check for Agent tool calls in lead session
-    agent_count=$(grep -c '"name":"Agent"' "$SESSION_FILE" 2>/dev/null || echo "0")
+    agent_count=$(grep -c '"name":"Agent"' "$SESSION_FILE" 2>/dev/null) || agent_count=0
     # Also count actual subagent session files (definitive proof agents ran)
-    subagent_file_count=$(echo "$SUBAGENT_FILES" | grep -c . 2>/dev/null || echo "0")
+    subagent_file_count=$(echo "$SUBAGENT_FILES" | grep -c . 2>/dev/null) || subagent_file_count=0
     if [ "$subagent_file_count" -ge 2 ]; then
         echo "  [PASS] $subagent_file_count subagent session files created"
     elif [ "$agent_count" -ge 2 ]; then
@@ -363,12 +299,7 @@ echo ""
 echo "Test 3: Shared task list..."
 if [ -n "$SESSION_FILE" ]; then
     # Count task tool usage across lead AND all subagent sessions
-    ALL_SESSION_FILES="$SESSION_FILE"
-    if [ -n "$SUBAGENT_FILES" ]; then
-        ALL_SESSION_FILES="$SESSION_FILE $SUBAGENT_FILES"
-    fi
-    # grep -c with multiple files outputs "file:count" per line; use cat to get a single total
-    task_tool_count=$(cat $ALL_SESSION_FILES 2>/dev/null | grep -c '"name":"TaskCreate"\|"name":"TaskList"\|"name":"TaskUpdate"\|"name":"TaskGet"' || echo "0")
+    task_tool_count=$(cat $ALL_SESSION_FILES 2>/dev/null | grep -c '"name":"TaskCreate"\|"name":"TaskList"\|"name":"TaskUpdate"\|"name":"TaskGet"') || task_tool_count=0
     if [ "$task_tool_count" -ge 2 ]; then
         echo "  [PASS] Task tools used $task_tool_count time(s) across all sessions"
     else
@@ -388,7 +319,7 @@ echo ""
 # Test 4: Inter-agent communication
 echo "Test 4: Inter-agent communication..."
 if [ -n "$SESSION_FILE" ]; then
-    msg_count=$(cat $ALL_SESSION_FILES 2>/dev/null | grep -c '"name":"SendMessage"' || echo "0")
+    msg_count=$(cat $ALL_SESSION_FILES 2>/dev/null | grep -c '"name":"SendMessage"') || msg_count=0
     if [ "$msg_count" -ge 1 ]; then
         echo "  [PASS] SendMessage used $msg_count time(s) across all sessions"
     else

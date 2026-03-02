@@ -57,8 +57,7 @@ sigterm_handler() {
 trap sigterm_handler SIGTERM
 
 # Kill any stale claude integration test processes from previous runs.
-# Pattern matches only headless claude instances pointing at this plugin dir.
-STALE=$(pgrep -f "claude -p.*--plugin-dir.*Hartye-superpowers" 2>/dev/null || true)
+STALE=$(pgrep -f "claude -p.*Hartye-superpowers" 2>/dev/null || true)
 if [ -n "$STALE" ]; then
     echo "Cleaning up $(echo "$STALE" | wc -w | tr -d ' ') stale claude process(es) from previous runs..."
     kill $STALE 2>/dev/null || true
@@ -165,23 +164,9 @@ echo ""
 # Capture full output to analyze
 OUTPUT_FILE="$TEST_PROJECT/claude-output.txt"
 
-# Create prompt file
-cat > "$TEST_PROJECT/prompt.txt" <<'EOF'
-I want you to execute the implementation plan at docs/plans/implementation-plan.md using the subagent-driven-development skill.
-
-IMPORTANT: Follow the skill exactly. I will be verifying that you:
-1. Read the plan once at the beginning
-2. Provide full task text to subagents (don't make them read files)
-3. Ensure subagents do self-review before reporting
-4. Run spec compliance review before code quality review
-5. Use review loops when issues are found
-
-Begin now. Execute the plan.
-EOF
-
 # Note: We use a longer timeout since this is integration testing
-# Use --allowed-tools to enable tool usage in headless mode
 # IMPORTANT: Run from superpowers directory so local dev skills are available
+# (see upstream commit 0aba33b — skills are discovered from the working directory)
 PROMPT="Change to directory $TEST_PROJECT and then execute the implementation plan at docs/plans/implementation-plan.md using the subagent-driven-development skill.
 
 IMPORTANT: Follow the skill exactly. I will be verifying that you:
@@ -194,24 +179,18 @@ IMPORTANT: Follow the skill exactly. I will be verifying that you:
 Begin now. Execute the plan."
 
 progress "Running Claude with subagent-driven-development skill..."
-echo "  Live output: $OUTPUT_FILE"
+echo "  Output: $OUTPUT_FILE"
 echo "================================================================================"
-
-touch "$OUTPUT_FILE"
-tail -f "$OUTPUT_FILE" &
-TAIL_PID=$!
-
-cd "$TEST_PROJECT" && timeout 3500 env -u CLAUDECODE claude -p "$PROMPT" \
-    --plugin-dir "$PLUGIN_DIR" \
+cd "$SCRIPT_DIR/../.." && timeout 1800 env -u CLAUDECODE claude -p "$PROMPT" \
+    --allowed-tools=all \
+    --add-dir "$TEST_PROJECT" \
     --permission-mode bypassPermissions \
-    --max-turns 20 \
-    < /dev/null > "$OUTPUT_FILE" 2>&1 || {
+    2>&1 | tee "$OUTPUT_FILE" || {
     echo ""
+    echo "================================================================================"
     echo "EXECUTION FAILED (exit code: $?)"
     exit 1
 }
-kill "$TAIL_PID" 2>/dev/null || true
-wait "$TAIL_PID" 2>/dev/null || true
 echo "================================================================================"
 progress "Phase 2/4: Claude execution complete."
 echo ""
@@ -219,9 +198,10 @@ progress "Phase 3/4: Locating session transcript..."
 echo ""
 
 # Find the session transcript
-# Claude Code names project dirs by replacing / and . with - in the canonical path.
-# create_test_project() returns the symlink-resolved path so this matches Claude Code.
-WORKING_DIR_ESCAPED=$(echo "$TEST_PROJECT" | sed 's/[\/.]/-/g')
+# Session files are in ~/.claude/projects/-<working-dir>/<session-id>.jsonl
+# We run from $SCRIPT_DIR/../.. (the plugin repo root), so derive from that.
+PLUGIN_DIR_RESOLVED=$(cd "$SCRIPT_DIR/../.." && pwd -P)
+WORKING_DIR_ESCAPED=$(echo "$PLUGIN_DIR_RESOLVED" | sed 's/[\/.]/-/g')
 SESSION_DIR="$HOME/.claude/projects/$WORKING_DIR_ESCAPED"
 
 # Find the most recent session file (created during this test run).
@@ -260,10 +240,11 @@ else
 fi
 echo ""
 
-# Test 2: Subagents were used (Task tool)
+# Test 2: Subagents were used (Agent/Task tool)
 echo "Test 2: Subagents dispatched..."
 if [ -n "$SESSION_FILE" ]; then
-    task_count=$(grep -c '"name":"Task"' "$SESSION_FILE" 2>/dev/null || echo "0")
+    # Check for both "Agent" (current) and "Task" (legacy) tool names
+    task_count=$(grep -c '"name":"Agent"\|"name":"Task"' "$SESSION_FILE" 2>/dev/null) || task_count=0
     if [ "$task_count" -ge 2 ]; then
         echo "  [PASS] $task_count subagents dispatched"
     else
@@ -271,7 +252,7 @@ if [ -n "$SESSION_FILE" ]; then
         FAILED=$((FAILED + 1))
     fi
 else
-    if grep -qi "subagent\|dispatching\|Task tool" "$OUTPUT_FILE" 2>/dev/null; then
+    if grep -qi "subagent\|dispatching\|Agent tool\|Task tool" "$OUTPUT_FILE" 2>/dev/null; then
         echo "  [PASS] Subagent dispatching referenced in output"
     else
         echo "  [FAIL] No evidence of subagent dispatching"
@@ -283,7 +264,7 @@ echo ""
 # Test 3: TodoWrite was used for tracking
 echo "Test 3: Task tracking..."
 if [ -n "$SESSION_FILE" ]; then
-    todo_count=$(grep -c '"name":"TodoWrite"' "$SESSION_FILE" 2>/dev/null || echo "0")
+    todo_count=$(grep -c '"name":"TodoWrite"' "$SESSION_FILE" 2>/dev/null) || todo_count=0
     if [ "$todo_count" -ge 1 ]; then
         echo "  [PASS] TodoWrite used $todo_count time(s) for task tracking"
     else

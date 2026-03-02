@@ -1,181 +1,132 @@
-# Hartye-Superpowers
+<div align="center">
 
-Hartye-Superpowers is a fork of [Jesse Vincent's Superpowers](https://github.com/obra/superpowers) — a complete software development workflow for coding agents, built on composable "skills" and initial instructions that ensure your agent uses them. This fork adds **agent team support** (multi-agent peer-to-peer coordination) and other enhancements on top of the original.
+![SUPERPOWERS — NOW WITH AGENT TEAMS](hsp-banner-disc.jpg)
 
-> **Original project:** [obra/superpowers](https://github.com/obra/superpowers) by [Jesse Vincent](https://blog.fsck.com/2025/10/09/superpowers/)
-> **This fork:** [ehartye/Hartye-superpowers](https://github.com/ehartye/Hartye-superpowers) maintained by Eric Hartye
+</div>
 
-## How it works
+# HARTYE-SUPERPOWERS
 
-It starts from the moment you fire up your coding agent. As soon as it sees that you're building something, it *doesn't* just jump into trying to write code. Instead, it steps back and asks you what you're really trying to do. 
+### *THE IRRESPONSIBLY INDULGENT FORK*
 
-Once it's teased a spec out of the conversation, it shows it to you in chunks short enough to actually read and digest. 
+OH YEAH, brother! You've stumbled into the DANGER ZONE. This right here is Hartye-Superpowers — the CREAM OF THE CROP of agent workflow plugins — and it is NOT for the faint of heart!
 
-After you've signed off on the design, your agent puts together an implementation plan that's clear enough for an enthusiastic junior engineer with poor taste, no judgement, no project context, and an aversion to testing to follow. It emphasizes true red/green TDD, YAGNI (You Aren't Gonna Need It), and DRY. 
+> **STOP RIGHT THERE.** Are you a sensible, budget-conscious developer who just wants their coding agent to be better? Then you want [**obra/superpowers**](https://github.com/obra/superpowers) — Jesse Vincent's LEGENDARY original plugin. It's the real deal. The foundation. The champ that started this whole revolution. Go there. Install that. You will love it.
+>
+> Still here? Then you're ready for THE MADNESS. DIG IT.
 
-Next up, once you say "go", it launches a *subagent-driven-development* process, having agents work through each engineering task, inspecting and reviewing their work, and continuing forward. It's not uncommon for Claude to be able to work autonomously for a couple hours at a time without deviating from the plan you put together.
+## What Makes This Fork Different?
 
-There's a bunch more to it, but that's the core of the system. And because the skills trigger automatically, you don't need to do anything special. Your coding agent just has Superpowers.
+The original [obra/superpowers](https://github.com/obra/superpowers) gives your agent a disciplined, structured workflow. Beautiful. Elegant. Responsible.
 
+This fork looked at that and said **"WHAT IF WE TURNED IT UP TO ELEVEN?"**
 
-## Sponsorship
+**AGENT TEAMS, BABY.** Multiple agents working together — a lead agent spawning teammates, assigning tasks through shared task lists, agents talking DIRECTLY to each other, each one in its own isolated git worktree so nobody steps on anybody's toes. The lead watches the board, resolves blockers, merges the branches, and delivers a finished feature while you're out getting coffee.
 
-If Superpowers has been useful to you and you'd like to support the original author's open-source work, consider [sponsoring Jesse Vincent](https://github.com/sponsors/obra).
+Will it consume tokens like a man possessed? **YOU BET IT WILL.** That's the price of GREATNESS. The Token Bills don't lie.
 
+## The Workflow — OOOH YEAH
+
+1. **BRAINSTORMING** — Your agent doesn't just dive in like some JABRONI. It stops. It asks questions. It *thinks*. Design refinement through Socratic questioning. The cream rises to the top!
+
+2. **GIT WORKTREES** — Isolated workspace, fresh branch, clean baseline. Your main branch doesn't get touched. NOBODY touches the main branch until it's time.
+
+3. **THE PLAN** — Every task broken down into bite-sized pieces. Exact file paths. Complete code. Verification steps. A plan so clear even a caffeinated junior dev with no context could follow it.
+
+4. **EXECUTION** — And here's where you CHOOSE YOUR DESTINY:
+   - **Subagent-Driven** — One agent per task, two-stage review. Fast. Clean. The classic.
+   - **Team-Driven** — A WHOLE SQUAD of agents coordinating through direct messaging and shared task lists. Each agent gets its own worktree. The lead orchestrates. It's beautiful chaos. *(Opus 4.6+ only, and your token budget WILL feel it.)*
+   - **Manual** — You execute the plan yourself in a parallel session. For the control freaks. No judgment.
+
+5. **TEST-DRIVEN DEVELOPMENT** — RED. GREEN. REFACTOR. No exceptions. Write the test first or the skill will DELETE YOUR CODE. The Macho Man respects TDD.
+
+6. **CODE REVIEW** — Every task gets reviewed against the plan. Critical issues BLOCK PROGRESS. No sneaking past the ropes.
+
+7. **FINISH** — Tests pass, options presented, worktree cleaned up. Merge, PR, keep, or discard. Clean as a whistle.
+
+**These aren't suggestions. They're MANDATORY WORKFLOWS.** The skills trigger automatically. Your agent doesn't get a choice. AND NEITHER DO YOU.
 
 ## Installation
 
-**Note:** Installation differs by platform. Claude Code has a built-in plugin system. Codex and OpenCode require manual setup.
+> **Seriously though** — if you want the stable, token-efficient experience, go install [obra/superpowers](https://github.com/obra/superpowers). Jesse built the foundation and it's excellent. This fork is for people who looked at that and said "but what if MORE agents?"
 
 ### Claude Code
 
-> **Current state:** There is no published marketplace registration yet. Install locally for development/testing:
-
 ```bash
-# Clone the repository
+# Clone the repository — SNAP INTO IT
 git clone https://github.com/ehartye/Hartye-superpowers.git
 
-# From the cloned directory, enable the local dev plugin in Claude Code settings:
+# Enable the local dev plugin in Claude Code settings:
 # Add "h-superpowers@superpowers-dev": true to enabledPlugins in ~/.claude/settings.json
 ```
 
-Once a marketplace entry is published, install will be:
-
-```bash
-/plugin marketplace add ehartye/Hartye-superpowers
-/plugin install h-superpowers@Hartye-superpowers
-```
-
-### Verify Installation
-
-Start a new session and tell Claude: **"I want to add a dark mode toggle to my app."** Claude should pause, ask clarifying questions about your design (brainstorming skill), rather than immediately writing code. That's the signal it's working.
-
 ### Codex
-
-Tell Codex:
 
 ```
 Fetch and follow instructions from https://raw.githubusercontent.com/ehartye/Hartye-superpowers/refs/heads/main/.codex/INSTALL.md
 ```
 
-**Detailed docs:** [docs/README.codex.md](docs/README.codex.md)
-
 ### OpenCode
-
-Tell OpenCode:
 
 ```
 Fetch and follow instructions from https://raw.githubusercontent.com/ehartye/Hartye-superpowers/refs/heads/main/.opencode/INSTALL.md
 ```
 
-**Detailed docs:** [docs/README.opencode.md](docs/README.opencode.md)
-
-## The Basic Workflow
-
-1. **brainstorming** - Activates before writing code. Refines rough ideas through questions, explores alternatives, presents design in sections for validation. Saves design document.
-
-2. **using-git-worktrees** - Activates after design approval. Creates isolated workspace on new branch, runs project setup, verifies clean test baseline.
-
-3. **writing-plans** - Activates with approved design. Breaks work into bite-sized tasks (2-5 minutes each). Every task has exact file paths, complete code, verification steps.
-
-4. **subagent-driven-development**, **team-driven-development**, or **executing-plans** - Activates with plan. Dispatches fresh subagent per task with two-stage review (spec compliance, then code quality), uses collaborative agent teams with inter-agent communication for complex coordinated work, or executes in batches with human checkpoints.
-
-5. **test-driven-development** - Activates during implementation. Enforces RED-GREEN-REFACTOR: write failing test, watch it fail, write minimal code, watch it pass, commit. Deletes code written before tests.
-
-6. **requesting-code-review** - Activates between tasks. Reviews against plan, reports issues by severity. Critical issues block progress.
-
-7. **finishing-a-development-branch** - Activates when tasks complete. Verifies tests, presents options (merge/PR/keep/discard), cleans up worktree.
-
-**The agent checks for relevant skills before any task.** Mandatory workflows, not suggestions.
-
-## Your First Session
-
-Here's what a typical first feature looks like with Superpowers active:
-
-**You:** "I want to add a dark mode toggle to my app."
-
-**Claude (brainstorming):** Asks 3–5 clarifying questions — Where should the toggle live? Should it persist across sessions? Which components need to respect the theme?
-
-**You:** Answer the questions. Claude presents the design back in readable sections. You approve.
-
-**Claude (using-git-worktrees):** Creates a new branch (`feature/dark-mode`) and an isolated worktree so your main branch is untouched.
-
-**Claude (writing-plans):** Produces a step-by-step implementation plan — exact files, code snippets, test commands. Asks which execution style you want:
-- **Subagent-driven** (this session, fast, Claude handles each task with automated review)
-- **Team-driven** (parallel agents for complex coordinated work, experimental)
-- **Parallel session** (you open a new session and use executing-plans with the plan file)
-
-**You:** "Subagent-driven."
-
-**Claude:** Dispatches a fresh subagent per task. Each task is reviewed for spec compliance and code quality before moving on. You watch progress or walk away.
-
-**Claude (finishing-a-development-branch):** When tasks complete, runs tests, then presents exactly four options: merge locally, open a PR, keep the branch, or discard. You choose; Claude executes.
-
-The whole thing — design through PR — typically runs without you touching code.
-
-## What's Inside
-
-### Skills Library
+## What's Inside — THE FULL ARSENAL
 
 **Testing**
-- **test-driven-development** - RED-GREEN-REFACTOR cycle (includes testing anti-patterns reference)
+- **test-driven-development** — RED-GREEN-REFACTOR or go home
 
 **Debugging**
-- **systematic-debugging** - 4-phase root cause process (includes root-cause-tracing, defense-in-depth, condition-based-waiting techniques)
-- **verification-before-completion** - Ensure it's actually fixed
+- **systematic-debugging** — 4-phase root cause analysis. No guessing.
+- **verification-before-completion** — Prove it's fixed or it ain't fixed
 
 **Collaboration**
-- **brainstorming** - Socratic design refinement
-- **writing-plans** - Detailed implementation plans
-- **executing-plans** - Batch execution with checkpoints
-- **dispatching-parallel-agents** - Concurrent subagent workflows
-- **requesting-code-review** - Pre-review checklist
-- **receiving-code-review** - Responding to feedback
-- **using-git-worktrees** - Parallel development branches
-- **finishing-a-development-branch** - Merge/PR decision workflow
-- **subagent-driven-development** - Fast iteration with two-stage review (spec compliance, then code quality)
-- **team-driven-development** - Collaborative agent teams with direct inter-agent communication for coordinated work (experimental, Opus 4.6+)
+- **brainstorming** — Socratic design refinement
+- **writing-plans** — Battle-tested implementation plans
+- **executing-plans** — Batch execution with human checkpoints
+- **dispatching-parallel-agents** — Concurrent subagent workflows
+- **requesting-code-review** / **receiving-code-review** — The review gauntlet
+- **using-git-worktrees** — Isolated development branches
+- **finishing-a-development-branch** — The clean exit
+- **subagent-driven-development** — Fast iteration with two-stage review
+- **team-driven-development** — THE MAIN EVENT. Agent teams with peer-to-peer messaging, shared task lists, and per-agent worktree isolation. *(Experimental. Opus 4.6+. Token-hungry. Glorious.)*
 
 **Agents**
-- **code-reviewer** - Bundled agent for systematic code review against plans and coding standards
+- **code-reviewer** — Bundled agent for systematic code review against plans and standards
 
 **Meta**
-- **writing-skills** - Create new skills following best practices (includes testing methodology)
-- **using-superpowers** - Introduction to the skills system
+- **writing-skills** — Create your own skills
+- **using-superpowers** — The orientation guide
+
+## Sponsorship
+
+The original [obra/superpowers](https://github.com/obra/superpowers) is the project that made all of this possible. If Superpowers has been useful to you, consider [sponsoring Jesse Vincent](https://github.com/sponsors/obra). He built the ring. We're just here doing elbow drops off the top rope.
 
 ## Philosophy
 
-- **Test-Driven Development** - Write tests first, always
-- **Systematic over ad-hoc** - Process over guessing
-- **Complexity reduction** - Simplicity as primary goal
-- **Evidence over claims** - Verify before declaring success
-
-Read more about the original project: [Superpowers for Claude Code](https://blog.fsck.com/2025/10/09/superpowers/) by Jesse Vincent.
+- **Test-Driven Development** — Write the test first. ALWAYS.
+- **Systematic over ad-hoc** — Process over guessing. EVERY TIME.
+- **Evidence over claims** — Verify before declaring victory.
+- **Go big or go home** — If you're gonna spend tokens, MAKE THEM COUNT.
 
 ## Contributing
 
-Skills live directly in this repository. To contribute:
-
 1. Fork [ehartye/Hartye-superpowers](https://github.com/ehartye/Hartye-superpowers)
-2. Create a branch for your skill
-3. Follow the `writing-skills` skill for creating and testing new skills
+2. Create a branch
+3. Follow the `writing-skills` skill
 4. Submit a PR
-
-See `skills/writing-skills/SKILL.md` for the complete guide.
-
-## Updating
-
-Skills update automatically when you update the plugin:
-
-```bash
-/plugin update h-superpowers
-```
 
 ## License
 
-MIT License - see LICENSE file for details
+MIT License — see LICENSE file for details
 
 ## Support
 
 - **Issues**: https://github.com/ehartye/Hartye-superpowers/issues
-- **Upstream project**: https://github.com/obra/superpowers
+- **The original (you probably want this)**: https://github.com/obra/superpowers
+
+---
+
+<div align="center">
+<sub>Hartye-superpowers is an irresponsibly indulgent fork of the praise-worthy <a href="https://github.com/obra/superpowers">obra/superpowers</a> plugin. You're probably looking for them.</sub>
+</div>
