@@ -94,7 +94,7 @@ digraph process {
 
 **Spec reviewer mindset:** Adversarial — does not trust the implementer's report. The reviewer reads code independently, compares against the spec line-by-line, and treats the implementer's claims as unverified until confirmed by code inspection. Checks three things: (1) missing requirements — did they skip anything? (2) extra work — did they build things not in spec? (3) misunderstandings — did they solve the wrong problem?
 
-**Code quality reviewer:** Only dispatched after spec compliance passes. Reviews the diff for clean code, test coverage, maintainability, and adherence to project conventions. Returns strengths, issues (critical/important/minor), and an overall assessment.
+**Code quality reviewer:** Only dispatched after spec compliance passes. Dispatch using the `code-reviewer` custom agent included with this plugin (it has full tool access including Bash for git commands in worktrees). Reviews the diff for clean code, test coverage, maintainability, and adherence to project conventions. Returns strengths, issues (critical/important/minor), and an overall assessment.
 
 ## Example Workflow
 
