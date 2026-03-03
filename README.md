@@ -52,11 +52,11 @@ Will it consume tokens like a man possessed? **YOU BET IT WILL.** That's the pri
 ### Claude Code
 
 ```bash
-# Clone the repository — SNAP INTO IT
-git clone https://github.com/ehartye/Hartye-superpowers.git
+# Add the marketplace (one-time) — SNAP INTO IT
+/plugin marketplace add ehartye/hartye-claude-plugins
 
-# Enable the local dev plugin in Claude Code settings:
-# Add "h-superpowers@superpowers-dev": true to enabledPlugins in ~/.claude/settings.json
+# Install the plugin — THE CREAM RISES TO THE TOP
+/plugin install hartye-superpowers@hartye-plugins
 ```
 
 ### Codex
@@ -105,6 +105,7 @@ The original [obra/superpowers](https://github.com/obra/superpowers) is the proj
 ## Philosophy
 
 - **Test-Driven Development** — Write the test first. ALWAYS.
+- **YAGNI** — You Ain't Gonna Need It. Build what the spec says. NOTHING MORE. Gold-plating is for championship belts, not code.
 - **Systematic over ad-hoc** — Process over guessing. EVERY TIME.
 - **Evidence over claims** — Verify before declaring victory.
 - **Go big or go home** — If you're gonna spend tokens, MAKE THEM COUNT.
@@ -122,11 +123,9 @@ MIT License — see LICENSE file for details
 
 ## Support
 
-- **Issues**: https://github.com/ehartye/Hartye-superpowers/issues
-- **The original (you probably want this)**: https://github.com/obra/superpowers
+- **Issues**: <https://github.com/ehartye/Hartye-superpowers/issues>
+- **The original (you probably want this)**: <https://github.com/obra/superpowers>
 
 ---
 
-<div align="center">
-<sub>Hartye-superpowers is an irresponsibly indulgent fork of the praise-worthy <a href="https://github.com/obra/superpowers">obra/superpowers</a> plugin. You're probably looking for them.</sub>
-</div>
+*Hartye-superpowers is an irresponsibly indulgent fork of the praise-worthy [obra/superpowers](https://github.com/obra/superpowers) plugin. You're probably looking for them.*

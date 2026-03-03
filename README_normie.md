@@ -33,21 +33,12 @@ If Superpowers has been useful to you and you'd like to support the original aut
 
 ### Claude Code
 
-> **Current state:** There is no published marketplace registration yet. Install locally for development/testing:
-
 ```bash
-# Clone the repository
-git clone https://github.com/ehartye/Hartye-superpowers.git
+# Add the marketplace (one-time)
+/plugin marketplace add ehartye/hartye-claude-plugins
 
-# From the cloned directory, enable the local dev plugin in Claude Code settings:
-# Add "h-superpowers@superpowers-dev": true to enabledPlugins in ~/.claude/settings.json
-```
-
-Once a marketplace entry is published, install will be:
-
-```bash
-/plugin marketplace add ehartye/Hartye-superpowers
-/plugin install h-superpowers@Hartye-superpowers
+# Install the plugin
+/plugin install hartye-superpowers@hartye-plugins
 ```
 
 ### Verify Installation
@@ -169,10 +160,8 @@ See `skills/writing-skills/SKILL.md` for the complete guide.
 
 ## Updating
 
-Skills update automatically when you update the plugin:
-
 ```bash
-/plugin update h-superpowers
+/plugin install hartye-superpowers@hartye-plugins
 ```
 
 ## License
@@ -181,5 +170,5 @@ MIT License - see LICENSE file for details
 
 ## Support
 
-- **Issues**: https://github.com/ehartye/Hartye-superpowers/issues
-- **Upstream project**: https://github.com/obra/superpowers
+- **Issues**: <https://github.com/ehartye/Hartye-superpowers/issues>
+- **Upstream project**: <https://github.com/obra/superpowers>
