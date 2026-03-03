@@ -59,8 +59,3 @@ bash tests/claude-code/run-skill-tests.sh --integration
 # Single test file
 bash tests/claude-code/run-skill-tests.sh --test test-subagent-driven-development.sh
 ```
-
-## Git
-
-- Repo-local git identity: `eric@hartye.com` / `Eric M Hartye`
-- Create feature branches for changes; squash-merge PRs into main.
