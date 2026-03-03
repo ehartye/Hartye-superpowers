@@ -40,6 +40,13 @@ Task tool (general-purpose):
 
     Work from: [directory]
 
+    **Tool use in worktrees:** If your working directory is a temp path or
+    worktree, use absolute paths for all tool calls. If the Write tool
+    silently fails (file not found after write), fall back to
+    `bash cat > /absolute/path << 'EOF'`. Always `cd [directory]` before
+    running shell commands. Stage specific files (`git add src/file.js`),
+    never `git add .` or `git add -A`.
+
     **While you work:** If you encounter something unexpected or unclear, **ask questions**.
     It's always OK to pause and clarify. Don't guess or make assumptions.
 

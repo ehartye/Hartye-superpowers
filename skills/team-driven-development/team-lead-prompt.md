@@ -33,6 +33,15 @@ Branch: [branch-name]
 Resource notes from planner:
 [Any port assignments, scratch org allocations, env var overrides, etc.]
 
+**When spawning agents into worktrees**, always include the **full absolute path**
+to their worktree in the agent prompt. Agents in temp directories cannot reliably
+resolve relative paths. Example:
+```
+Your worktree: /tmp/tmp.abc123/.worktrees/implementer-1
+Branch: implementer-1
+All file operations must use this absolute path.
+```
+
 ## Shared Task List
 
 Location: ~/.claude/teams/[team-name]/tasks.json
@@ -181,6 +190,43 @@ After all tasks are complete and reviewed, merge agent branches before finishing
 
 **If team used a shared worktree:** No merge needed — proceed directly to finishing-a-development-branch.
 
+## Team Shutdown
+
+After all tasks are complete and merges are done, shut down the team:
+
+1. Send `shutdown_request` to each teammate via SendMessage
+2. Wait briefly (5-10 seconds) for shutdown responses
+3. Call `TeamDelete` to clean up team and task files
+
+**If TeamDelete fails** (agents still registered as active):
+- Retry **once** after a short wait (10 seconds)
+- If it still fails, **do not keep retrying**. Idle agents often cannot process
+  shutdown requests due to platform limitations (agent teams are experimental).
+- Fall back to manual cleanup:
+  ```bash
+  rm -rf ~/.claude/teams/[team-name]/ ~/.claude/tasks/[team-name]/
+  ```
+- This is safe once all tasks are complete and code is committed/merged.
+
+**Never** enter a sleep/retry loop for TeamDelete. Two attempts maximum, then
+manual cleanup. Retrying wastes tokens and will not fix stale agent registrations.
+
+## Handling Incoming Messages
+
+Messages from teammates are **informational** — they are status updates, not action triggers.
+
+**When you receive a "task complete" message:**
+- Acknowledge it (via SendMessage if needed)
+- Update the task list if the teammate hasn't already
+- Check whether dependent tasks are now unblocked
+- Do NOT spawn a new agent in response — the existing teammates will pick up unblocked work themselves
+
+**When you receive a "blocked" or "question" message:**
+- Answer the question or resolve the blocker via SendMessage
+- Do NOT spawn a new agent to handle it
+
+**Critical rule:** Only spawn agents at the START of orchestration when assembling the team. Never spawn additional agents in response to incoming messages. Your team size is fixed once established. If a teammate goes idle after completing their task, send them a message with their next assignment — do not create a replacement.
+
 ## Begin Orchestration
 
 1. Review current task list and statuses
@@ -188,6 +234,9 @@ After all tasks are complete and reviewed, merge agent branches before finishing
 3. Identify next available tasks (dependencies met)
 4. Assign tasks to available team members OR let them claim from list
 5. Monitor progress and respond to incoming messages
+   - READ messages for status updates and coordination needs
+   - SEND response messages if clarification or a decision is needed
+   - Do NOT spawn new agents in response to messages
 6. Repeat until all tasks complete
 
 Remember: Your job is to **orchestrate**, not implement. Keep the team moving forward efficiently.

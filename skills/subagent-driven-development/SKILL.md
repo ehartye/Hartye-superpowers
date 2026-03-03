@@ -88,6 +88,14 @@ digraph process {
 - `./spec-reviewer-prompt.md` - Dispatch spec compliance reviewer subagent
 - `./code-quality-reviewer-prompt.md` - Dispatch code quality reviewer subagent
 
+### Role summaries
+
+**Implementer self-review:** Before reporting back, implementers review their own work for completeness (all requirements met?), quality (clear naming, clean code?), discipline (no overbuilding, follows existing patterns?), and testing (tests verify real behavior, not just mock it?). Issues found during self-review are fixed before handoff to reviewers.
+
+**Spec reviewer mindset:** Adversarial — does not trust the implementer's report. The reviewer reads code independently, compares against the spec line-by-line, and treats the implementer's claims as unverified until confirmed by code inspection. Checks three things: (1) missing requirements — did they skip anything? (2) extra work — did they build things not in spec? (3) misunderstandings — did they solve the wrong problem?
+
+**Code quality reviewer:** Only dispatched after spec compliance passes. Reviews the diff for clean code, test coverage, maintainability, and adherence to project conventions. Returns strengths, issues (critical/important/minor), and an overall assessment.
+
 ## Example Workflow
 
 ```
