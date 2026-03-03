@@ -18,10 +18,10 @@ run_claude() {
     CLAUDE_OUTPUT=""
 
     # Build command as array to avoid bash -c quoting issues
-    # No --plugin-dir needed: tests run from within the repo, so Claude Code
-    # discovers the plugin from .claude-plugin/ automatically (upstream approach).
+    # --plugin-dir is needed for unit tests: headless -p mode from tests/claude-code/
+    # doesn't reliably walk up to find .claude-plugin/ at the repo root.
     # No --max-turns: the timeout is the safety net (upstream approach).
-    local -a cmd_args=(-p "$prompt")
+    local -a cmd_args=(-p "$prompt" --plugin-dir "$PLUGIN_DIR")
     if [ -n "$allowed_tools" ]; then
         cmd_args+=(--allowed-tools="$allowed_tools")
     fi
