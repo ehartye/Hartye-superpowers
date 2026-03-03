@@ -179,6 +179,8 @@ IMPORTANT: Follow the skill exactly. I will be verifying that you:
 4. Run spec compliance review before code quality review
 5. Use review loops when issues are found
 
+When all tasks pass review, merge the feature branch back to main (Option 1 from finishing-a-development-branch). Do not wait for user input — this is an automated test.
+
 Begin now. Execute the plan."
 
 progress "Running Claude with subagent-driven-development skill..."
@@ -188,7 +190,7 @@ cd "$TEST_PROJECT" && timeout 1800 env -u CLAUDECODE claude -p "$PROMPT" \
     --plugin-dir "$PLUGIN_DIR" \
     --allowed-tools=all \
     --permission-mode bypassPermissions \
-    2>&1 | tee "$OUTPUT_FILE" || {
+    < /dev/null 2>&1 | tee "$OUTPUT_FILE" || {
     echo ""
     echo "================================================================================"
     echo "EXECUTION FAILED (exit code: $?)"
@@ -206,9 +208,10 @@ echo ""
 WORKING_DIR_ESCAPED=$(echo "$TEST_PROJECT" | sed 's/[\/.]/-/g')
 SESSION_DIR="$HOME/.claude/projects/$WORKING_DIR_ESCAPED"
 
-# Find the most recent session file (created during this test run).
+# Find the most recent top-level session file (created during this test run).
+# -maxdepth 1 excludes subagent transcripts in {session}/subagents/*.jsonl.
 # The { ... || true; } prevents pipefail from aborting if SESSION_DIR doesn't exist.
-SESSION_FILE=$({ find "$SESSION_DIR" -name "*.jsonl" -type f -mmin -60 2>/dev/null || true; } | sort -r | head -1)
+SESSION_FILE=$({ find "$SESSION_DIR" -maxdepth 1 -name "*.jsonl" -type f -mmin -60 2>/dev/null || true; } | sort -r | head -1)
 
 if [ -z "$SESSION_FILE" ]; then
     echo "WARNING: Could not find session transcript file"
@@ -263,34 +266,38 @@ else
 fi
 echo ""
 
-# Test 3: TodoWrite was used for tracking
+# Test 3: Task tracking was used (TodoWrite or TaskCreate/TaskUpdate)
 echo "Test 3: Task tracking..."
 if [ -n "$SESSION_FILE" ]; then
-    todo_count=$(grep -c '"name":"TodoWrite"' "$SESSION_FILE" 2>/dev/null) || todo_count=0
+    todo_count=$(grep -c '"name":"TodoWrite"\|"name":"TaskCreate"\|"name":"TaskUpdate"' "$SESSION_FILE" 2>/dev/null) || todo_count=0
     if [ "$todo_count" -ge 1 ]; then
-        echo "  [PASS] TodoWrite used $todo_count time(s) for task tracking"
+        echo "  [PASS] Task tracking used $todo_count time(s)"
     else
-        echo "  [FAIL] TodoWrite not used"
+        echo "  [FAIL] No task tracking (TodoWrite/TaskCreate/TaskUpdate) found"
         FAILED=$((FAILED + 1))
     fi
 else
-    echo "  [SKIP] Cannot verify TodoWrite without session transcript"
+    echo "  [SKIP] Cannot verify task tracking without session transcript"
 fi
 echo ""
 
 # Test 4: Implementation actually works
+# Claude may implement directly in the project or inside a git worktree.
+# Find src/math.js wherever it was created.
 echo "Test 4: Implementation verification..."
-if [ -f "$TEST_PROJECT/src/math.js" ]; then
-    echo "  [PASS] src/math.js created"
+MATH_JS=$(find "$TEST_PROJECT" -path "*/src/math.js" -type f 2>/dev/null | head -1)
+MATH_TEST=$(find "$TEST_PROJECT" -path "*/test/math.test.js" -type f 2>/dev/null | head -1)
+if [ -n "$MATH_JS" ]; then
+    echo "  [PASS] src/math.js created ($(echo "$MATH_JS" | sed "s|$TEST_PROJECT/||"))"
 
-    if grep -q "export function add" "$TEST_PROJECT/src/math.js"; then
+    if grep -q "export function add" "$MATH_JS"; then
         echo "  [PASS] add function exists"
     else
         echo "  [FAIL] add function missing"
         FAILED=$((FAILED + 1))
     fi
 
-    if grep -q "export function multiply" "$TEST_PROJECT/src/math.js"; then
+    if grep -q "export function multiply" "$MATH_JS"; then
         echo "  [PASS] multiply function exists"
     else
         echo "  [FAIL] multiply function missing"
@@ -301,28 +308,41 @@ else
     FAILED=$((FAILED + 1))
 fi
 
-if [ -f "$TEST_PROJECT/test/math.test.js" ]; then
-    echo "  [PASS] test/math.test.js created"
+if [ -n "$MATH_TEST" ]; then
+    echo "  [PASS] test/math.test.js created ($(echo "$MATH_TEST" | sed "s|$TEST_PROJECT/||"))"
 else
     echo "  [FAIL] test/math.test.js not created"
     FAILED=$((FAILED + 1))
 fi
 
-# Try running tests
-if cd "$TEST_PROJECT" && npm test > test-output.txt 2>&1; then
-    echo "  [PASS] Tests pass"
+# Try running tests from whichever directory has the implementation
+IMPL_DIR=$(dirname "$(dirname "$MATH_JS")" 2>/dev/null)
+if [ -n "$IMPL_DIR" ] && [ -f "$IMPL_DIR/package.json" ]; then
+    if cd "$IMPL_DIR" && npm test > test-output.txt 2>&1; then
+        echo "  [PASS] Tests pass"
+    else
+        echo "  [FAIL] Tests failed"
+        cat test-output.txt
+        FAILED=$((FAILED + 1))
+    fi
 else
-    echo "  [FAIL] Tests failed"
-    cat test-output.txt
-    FAILED=$((FAILED + 1))
+    # Fallback to project root
+    if cd "$TEST_PROJECT" && npm test > test-output.txt 2>&1; then
+        echo "  [PASS] Tests pass"
+    else
+        echo "  [FAIL] Tests failed"
+        cat test-output.txt
+        FAILED=$((FAILED + 1))
+    fi
 fi
 echo ""
 
 # Test 5: Git commits show proper workflow
+# Check all branches (implementation may be on a feature branch or in a worktree)
 echo "Test 5: Git commit history..."
-commit_count=$(git -C "$TEST_PROJECT" log --oneline | wc -l)
+commit_count=$(git -C "$TEST_PROJECT" log --all --oneline | wc -l)
 if [ "$commit_count" -gt 2 ]; then  # Initial + at least 2 task commits
-    echo "  [PASS] Multiple commits created ($commit_count total)"
+    echo "  [PASS] Multiple commits created ($commit_count total across all branches)"
 else
     echo "  [FAIL] Too few commits ($commit_count, expected >2)"
     FAILED=$((FAILED + 1))
@@ -331,7 +351,7 @@ echo ""
 
 # Test 6: Check for extra features (spec compliance should catch)
 echo "Test 6: No extra features added (spec compliance)..."
-if grep -q "export function divide\|export function power\|export function subtract" "$TEST_PROJECT/src/math.js" 2>/dev/null; then
+if [ -n "$MATH_JS" ] && grep -q "export function divide\|export function power\|export function subtract" "$MATH_JS" 2>/dev/null; then
     echo "  [WARN] Extra features found (spec review should have caught this)"
     # Not failing on this as it tests reviewer effectiveness
 else

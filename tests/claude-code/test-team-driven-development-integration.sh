@@ -206,7 +206,7 @@ cd "$TEST_PROJECT" && timeout 3500 env -u CLAUDECODE claude -p "$PROMPT" \
     --plugin-dir "$PLUGIN_DIR" \
     --allowed-tools=all \
     --permission-mode bypassPermissions \
-    2>&1 | tee "$OUTPUT_FILE" || {
+    < /dev/null 2>&1 | tee "$OUTPUT_FILE" || {
     echo ""
     echo "================================================================================"
     echo "EXECUTION FAILED (exit code: $?)"

@@ -116,7 +116,9 @@ def fmt_tool_result(result_content, is_error):
     return s
 
 def resolve_session_dir(arg):
-    """Turn a raw project path into a Claude Code session directory path."""
+    """Turn a raw project path into a Claude Code session directory path.
+    Returns the expected session dir even if it doesn't exist yet, so the
+    main loop can wait for Claude Code to create it."""
     claude_projects = Path.home() / ".claude" / "projects"
     p = Path(arg)
     if p.exists() and any(p.glob("*.jsonl")):
@@ -124,16 +126,14 @@ def resolve_session_dir(arg):
     # Resolve symlinks (macOS /var → /private/var)
     canonical = str(p.resolve()) if p.exists() else str(p)
     escaped = canonical.replace("/", "-").replace(".", "-")
-    session_dir = claude_projects / escaped
-    return session_dir if session_dir.exists() else None
+    return claude_projects / escaped
 
 def find_session_dir(arg=None):
     """Resolve the session directory from argument or auto-detect."""
     if arg and not arg.startswith("-"):
-        resolved = resolve_session_dir(arg)
-        if resolved:
-            return resolved
-        print(f"{RED}Could not find session dir for: {arg}{RESET}", file=sys.stderr)
+        # Always trust the explicit path — resolve_session_dir returns the
+        # expected dir even if Claude Code hasn't created it yet.
+        return resolve_session_dir(arg)
 
     # Auto-detect: most recently modified session dir with *.jsonl files
     claude_projects = Path.home() / ".claude" / "projects"
@@ -299,6 +299,15 @@ def main():
         sys.exit(1)
 
     start_time = time.time() - 3600  # pick up files from the last hour
+
+    # Wait for the session directory to be created by Claude Code
+    if not primary_dir.exists():
+        print(f"{YELLOW}Waiting for session dir to appear:{RESET} {primary_dir.name}")
+        print(f"{DIM}(Claude Code creates it once the first API response arrives){RESET}")
+        while not primary_dir.exists():
+            time.sleep(1)
+        print(f"{GREEN}Session dir created!{RESET}")
+        print()
 
     print(f"{BOLD}Monitoring:{RESET} {primary_dir}")
     print(f"{DIM}Also scanning for related agent/team sessions in same project area{RESET}")

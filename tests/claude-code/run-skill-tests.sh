@@ -33,6 +33,7 @@ INTEGRATION_TIMEOUT=3600  # 60 minute timeout for integration tests
 # Team integration tests take 35-50 min (agents run sequentially as full Claude sessions).
 # Subagent integration tests take 15-25 min. 60 min covers both with buffer.
 RUN_INTEGRATION=false
+SKIP_UNIT=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -52,6 +53,11 @@ while [[ $# -gt 0 ]]; do
             RUN_INTEGRATION=true
             shift
             ;;
+        --skip-unit-tests)
+            SKIP_UNIT=true
+            RUN_INTEGRATION=true
+            shift
+            ;;
         --help|-h)
             echo "Usage: $0 [options]"
             echo ""
@@ -60,6 +66,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --test, -t NAME      Run only the specified test"
             echo "  --timeout SECONDS    Set timeout per test (default: 600)"
             echo "  --integration, -i    Run integration tests (slow, 20-60 min)"
+            echo "  --skip-unit-tests    Run only integration tests (implies -i)"
             echo "  --help, -h           Show this help"
             echo ""
             echo "Tests:"
@@ -79,13 +86,6 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# List of skill tests to run (fast unit tests)
-tests=(
-    "test-using-superpowers.sh"
-    "test-subagent-driven-development.sh"
-    "test-team-driven-development.sh"
-)
-
 # Integration tests (slow, full execution)
 integration_tests=(
     "test-subagent-driven-development-integration.sh"
@@ -93,9 +93,18 @@ integration_tests=(
     "test-team-worktree-integration.sh"
 )
 
-# Add integration tests if requested
-if [ "$RUN_INTEGRATION" = true ]; then
-    tests+=("${integration_tests[@]}")
+# Build test list
+if [ "$SKIP_UNIT" = true ]; then
+    tests=("${integration_tests[@]}")
+else
+    tests=(
+        "test-using-superpowers.sh"
+        "test-subagent-driven-development.sh"
+        "test-team-driven-development.sh"
+    )
+    if [ "$RUN_INTEGRATION" = true ]; then
+        tests+=("${integration_tests[@]}")
+    fi
 fi
 
 # Filter to specific test if requested
