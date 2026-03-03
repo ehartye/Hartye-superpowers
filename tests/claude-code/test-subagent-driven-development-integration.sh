@@ -165,9 +165,9 @@ echo ""
 OUTPUT_FILE="$TEST_PROJECT/claude-output.txt"
 
 # Note: We use a longer timeout since this is integration testing
-# IMPORTANT: Run from superpowers directory so local dev skills are available
-# (see upstream commit 0aba33b — skills are discovered from the working directory)
-PROMPT="Change to directory $TEST_PROJECT and then execute the implementation plan at docs/plans/implementation-plan.md using the subagent-driven-development skill.
+# Run from the test project so Claude's project context is correct.
+# Use --plugin-dir so skills are discovered from the plugin repo.
+PROMPT="Execute the implementation plan at docs/plans/implementation-plan.md using the subagent-driven-development skill.
 
 IMPORTANT: Follow the skill exactly. I will be verifying that you:
 1. Read the plan once at the beginning
@@ -181,9 +181,9 @@ Begin now. Execute the plan."
 progress "Running Claude with subagent-driven-development skill..."
 echo "  Output: $OUTPUT_FILE"
 echo "================================================================================"
-cd "$SCRIPT_DIR/../.." && timeout 1800 env -u CLAUDECODE claude -p "$PROMPT" \
+cd "$TEST_PROJECT" && timeout 1800 env -u CLAUDECODE claude -p "$PROMPT" \
+    --plugin-dir "$PLUGIN_DIR" \
     --allowed-tools=all \
-    --add-dir "$TEST_PROJECT" \
     --permission-mode bypassPermissions \
     2>&1 | tee "$OUTPUT_FILE" || {
     echo ""
@@ -199,9 +199,8 @@ echo ""
 
 # Find the session transcript
 # Session files are in ~/.claude/projects/-<working-dir>/<session-id>.jsonl
-# We run from $SCRIPT_DIR/../.. (the plugin repo root), so derive from that.
-PLUGIN_DIR_RESOLVED=$(cd "$SCRIPT_DIR/../.." && pwd -P)
-WORKING_DIR_ESCAPED=$(echo "$PLUGIN_DIR_RESOLVED" | sed 's/[\/.]/-/g')
+# We run from $TEST_PROJECT, so derive from that.
+WORKING_DIR_ESCAPED=$(echo "$TEST_PROJECT" | sed 's/[\/.]/-/g')
 SESSION_DIR="$HOME/.claude/projects/$WORKING_DIR_ESCAPED"
 
 # Find the most recent session file (created during this test run).
