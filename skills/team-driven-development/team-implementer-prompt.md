@@ -35,6 +35,23 @@ You have full isolation — no merge conflicts with other agents during developm
 The lead will merge branches after all work is reviewed.
 [Any resource config: PORT=X, scratch org alias, env var overrides, etc.]
 
+### Tool use in worktrees
+
+Your worktree is likely in a temp directory (e.g. `/tmp/tmp.xyz/.worktrees/implementer-1/`).
+Follow these rules to avoid files landing in the wrong place:
+
+- **Use absolute paths** for all tool calls (Read, Write, Edit, Glob, Grep).
+  The Write and Read tools may not resolve relative or `/tmp` paths correctly —
+  if a Write appears to succeed but the file isn't there, re-create it via
+  `bash cat > /absolute/path/to/file << 'EOF'` as a fallback.
+- **Always `cd` to your worktree** before running shell commands:
+  `cd [your-worktree-path] && npm test` — never assume your working directory.
+- **Stage files by name**, not with `git add .` or `git add -A`. Broad staging
+  can pick up unintended files or operate on the wrong directory. Use
+  `git add src/file.js test/file.test.js` instead.
+- **Verify files exist** after creating them: `ls -la [path]` before proceeding
+  to tests or commits.
+
 ## What We're Building
 
 [2-3 sentence summary of the overall project]
@@ -55,6 +72,11 @@ Read `tasks.json` and look for:
 - Tasks that match your focus area (if specified)
 
 ### 2. Claim a Task
+
+Before claiming, verify the task is actually available:
+- Check that `status` is still `"available"` (not `"in-progress"` or `"complete"`)
+- Check that `assignee` is empty (another agent may have claimed it since you last read the list)
+- If the task is already claimed or in-progress, **skip it** and look for the next available task
 
 Update task in `tasks.json`:
 ```json
@@ -238,6 +260,7 @@ Fix any issues before requesting review.
 ## Red Flags
 
 **Never:**
+- Claim a task that another agent already owns or is working on
 - Claim a task with unmet dependencies
 - Start implementing before questions are answered
 - Ignore messages from teammates
