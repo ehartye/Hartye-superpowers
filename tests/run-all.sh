@@ -84,22 +84,16 @@ echo "Repository: $REPO_ROOT"
 echo "Date: $(date)"
 echo ""
 
-# --- Suite: Claude Code behavioral tests (always run) ---
+# --- Suite: Claude Code tests ---
 if command -v claude &>/dev/null; then
-    run_suite "Claude Code unit tests" "$SCRIPT_DIR/claude-code/run-skill-tests.sh"
-else
-    echo "[SKIP] Claude Code unit tests — 'claude' CLI not found"
-fi
-
-# --- Suite: Claude Code integration tests (slow) ---
-if $RUN_INTEGRATION; then
-    if command -v claude &>/dev/null; then
-        run_suite "Claude Code integration tests" "$SCRIPT_DIR/claude-code/run-skill-tests.sh" --integration
+    if $RUN_INTEGRATION; then
+        run_suite "Claude Code tests (unit + integration)" "$SCRIPT_DIR/claude-code/run-skill-tests.sh" --integration
     else
-        echo "[SKIP] Claude Code integration tests — 'claude' CLI not found"
+        run_suite "Claude Code unit tests" "$SCRIPT_DIR/claude-code/run-skill-tests.sh"
+        echo "[SKIP] Claude Code integration tests — pass --integration to enable"
     fi
 else
-    echo "[SKIP] Claude Code integration tests — pass --integration to enable"
+    echo "[SKIP] Claude Code tests — 'claude' CLI not found"
 fi
 
 # --- Suite: OpenCode plugin tests ---
