@@ -157,6 +157,9 @@ git commit -m "Initial commit" --quiet
 echo ""
 progress "Phase 1/4: Complete. Project at $TEST_PROJECT"
 echo ""
+echo "  To monitor in real time, run in another terminal:"
+echo "    python3 $SCRIPT_DIR/monitor-session.py $TEST_PROJECT"
+echo ""
 progress "Phase 2/4: Starting subagent execution (this takes 10-30 min)..."
 echo ""
 

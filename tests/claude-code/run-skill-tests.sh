@@ -14,6 +14,9 @@ echo "Repository: $(cd ../.. && pwd)"
 echo "Test time: $(date)"
 echo "Claude version: $(claude --version 2>/dev/null || echo 'not found')"
 echo ""
+echo "Monitor unit tests:  python3 $SCRIPT_DIR/monitor-session.py $SCRIPT_DIR"
+echo "(Integration tests print their own monitor command after project creation)"
+echo ""
 
 # Check if Claude Code is available
 if ! command -v claude &> /dev/null; then
@@ -139,6 +142,12 @@ for test in "${tests[@]}"; do
     run_verbose="$VERBOSE"
     if [ "$is_integration" = true ]; then
         run_verbose=true
+        echo ""
+        echo "  TIP: To monitor this test in real time, watch the output for"
+        echo "  'Test project: /path/to/tmp.XXX' then run in another terminal:"
+        echo ""
+        echo "    python3 $SCRIPT_DIR/monitor-session.py /path/to/tmp.XXX"
+        echo ""
     fi
 
     start_time=$(date +%s)
