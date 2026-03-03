@@ -226,7 +226,7 @@ def dir_label(path):
         return parts[-1][:8]  # e.g. "NeCPpIDj" from tmp-NeCPpIDjvD
     return dirname[:20]
 
-def process_line(line, color, session_label, show_results):
+def process_line(line, color, session_label, show_results, pending_agent_spawns=None):
     """Parse one JSONL line and print formatted output."""
     line = line.strip()
     if not line:
@@ -249,6 +249,11 @@ def process_line(line, color, session_label, show_results):
                 formatted = fmt_tool(name, inp)
                 print(f"{DIM}{ts()}{RESET} {color}{BOLD}[{session_label}]{RESET} {color}→ {formatted}{RESET}")
                 printed = True
+                # Queue Agent spawns so we can label subagent sessions
+                if name == "Agent" and pending_agent_spawns is not None:
+                    desc = inp.get("description", inp.get("name", ""))
+                    atype = inp.get("subagent_type", "")
+                    pending_agent_spawns.append((desc, atype))
             elif btype == "text":
                 text = block.get("text", "").strip()
                 if text:
@@ -318,6 +323,8 @@ def main():
     tracked = {}
     color_idx = 0
     scan_counter = 0
+    # Queue of pending Agent tool calls (description, type) awaiting session files
+    pending_agent_spawns = []
 
     def add_file(f, label_prefix=""):
         nonlocal color_idx
@@ -334,8 +341,21 @@ def main():
             label = name
         if label_prefix:
             label = f"{label_prefix}{label}"
-        tracked[f] = {"offset": 0, "color": color, "label": label}
-        print(f"{DIM}{ts()}{RESET} {color}{BOLD}[{label}]{RESET} {BOLD}Session opened: {f.name}{RESET} ({f.parent.name[-20:]})")
+        # Match subagent sessions to their Agent tool call description
+        agent_desc = ""
+        if label_prefix.startswith("agent:") and pending_agent_spawns:
+            desc, atype = pending_agent_spawns.pop(0)
+            short_desc = desc[:30]
+            agent_desc = f" {DIM}({short_desc}"
+            if atype:
+                agent_desc += f" | {atype}"
+            agent_desc += f"){RESET}"
+            # Include type in the stored label for the summary
+            label_with_role = f"{label} ({desc[:25]})"
+        else:
+            label_with_role = label
+        tracked[f] = {"offset": 0, "color": color, "label": label, "label_full": label_with_role}
+        print(f"{DIM}{ts()}{RESET} {color}{BOLD}[{label}]{RESET} {BOLD}Session opened: {f.name}{RESET}{agent_desc}")
 
     try:
         while True:
@@ -366,7 +386,7 @@ def main():
                 if new_lines:
                     tracked[f]["offset"] = new_offset
                     for line in new_lines:
-                        process_line(line, state["color"], state["label"], show_results)
+                        process_line(line, state["color"], state["label"], show_results, pending_agent_spawns)
 
             time.sleep(0.5)
 
@@ -376,7 +396,8 @@ def main():
         print(f"\n{BOLD}Sessions tracked: {len(tracked)}{RESET}")
         for f, state in tracked.items():
             size = f.stat().st_size if f.exists() else 0
-            print(f"  {state['color']}{BOLD}[{state['label']}]{RESET} {f.name} ({size//1024}K)")
+            display = state.get("label_full", state["label"])
+            print(f"  {state['color']}{BOLD}[{display}]{RESET} {f.name} ({size//1024}K)")
 
 if __name__ == "__main__":
     main()

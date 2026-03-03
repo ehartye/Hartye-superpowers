@@ -211,7 +211,7 @@ The RELEASE-NOTES.md is an excellent, detailed changelog showing the full evolut
 ### Where Examples Excel
 
 - **`subagent-driven-development`**: The complete 165-line example showing the full two-stage review cycle (implementer → spec reviewer → code quality reviewer) is one of the most useful pieces of documentation in the project. It shows exactly what message exchanges look like.
-- **`team-driven-development`**: The `example-auth-feature.md` linked from the skill is comprehensive.
+- **`team-driven-development`**: The SKILL.md includes inline examples using native tools (TeamCreate, TaskCreate, SendMessage).
 - **`dispatching-parallel-agents`**: Concrete real-world example (6 failures, 3 agents, all resolved) with actual timing and outcome.
 - **`test-driven-development`**: Good/Bad code examples are clear and contrasted well.
 - **`receiving-code-review`**: Multiple real exchange examples showing correct vs. incorrect responses.
@@ -256,7 +256,7 @@ The `finishing-a-development-branch` skill's description summarizes its workflow
 
 ### Finding 3: No First-Time User Journey / Getting Started Guide (MEDIUM IMPACT)
 
-The project assumes users understand the workflow before reading skills. There is no guided walkthrough of "here is a real feature request, here is how Superpowers handles it from brainstorm to PR." The Basic Workflow list in the README is accurate but abstract. Without seeing a concrete end-to-end example, new users must piece together the workflow from individual skill docs. The `team-driven-development` example-auth-feature.md shows what this could look like, but it focuses on the most complex workflow. A simpler example (single-developer, subagent-driven) as a "Hello World" would dramatically improve first-session success.
+The project assumes users understand the workflow before reading skills. There is no guided walkthrough of "here is a real feature request, here is how Superpowers handles it from brainstorm to PR." The Basic Workflow list in the README is accurate but abstract. Without seeing a concrete end-to-end example, new users must piece together the workflow from individual skill docs. The `team-driven-development` SKILL.md inline examples show what this could look like, but they focus on the most complex workflow. A simpler example (single-developer, subagent-driven) as a "Hello World" would dramatically improve first-session success.
 
 ---
 

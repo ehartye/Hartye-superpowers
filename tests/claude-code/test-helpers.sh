@@ -161,7 +161,24 @@ assert_order() {
 create_test_project() {
     local test_dir=$(mktemp -d)
     # Resolve symlinks so session path computation matches Claude Code's behavior
-    cd "$test_dir" && pwd -P
+    test_dir=$(cd "$test_dir" && pwd -P)
+
+    # Prevent globally installed plugins from loading in test projects.
+    # Tests load the dev plugin explicitly via --plugin-dir, which bypasses
+    # enabledPlugins entirely (session-scoped, no registry check). But the
+    # global enabledPlugins would ALSO load the installed registry version,
+    # causing duplicate skills. Project-level enabledPlugins uses replacement
+    # semantics (not merge), so this overrides the global list completely.
+    mkdir -p "$test_dir/.claude"
+    cat > "$test_dir/.claude/settings.local.json" <<'SETTINGS'
+{
+  "enabledPlugins": {
+    "hartye-superpowers@hartye-plugins": false
+  }
+}
+SETTINGS
+
+    echo "$test_dir"
 }
 
 # Cleanup test project

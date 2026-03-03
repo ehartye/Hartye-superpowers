@@ -215,6 +215,12 @@ IMPORTANT: The plan specifies per-agent worktrees. Follow the team-driven-develo
 5. After tasks complete, merge branches into main and run npm test
 6. Clean up worktrees and shut down team members
 
+HEADLESS MODE: After spawning teammates, you must poll for completion:
+  1. Bash(\"sleep 15\") to stay alive
+  2. TaskList to check statuses
+  3. If all tasks completed: run tests, merge worktree branches into main, send shutdown_request to all teammates, Bash(\"sleep 30\"), TeamDelete, then summarize and stop
+  4. Otherwise repeat from step 1
+
 Begin now. Execute the plan with a team using per-agent worktrees."
 
 progress "Running Claude with team-driven-development skill (worktree mode)..."

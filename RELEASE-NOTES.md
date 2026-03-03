@@ -11,9 +11,6 @@ This fork ([ehartye/Hartye-superpowers](https://github.com/ehartye/Hartye-superp
 
 ### Agent Teams Support
 - Added `team-driven-development` skill for collaborative multi-agent execution (experimental, Opus 4.6+)
-- Added team member prompt templates: `team-lead-prompt.md`, `team-implementer-prompt.md`, `team-reviewer-prompt.md`
-- Added `example-auth-feature.md` walkthrough showing a complete team session
-- Added `scripts/init-team.sh` for team directory initialization
 - Added comparison guide (`docs/comparison-agent-teams-vs-subagents.md`)
 - Added analysis document (`docs/analysis-agent-teams.md`)
 

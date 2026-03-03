@@ -63,14 +63,12 @@ Agent Teams (introduced in Opus 4.6) provide:
 - poll_inbox: Wait for messages asynchronously
 ```
 
-**Team structure:**
+**Team structure** (managed by native Claude Code tools):
 ```
-~/.claude/teams/<team-name>/
-  ├── tasks.json          # Shared task list
-  └── inboxes/
-      ├── lead.json       # Lead agent's inbox
-      ├── agent-1.json    # Teammate 1's inbox
-      └── agent-2.json    # Teammate 2's inbox
+TeamCreate → creates team and shared task list
+TaskCreate/TaskList/TaskUpdate → manage tasks
+SendMessage → inter-agent communication
+TeamDelete → cleanup
 ```
 
 **Enable with:**
@@ -111,11 +109,7 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 
 **Need:** Prompt templates for team roles (not just isolated subagents)
 
-**Required prompts:**
-- `team-lead-prompt.md` - Orchestrator and facilitator
-- `team-implementer-prompt.md` - Team-aware implementer
-- `team-reviewer-prompt.md` - Collaborative reviewer
-- `team-researcher-prompt.md` - Exploration and options (deferred; not yet created)
+**Resolved:** Prompt templates removed. Teammate spawning is now handled via the `Agent` tool with inline prompts, as described in `SKILL.md`. The running Claude instance acts as team lead using native tools (`TeamCreate`, `TaskCreate`, `SendMessage`, `TeamDelete`).
 
 **Key differences from current prompts:**
 - Include team context and member roster

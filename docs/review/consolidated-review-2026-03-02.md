@@ -72,9 +72,8 @@
 - `skills/systematic-debugging/SKILL.md:234` — "your human partner's Signals You're Doing It Wrong" is informal for a section heading.
 - **Fix:** Rephrase to `## Warning Signs From Your Human Partner`.
 
-**H12. init-team.sh path reference misleading** (skills-reviewer)
-- `skills/team-driven-development/SKILL.md:221` — comment implies running from skill directory without stating full path.
-- **Fix:** Add full path from plugin root.
+**H12. ~~init-team.sh path reference misleading~~ Resolved** (skills-reviewer)
+- `init-team.sh` removed — team initialization now uses native `TeamCreate` tool.
 
 **H13. Writing-skills SKILL.md numbering gap** (skills-reviewer)
 - Lines 638-644 jump from step 1 to step 3.
@@ -93,7 +92,7 @@
 | M1 | Code | `session-start.sh:39` | printf format string vulnerable to `%` in content |
 | M2 | Code | `h-superpowers.js:17` | CRLF line endings break frontmatter parsing |
 | M3 | Code | `h-superpowers.js:51` | Skills dir resolution assumes fixed directory depth |
-| M4 | Code | `init-team.sh:42-46` | No `--force` flag for reinitializing teams |
+| M4 | ~~Code~~ | ~~`init-team.sh:42-46`~~ | ~~No `--force` flag for reinitializing teams~~ Resolved — file removed, using native `TeamCreate` |
 | M5 | Skills | `brainstorming/SKILL.md:55` | References non-existent skills (frontend-design, mcp-builder) |
 | M6 | Skills | `receiving-code-review/SKILL.md` | "your human partner" never defined |
 | M7 | Skills | `verification-before-completion/SKILL.md:113` | "From 24 failure memories" unexplained jargon |
@@ -110,7 +109,7 @@
 | M18 | Docs | `docs/testing.md` | Missing `test-team-worktree-integration.sh` from structure tree |
 | M19 | Docs | `docs/IMPLEMENTATION-SUMMARY.md:213` | Mixed pending/validated status signals |
 | M20 | Docs | `docs/review/documentation-review.md` | Stale finding never marked resolved |
-| M21 | Docs | `docs/review/architecture-review.md:267` | init-team.sh exists now; finding partially stale |
+| M21 | ~~Docs~~ | ~~`docs/review/architecture-review.md:267`~~ | ~~init-team.sh exists now; finding partially stale~~ Resolved — Gap 3 updated, init-team.sh removed |
 | M22 | Arch | `lib/skills-core.js` | Dead library — not imported anywhere in active code |
 
 ---
