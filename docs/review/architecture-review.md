@@ -158,12 +158,7 @@ The subagent-driven-development skill stores three prompt templates as `.md` fil
 - `spec-reviewer-prompt.md`
 - `code-quality-reviewer-prompt.md`
 
-The team-driven-development skill stores three role templates:
-- `team-lead-prompt.md`
-- `team-implementer-prompt.md`
-- `team-reviewer-prompt.md`
-
-These templates are co-located with their governing skill, which is correct. However, they are not formally declared as skill artifacts — `lib/skills-core.js` only processes `SKILL.md` files. If a user invokes the `Skill` tool looking for `subagent-driven-development`, they get the orchestration instructions but must know to look for prompt templates via relative path references in the skill body. A frontmatter declaration like `templates: [./implementer-prompt.md, ...]` would make these discoverable and verifiable.
+The team-driven-development skill previously stored separate prompt templates, but these have been removed. Team orchestration (spawning, task management, communication, shutdown) is now fully described in `SKILL.md` using native Claude Code tools (`TeamCreate`, `TaskCreate`, `SendMessage`, `TeamDelete`). The running Claude instance acts as team lead.
 
 ---
 
@@ -228,11 +223,9 @@ The integration sections of each skill declare dependencies textually ("REQUIRED
 
 The system has a session-start hook but no skill-invocation hooks. There is no way to intercept skill invocations for telemetry, audit logging, or skill-specific setup (e.g., automatically creating a worktree when `subagent-driven-development` is invoked without one). This limits observability.
 
-### Gap 3: Team-Driven Development Lacks Infrastructure Code
+### Gap 3: ~~Team-Driven Development Lacks Infrastructure Code~~ Resolved
 
-The `team-driven-development` skill describes a `~/.claude/teams/<team-name>/` directory structure with `tasks.json` and per-agent inbox files, but there are no utilities in `lib/` or `skills/` to create, read, or manage this structure. The skill assumes this infrastructure will be created manually or by the agent at runtime. Given the complexity of multi-agent coordination, this is a significant gap — the absence of initialization tooling (even a simple shell script) means agents must reconstruct the shared state protocol from the skill documentation at each invocation.
-
-> **Update (2026-03-02):** `scripts/init-team.sh` was added to partially address this gap. It creates the team directory structure and initializes `tasks.json` and inbox files. The race condition concern for concurrent `tasks.json` writes remains open.
+> **Resolved (2026-03-03):** Claude Code now provides native team infrastructure — `TeamCreate`, `TaskCreate`/`TaskList`/`TaskUpdate`, `SendMessage`, and `TeamDelete`. The custom `init-team.sh`, `tasks.json`, and inbox files have been removed. The skill now uses native tools exclusively.
 
 ### Gap 4: OpenCode Tool-Name Mismatch Has No Compile-Time Check
 
@@ -262,11 +255,11 @@ All three integrate with the same upstream (`writing-plans`) and downstream (`fi
 
 ### Subagent-Driven vs Team-Driven
 
-These two skills are the most architecturally significant. `subagent-driven-development` uses a fixed 3-role structure (implementer, spec-reviewer, code-quality-reviewer) that is deterministic and stateless. `team-driven-development` uses a flexible N-role structure with persistent state (the shared task list and inboxes), requiring more orchestration but enabling emergent coordination.
+These two skills are the most architecturally significant. `subagent-driven-development` uses a fixed 3-role structure (implementer, spec-reviewer, code-quality-reviewer) that is deterministic and stateless. `team-driven-development` uses a flexible N-role structure with persistent state (native `TaskList` and `SendMessage`), requiring more orchestration but enabling emergent coordination.
 
 The documentation (`comparison-agent-teams-vs-subagents.md`) provides an excellent decision matrix. The `team-driven-development` skill correctly marks itself as experimental, requires an environment variable opt-in, and warns about cost multipliers. This is responsible experimental feature design.
 
-**Architectural concern:** The `team-driven-development` skill instructs the lead agent to manage the shared task list (`tasks.json`) manually, which conflates orchestration logic with data management. If multiple agents attempt concurrent writes to `tasks.json`, there is a race condition. The skill's "Red Flags" section warns "Never: Let agents claim same task (race condition)" but offers no locking mechanism. This is a known limitation that should be documented more prominently with explicit guidance on how to implement task locking (e.g., atomic file rename, file locking, or lead-agent-mediated assignments only).
+**Architectural concern:** ~~Resolved.~~ The custom `tasks.json` and manual file management have been replaced with native `TaskCreate`/`TaskUpdate` tools. Concurrency is handled by the native task system.
 
 ### Writing-Plans Integration Gap
 
@@ -284,9 +277,9 @@ The core skill design pattern (frontmatter with CSO-optimized description, Iron 
 
 The plugin targets two execution environments (Claude Code and OpenCode) that have different tool surfaces. The current approach is to patch the difference at the bootstrap level (OpenCode adapter's tool mapping comment) and assume agents will interpret it correctly at runtime. This creates a latent incompatibility that will surface unpredictably when agents follow Claude Code-specific instructions in OpenCode environments. A more robust design would either: (a) maintain separate skill variants per environment, (b) introduce a tool-abstraction layer in the skill content (e.g., `[TASK_TOOL]` as a substitution placeholder), or (c) add runtime tool availability checking in the adapter.
 
-### Finding 3: Team-Driven Development Lacks Supporting Infrastructure
+### Finding 3: ~~Team-Driven Development Lacks Supporting Infrastructure~~ Resolved
 
-The `team-driven-development` skill is the most architecturally ambitious component but has the weakest supporting infrastructure. It describes a file-based shared state model (tasks.json, inbox files) that agents must construct manually, a race condition risk with no locking guidance, and no initialization utilities. For a feature explicitly marked as experimental, the gap between the skill's described behavior and the infrastructure available to support it is the largest single risk in the project. This does not make the skill unusable, but it increases the probability of agent failure during team coordination without clear recovery paths.
+> **Resolved (2026-03-03):** The custom file-based infrastructure (tasks.json, inbox files, init-team.sh) has been removed. The skill now uses native Claude Code tools exclusively: `TeamCreate`, `TaskCreate`/`TaskList`/`TaskUpdate`, `SendMessage`, and `TeamDelete`. Race conditions and locking are handled by the native tool implementations.
 
 ---
 

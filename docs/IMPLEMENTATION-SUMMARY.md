@@ -25,34 +25,7 @@ A complete skill that enables collaborative agent team execution with:
 - Clear cost warnings (2-4x more expensive than subagents)
 - Guidance on team size (3-6 agents maximum)
 
-### 2. Team Member Prompt Templates
-
-**Location:** `skills/team-driven-development/team-*-prompt.md`
-
-Three comprehensive prompt templates for spawning team members:
-
-- **team-lead-prompt.md** (4KB): Orchestrator role
-  - Task coordination and assignment
-  - Communication hub for the team
-  - Conflict resolution
-  - Progress monitoring
-  - Escalation to human when needed
-
-- **team-implementer-prompt.md** (6KB): Team-aware implementer
-  - Claim tasks from shared list
-  - Coordinate with other implementers
-  - Request reviews from reviewers
-  - Follow TDD and existing patterns
-  - Handle blocking issues
-
-- **team-reviewer-prompt.md** (8KB): Collaborative reviewer
-  - Adversarial review mindset
-  - Direct feedback to implementers
-  - Issue categorization (CRITICAL/IMPORTANT/SUGGESTIONS)
-  - Collaboration on fixes
-  - Focus area specialization (security, quality, architecture)
-
-### 3. Analysis Documentation
+### 2. Analysis Documentation
 
 **Location:** `docs/analysis-agent-teams.md` (12KB)
 
@@ -80,20 +53,7 @@ Decision-making resource with:
 - Cost-benefit analysis framework
 - Common pitfalls and how to avoid them
 
-### 5. Example Walkthrough
-
-**Location:** `skills/team-driven-development/example-auth-feature.md` (17KB)
-
-Complete implementation example showing:
-- Authentication feature (8 tasks, 4 agents)
-- Real timeline with message exchanges
-- Inter-agent coordination patterns
-- Security review finding 8 issues
-- Parallel work reducing time by 75 minutes
-- Cost comparison: $180 (teams) vs $70 (subagents)
-- Justification for premium cost
-
-### 6. README Updates
+### 5. README Updates
 
 Updated documentation in README.md:
 - Added team-driven-development to workflow description

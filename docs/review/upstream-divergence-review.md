@@ -107,11 +107,7 @@ No circular dependencies. Upstream skills do not depend on team-driven-developme
 
 ### Prompt Template Quality
 
-| Template | Quality | Notes |
-|----------|---------|-------|
-| team-lead-prompt.md | Good | Clear separation of concerns. Missing: guidance for unresponsive teammates |
-| team-implementer-prompt.md | Good | Missing: alignment with SKILL.md's lead-only assignment recommendation (prompt allows self-claiming) |
-| team-reviewer-prompt.md | Excellent | "Verify, Don't Trust" principle. Clear categorization. Strongest template |
+> **Resolved (2026-03-03):** Prompt templates removed. Team orchestration now lives entirely in `SKILL.md` using native Claude Code tools.
 
 ---
 

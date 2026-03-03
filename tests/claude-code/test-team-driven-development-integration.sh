@@ -197,6 +197,12 @@ IMPORTANT: Follow the team-driven-development skill exactly. I will be verifying
 The plan has 2 tasks where Task 2 depends on Task 1.
 This tests that your team coordinates properly.
 
+HEADLESS MODE: After spawning teammates, you must poll for completion:
+  1. Bash(\"sleep 15\") to stay alive
+  2. TaskList to check statuses
+  3. If all tasks completed: run tests, send shutdown_request to all teammates, Bash(\"sleep 30\"), TeamDelete, then summarize and stop
+  4. Otherwise repeat from step 1
+
 Begin now. Execute the plan with a team."
 
 progress "Running Claude with team-driven-development skill..."

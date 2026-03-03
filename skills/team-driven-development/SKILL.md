@@ -5,11 +5,11 @@ description: Use when executing plans requiring coordination between agents work
 
 # Team-Driven Development
 
-Execute implementation plans using collaborative agent teams with direct inter-agent communication, shared task lists, and self-coordination.
+Execute plan by spawning persistent teammate agents that collaborate via shared task list and direct messaging, with two-stage review after each task: spec compliance review first, then code quality review.
 
-**Core principle:** Multiple agents with independent contexts + direct communication + shared task state = collaborative problem-solving for complex coordinated work
+**Core principle:** Persistent teammates + shared task list + direct messaging + two-stage review (spec then quality) = high quality, parallel execution
 
-**⚠️ EXPERIMENTAL:** Requires Claude Code with Opus 4.6+ and `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`
+**EXPERIMENTAL:** Requires Claude Code with Opus 4.6+ and `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`
 
 ## When to Use
 
@@ -31,138 +31,12 @@ digraph when_to_use {
 }
 ```
 
-**Use agent teams when:**
-- Tasks have emergent dependencies that need negotiation
-- Multiple perspectives improve quality (adversarial review)
-- Agents benefit from discussing approaches
-- Coordination overhead would be high through lead agent only
-- Real-time collaboration adds value
-- Wall-clock time is more important than token cost
-
-**Use subagents instead when:**
-- Tasks are clearly independent (no coordination needed)
-- Sequential execution is acceptable
-- Budget is constrained (teams cost 2-4x more)
-- Simple hub-and-spoke review suffices
-- Well-established patterns with clear specs
-
-**Cost reality:**
-- Each teammate is a **full Claude instance** (separate session)
-- 3-agent team = 3x base cost + message overhead
-- Teams trade tokens for speed and collaboration quality
-- Budget $50-200+ per team session depending on complexity
-
-## Agent Teams vs Subagents
-
-| Aspect | Subagents | Agent Teams |
-|--------|-----------|-------------|
-| **Communication** | Hub-and-spoke (only through lead) | Peer-to-peer (direct messages) |
-| **Context** | Fresh per task | Persistent per agent |
-| **Coordination** | Lead orchestrates everything | Self-organize with shared task list |
-| **Execution** | Sequential (one task at a time) | Parallel (multiple concurrent tasks) |
-| **Cost** | 3-5 subagent calls per task | N full sessions + overhead |
-| **Best for** | Independent sequential tasks | Coordinated collaborative work |
-| **Review model** | Two-stage (spec, then quality) | Peer review with discussion |
-
-## Prerequisites
-
-### 1. Environment Setup
-
-Enable agent teams in Claude Code:
-
-```bash
-# Option 1: Environment variable
-export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
-
-# Option 2: Claude Code settings (~/.claude/settings.json)
-{
-  "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
-  }
-}
-```
-
-Verify enabled:
-```bash
-claude --version  # Should show Opus 4.6+
-echo $CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS  # Should show: 1
-```
-
-### 2. Plan Preparation
-
-Your implementation plan should identify:
-- Which tasks can run in parallel vs need sequencing
-- Which tasks have dependencies on each other
-- Where coordination between agents is beneficial
-- Suggested team composition (roles needed)
-- Workspace isolation strategy (see below)
-
-#### Workspace Isolation (Planner's Discretion)
-
-The planning agent decides whether the team shares a single worktree or agents get their own. **Default: all agents share one worktree** created by the lead before spawning teammates. This is simpler and sufficient for most work.
-
-**When to consider per-agent worktrees:**
-- **A/B testing** — agents implementing competing approaches that shouldn't interfere
-- **Co-located feature parallelism** — simultaneous development on files/modules that would cause contention, even though the branches merge cleanly afterward
-- **Any scenario where concurrent writes to overlapping files would create conflicts faster than agents can coordinate**
-
-**Feasibility check (required before choosing per-agent worktrees):**
-The planner must verify that isolated worktrees won't hit resource conflicts:
-- **Ports** — do dev servers, databases, or APIs bind to fixed ports? Each worktree needs its own.
-- **Scratch orgs / cloud resources** — Salesforce scratch orgs, cloud sandboxes, etc. may need one per agent
-- **Shared state** — databases, caches, lock files, or build artifacts that assume a single workspace
-- **Disk space** — each worktree duplicates working files; large repos multiply this
-
-If resource conflicts exist, the plan should either document how to resolve them (different ports via env vars, separate scratch orgs, etc.) or fall back to shared worktree with sequential task execution for the conflicting areas.
-
-**The planner documents the decision** in the implementation plan so the lead knows which setup to use. The lead does NOT make this decision independently.
-
-## Team Composition
-
-**⚡ Flexible by Design:** Unlike the fixed subagent structure (always 1 implementer + 2 reviewers), agent teams support **any role composition** based on your project needs. The roles below are recommendations, not requirements.
-
-### Common Role Patterns
-
-**Team Lead (required):**
-- Orchestrates team and manages shared task list
-- Resolves conflicts and escalates to human when needed
-- Monitors progress and ensures completion
-- Does NOT implement - delegates to teammates
-
-**Implementer(s) (1-3):**
-- Claim and implement tasks from shared list
-- Communicate dependencies and blockers
-- Request reviews from reviewer teammates
-- Follow TDD and existing patterns
-
-**Reviewer(s) (1-2):**
-- Review completed implementations
-- Provide feedback via direct messages
-- Collaborate with implementers on fixes
-- Ensure quality before marking tasks complete
-
-**Researcher (optional):**
-- Explores uncertain areas
-- Evaluates multiple approaches
-- Shares findings with team
-- Helps make architectural decisions
-
-### Customization Examples
-
-Adapt roles to your project:
-- **Full-stack feature:** Frontend specialist + Backend specialist + Integration tester
-- **Security-critical:** Implementer + Security reviewer + Penetration tester
-- **Documentation-heavy:** Developer + Technical writer + Examples creator
-- **Performance work:** Implementer + Performance analyst + Optimization specialist
-- **Legacy migration:** Code migrator + Test writer + Compatibility verifier
-
-### Team Size Guidelines
-
-- **Small tasks (2-5 tasks):** 1 lead + 1 implementer + 1 reviewer = 3 agents
-- **Medium projects (6-15 tasks):** 1 lead + 2 implementers + 1 reviewer = 4 agents
-- **Large projects (15+ tasks):** 1 lead + 2-3 implementers + 2 reviewers = 5-6 agents
-
-**Never exceed 6 agents** - coordination overhead dominates beyond this
+**vs. Subagent-Driven Development (sequential):**
+- Persistent teammates (context preserved across tasks)
+- Parallel execution (multiple tasks simultaneously)
+- Direct peer-to-peer messaging (not just hub-and-spoke)
+- Two-stage review after each task: spec compliance first, then code quality
+- 2-4x more expensive (each teammate is a full Claude session)
 
 ## The Process
 
@@ -170,416 +44,239 @@ Adapt roles to your project:
 digraph process {
     rankdir=TB;
 
+    "Read plan, extract all tasks, create TaskCreate for each" [shape=box];
+
     subgraph cluster_setup {
-        label="Setup Phase";
-        "Initialize team" [shape=box];
-        "Create shared task list" [shape=box];
-        "Spawn team members" [shape=box];
-        "Brief team on plan" [shape=box];
+        label="Setup";
+        "TeamCreate" [shape=box];
+        "Spawn implementer teammates (./implementer-prompt.md)" [shape=box];
+        "Spawn spec reviewer teammate (./spec-reviewer-prompt.md)" [shape=box];
+        "Spawn code quality reviewer teammate (./code-quality-reviewer-prompt.md)" [shape=box];
     }
 
-    subgraph cluster_execution {
-        label="Collaborative Execution";
-        "Agents claim tasks" [shape=box];
-        "Parallel implementation" [shape=box];
-        "Inter-agent communication" [shape=box];
-        "Coordinate dependencies" [shape=box];
-        "Peer review" [shape=box];
-        "Resolve issues collaboratively" [shape=box];
+    subgraph cluster_per_task {
+        label="Per Task (teammates self-coordinate)";
+        "Implementer claims task, asks questions via SendMessage" [shape=box];
+        "Implementer implements, tests, commits, self-reviews" [shape=box];
+        "Implementer requests spec review via SendMessage" [shape=box];
+        "Spec reviewer confirms code matches spec?" [shape=diamond];
+        "Implementer fixes spec gaps" [shape=box];
+        "Spec reviewer approves, implementer requests code quality review via SendMessage" [shape=box];
+        "Code quality reviewer approves?" [shape=diamond];
+        "Implementer fixes quality issues" [shape=box];
+        "Implementer marks task complete in TaskUpdate" [shape=box];
     }
 
-    subgraph cluster_completion {
-        label="Completion";
-        "All tasks complete?" [shape=diamond];
-        "Team review session" [shape=box];
-        "Lead consolidates results" [shape=box];
-        "Finish development branch" [shape=box style=filled fillcolor=lightgreen];
-    }
+    "More tasks remain?" [shape=diamond];
+    "Shutdown team (SendMessage shutdown_request, sleep 30, TeamDelete)" [shape=box];
+    "Use h-superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
 
-    "Initialize team" -> "Create shared task list";
-    "Create shared task list" -> "Spawn team members";
-    "Spawn team members" -> "Brief team on plan";
-    "Brief team on plan" -> "Agents claim tasks";
-    "Agents claim tasks" -> "Parallel implementation";
-    "Parallel implementation" -> "Inter-agent communication";
-    "Inter-agent communication" -> "Coordinate dependencies";
-    "Coordinate dependencies" -> "Peer review";
-    "Peer review" -> "Resolve issues collaboratively";
-    "Resolve issues collaboratively" -> "All tasks complete?";
-    "All tasks complete?" -> "Agents claim tasks" [label="no - more work"];
-    "All tasks complete?" -> "Team review session" [label="yes"];
-    "Team review session" -> "Lead consolidates results";
-    "Lead consolidates results" -> "Finish development branch";
+    "Read plan, extract all tasks, create TaskCreate for each" -> "TeamCreate";
+    "TeamCreate" -> "Spawn implementer teammates (./implementer-prompt.md)";
+    "Spawn implementer teammates (./implementer-prompt.md)" -> "Spawn spec reviewer teammate (./spec-reviewer-prompt.md)";
+    "Spawn spec reviewer teammate (./spec-reviewer-prompt.md)" -> "Spawn code quality reviewer teammate (./code-quality-reviewer-prompt.md)";
+    "Spawn code quality reviewer teammate (./code-quality-reviewer-prompt.md)" -> "Implementer claims task, asks questions via SendMessage";
+    "Implementer claims task, asks questions via SendMessage" -> "Implementer implements, tests, commits, self-reviews";
+    "Implementer implements, tests, commits, self-reviews" -> "Implementer requests spec review via SendMessage";
+    "Implementer requests spec review via SendMessage" -> "Spec reviewer confirms code matches spec?";
+    "Spec reviewer confirms code matches spec?" -> "Implementer fixes spec gaps" [label="no"];
+    "Implementer fixes spec gaps" -> "Implementer requests spec review via SendMessage" [label="re-review"];
+    "Spec reviewer confirms code matches spec?" -> "Spec reviewer approves, implementer requests code quality review via SendMessage" [label="yes"];
+    "Spec reviewer approves, implementer requests code quality review via SendMessage" -> "Code quality reviewer approves?";
+    "Code quality reviewer approves?" -> "Implementer fixes quality issues" [label="no"];
+    "Implementer fixes quality issues" -> "Spec reviewer approves, implementer requests code quality review via SendMessage" [label="re-review"];
+    "Code quality reviewer approves?" -> "Implementer marks task complete in TaskUpdate" [label="yes"];
+    "Implementer marks task complete in TaskUpdate" -> "More tasks remain?";
+    "More tasks remain?" -> "Implementer claims task, asks questions via SendMessage" [label="yes"];
+    "More tasks remain?" -> "Shutdown team (SendMessage shutdown_request, sleep 30, TeamDelete)" [label="no"];
+    "Shutdown team (SendMessage shutdown_request, sleep 30, TeamDelete)" -> "Use h-superpowers:finishing-a-development-branch";
 }
 ```
 
-## Step-by-Step Guide
+## Prompt Templates
 
-### 1. Initialize Team
+- `./implementer-prompt.md` - Spawn implementer teammate
+- `./spec-reviewer-prompt.md` - Spawn spec compliance reviewer teammate
+- `./code-quality-reviewer-prompt.md` - Spawn code quality reviewer teammate
 
-Use the `init-team.sh` script to create the team directory structure:
+### Role summaries
 
-```bash
-# From the plugin root: bash skills/team-driven-development/init-team.sh <team-name> <members...>
-bash skills/team-driven-development/init-team.sh feature-authentication lead implementer-1 implementer-2 reviewer-1
-```
+**Implementer self-review:** Before requesting review, implementers review their own work for completeness (all requirements met?), quality (clear naming, clean code?), discipline (no overbuilding, follows existing patterns?), and testing (tests verify real behavior, not just mock it?). Issues found during self-review are fixed before handoff to reviewers.
 
-This creates:
-```
-~/.claude/teams/feature-authentication/
-  ├── tasks.json
-  └── inboxes/
-      ├── lead.json
-      ├── implementer-1.json
-      ├── implementer-2.json
-      └── reviewer-1.json
-```
+**Spec reviewer mindset:** Adversarial — does not trust the implementer's report. The reviewer reads code independently, compares against the spec line-by-line, and treats the implementer's claims as unverified until confirmed by code inspection. Checks three things: (1) missing requirements — did they skip anything? (2) extra work — did they build things not in spec? (3) misunderstandings — did they solve the wrong problem?
 
-Or create manually:
-```markdown
-Team name: feature-authentication
-Plan file: docs/plans/authentication-feature.md
+**Code quality reviewer:** Only reviews after spec compliance passes. Reviews the diff for clean code, test coverage, maintainability, and adherence to project conventions. Returns strengths, issues (critical/important/minor), and an overall assessment.
 
-Team composition:
-- Lead: You (orchestrator)
-- Teammate: implementer-1 (backend)
-- Teammate: implementer-2 (frontend)
-- Teammate: reviewer-1 (security focus)
-```
+**Lead (you):** Orchestrates via native tools — `TeamCreate`, `TaskCreate`, `TaskUpdate` (assign owners), `SendMessage` (coordinate), `TeamDelete` (cleanup). Does NOT implement. Monitors `TaskList`, resolves conflicts, enforces quality gates, shuts down team when done.
 
-### 2. Create Shared Task List
-
-Extract tasks from plan into `tasks.json`:
-
-```json
-{
-  "tasks": [
-    {
-      "id": "task-1",
-      "name": "JWT token generation",
-      "description": "Implement secure JWT token generation with refresh tokens",
-      "status": "available",
-      "dependencies": [],
-      "assignee": null,
-      "estimated_tokens": 5000,
-      "requires_coordination": false
-    },
-    {
-      "id": "task-2", 
-      "name": "Login API endpoint",
-      "description": "Create POST /api/auth/login endpoint with validation",
-      "status": "available",
-      "dependencies": ["task-1"],
-      "assignee": null,
-      "estimated_tokens": 4000,
-      "requires_coordination": true
-    },
-    {
-      "id": "task-3",
-      "name": "Login UI component",
-      "description": "Build React login form with error handling",
-      "status": "available", 
-      "dependencies": ["task-2"],
-      "assignee": null,
-      "estimated_tokens": 6000,
-      "requires_coordination": false
-    }
-  ]
-}
-```
-
-### 3. Spawn Team Members
-
-Use prompt templates from `./team-*-prompt.md` files:
+## Example Workflow
 
 ```
-# Lead agent (you) - Already active
+You: I'm using Team-Driven Development to execute this plan.
 
-# Spawn implementer-1
-Task tool (general-purpose):
-  description: "Backend implementer for auth feature"
-  prompt: [Use ./team-implementer-prompt.md with team context]
+[Read plan file once: docs/plans/feature-plan.md]
+[Extract all 5 tasks with full text and context]
+[TeamCreate(team_name: "feature-plan", description: "Implementing feature plan")]
+[TaskCreate for each task, TaskUpdate to set dependencies]
 
-# Spawn implementer-2  
-Task tool (general-purpose):
-  description: "Frontend implementer for auth feature"
-  prompt: [Use ./team-implementer-prompt.md with team context]
+[Read ./implementer-prompt.md, fill in team context]
+[Spawn implementer-1 via Agent tool with team_name]
+[Spawn implementer-2 via Agent tool with team_name]
+[Read ./spec-reviewer-prompt.md, fill in team context]
+[Spawn spec-reviewer-1 via Agent tool with team_name]
+[Read ./code-quality-reviewer-prompt.md, fill in team context]
+[Spawn code-reviewer-1 via Agent tool with team_name]
 
-# Spawn reviewer-1
-Task tool (general-purpose):
-  description: "Security reviewer for auth feature"
-  prompt: [Use ./team-reviewer-prompt.md with team context]
+[Monitor TaskList, respond to messages]
+
+Task 1: Hook installation script
+
+implementer-1 claims task-1, messages you:
+  "Before I begin - should the hook be installed at user or system level?"
+
+You reply via SendMessage:
+  "User level (~/.config/superpowers/hooks/)"
+
+implementer-1: "Got it. Implementing now..."
+[Later] implementer-1 messages spec-reviewer-1:
+  - Implemented install-hook command
+  - Added tests, 5/5 passing
+  - Self-review: Found I missed --force flag, added it
+  - Committed
+  - Please review spec compliance
+
+spec-reviewer-1 messages implementer-1:
+  ✅ Spec compliant - all requirements met, nothing extra
+
+implementer-1 messages code-reviewer-1:
+  Please review code quality
+
+code-reviewer-1 messages implementer-1:
+  Strengths: Good test coverage, clean. Issues: None. Approved.
+
+[implementer-1 marks task-1 complete via TaskUpdate]
+
+Task 2: Recovery modes (meanwhile, implementer-2 is working on task-3 in parallel)
+
+implementer-1 claims task-2, proceeds without questions:
+  - Added verify/repair modes
+  - 8/8 tests passing
+  - Self-review: All good
+  - Committed
+
+spec-reviewer-1 messages implementer-1:
+  ❌ Issues:
+  - Missing: Progress reporting (spec says "report every 100 items")
+  - Extra: Added --json flag (not requested)
+
+[implementer-1 fixes, requests re-review]
+
+spec-reviewer-1: ✅ Spec compliant now
+
+code-reviewer-1: Strengths: Solid. Issues (Important): Magic number (100)
+
+[implementer-1 fixes, requests re-review]
+
+code-reviewer-1: ✅ Approved
+
+[implementer-1 marks task-2 complete]
+
+...
+
+[All tasks complete — TaskList confirms all status: completed]
+[Run full test suite]
+[Send shutdown_request to all teammates]
+[Bash("sleep 30")]
+[TeamDelete]
+[Use finishing-a-development-branch — handles merge, tests, worktree cleanup, and disposition]
 ```
 
-### 4. Team Coordination
+## Worktree Completion
 
-**Lead responsibilities:**
-- Monitor shared task list for claimed/completed tasks
-- Read incoming messages from teammates
-- Resolve conflicts when multiple agents claim same task
-- Answer questions and provide clarifications
-- Escalate to human when blocked
+After all tasks are complete and shutdown is done, invoke `h-superpowers:finishing-a-development-branch`.
+That skill handles merge, test verification, worktree cleanup, and final disposition (push, PR, keep, discard). **Do not duplicate those steps here** — just invoke the skill and follow its instructions.
 
-**Teammate workflow:**
-1. Read shared task list
-2. Claim available task (or wait if dependencies not met)
-3. Implement task following TDD
-4. Communicate blockers or questions to relevant teammate
-5. Request review from reviewer when implementation complete — **do NOT mark task complete yet**
-6. Address review feedback, request re-review if needed
-7. Mark task complete in shared list **ONLY after reviewer approves**
+**⚠️ CWD warning:** If your shell is inside the worktree, `finishing-a-development-branch` will `cd` to the main repo before removing it. If you do any manual cleanup yourself, always `cd` out of the worktree before `git worktree remove`.
 
-**⚠️ Critical:** Implementers must NOT mark a task as "completed" until a reviewer has explicitly approved it. Running tests is NOT sufficient — reviewer approval is required. The lead should treat tasks as still in-progress until the reviewer sends an approval message.
+## Completion and Shutdown
 
-### 5. Message Passing Patterns
+**When all tasks are complete, execute this immediately. No exceptions.**
 
-**Request dependency info:**
-```
-From: implementer-2 (frontend)
-To: implementer-1 (backend)
-Subject: Login API response format
+1. Call `TaskList` to confirm every task shows status `completed`.
+2. Run the full test suite to verify the final result.
+3. Send `shutdown_request` to each teammate via SendMessage.
+4. Call `Bash("sleep 30")`. One wait. Do not send further messages, do not loop, do not check on teammates. They either shut down in 30 seconds or they don't.
+5. Call `TeamDelete`. If it fails, call `Bash("sleep 30")` and retry **once**. No other fallback — `TeamDelete` is the only path to a clean exit (it terminates agent processes; `rm -rf` leaves orphans that prevent the CLI from exiting).
+6. Summarize what was accomplished to the user.
 
-I'm implementing the login UI (task-3) and need to know the exact 
-response format from POST /api/auth/login. Can you share the schema?
-```
+**Hard stop.** After step 3, the orchestration is over. No coordination messages, no "are you still there?", no additional review cycles. Shut down and get out.
 
-**Report blocker:**
-```
-From: implementer-1 (backend)
-To: lead
-Subject: Blocked on JWT library choice
+## Advantages
 
-Task-1 (JWT generation) is blocked. Need decision on library:
-- Option A: jsonwebtoken (mature, widely used)
-- Option B: jose (modern, better types)
+**vs. Manual execution:**
+- Teammates follow TDD naturally
+- Persistent context per agent (no confusion across tasks)
+- Parallel execution (multiple tasks at once)
+- Teammates can ask questions (before AND during work)
 
-Which should we use? This affects task-2 as well.
-```
+**vs. Subagent-Driven Development:**
+- Parallel execution (wall-clock time savings)
+- Direct peer messaging (not just hub-and-spoke)
+- Persistent context (agent remembers earlier tasks)
+- Collaborative review (discussion, not just pass/fail)
 
-**Request review:**
-```
-From: implementer-1 (backend)
-To: reviewer-1 (security)
-Subject: Review needed: JWT implementation
+**Quality gates:**
+- Self-review catches issues before handoff
+- Two-stage review: spec compliance, then code quality
+- Review loops ensure fixes actually work
+- Spec compliance prevents over/under-building
+- Code quality ensures implementation is well-built
 
-Completed task-1 (JWT token generation). Please review:
-- Files: src/auth/jwt.ts, tests/auth/jwt.test.ts
-- Commits: abc123..def456
-- Focus areas: Token expiry, refresh token rotation, signing key management
-
-Let me know if you find any security issues.
-```
-
-**Provide review feedback:**
-```
-From: reviewer-1 (security)
-To: implementer-1 (backend)
-Subject: Re: JWT implementation - Issues found
-
-Security concerns in task-1:
-
-CRITICAL:
-- Signing key is hardcoded (jwt.ts:15) - Use environment variable
-- Token expiry too long (jwt.ts:23) - Reduce from 7d to 15m
-- No refresh token rotation (jwt.ts:45) - Implement rotation
-
-Please fix and request re-review.
-```
-
-### 6. Quality Gates (Lead Responsibility)
-
-The lead must enforce these gates — do not rely solely on task status:
-
-- **Review before completion:** A task is NOT done when the implementer finishes coding. It is done when the reviewer explicitly approves it. The lead should track both implementation status AND review status.
-- **Review before dependencies unlock:** Do not let agents start a dependent task until the dependency is both implemented AND reviewed/approved.
-- **Verify reviewer actually reviewed:** Check that the reviewer read the code and ran tests independently — not just rubber-stamped.
-
-**Recommended: Use task metadata to track review status separately.**
-When monitoring TaskList, a task showing "completed" only means the implementer is done. The lead should also check for reviewer approval messages before considering a task truly finished and unblocking dependent work.
-
-### 7. Completion
-
-When all tasks marked complete AND reviewed:
-
-1. **Worktree merge** (per-agent worktrees only) - Lead merges agent branches into the team branch in dependency order, running tests after each merge, then removes agent worktrees
-2. **Team review session** - Lead coordinates final review
-3. **Conflict resolution** - If multiple agents modified same files (more common in shared worktree; in per-agent worktrees, conflicts surface during merge)
-4. **Integration testing** - Run full test suite
-5. **Lead consolidates** - Creates summary of what was accomplished
-6. **Worktree cleanup** - Remove the team worktree after merge to main
-7. **Use finishing-a-development-branch** - Standard completion workflow
-
-## Communication Best Practices
-
-### When to Message vs Execute
-
-**Message another agent when:**
-- You need information they have (API schema, interface contract)
-- Blocked on their work (dependency not complete)
-- Found issue in their code (security flaw, bug)
-- Need architectural decision (affects multiple tasks)
-- Uncertain about approach (want second opinion)
-
-**Just execute when:**
-- Task is clearly specified and unblocked
-- No coordination needed with other agents
-- Following established patterns
-- Review can happen after completion
-
-### Message Structure
-
-Good messages are:
-- **Specific:** Reference exact files, lines, task IDs
-- **Actionable:** Clear what response is needed
-- **Concise:** Respect other agent's context limit
-- **Timestamped:** For async coordination
-
-### Escalation to Human
-
-Escalate to human when:
-- Agents disagree on architectural approach
-- Multiple approaches seem equally valid
-- Blocked on external decision (API design, library choice)
-- Cost is escalating beyond expected (need budget check)
-- Task taking much longer than estimated
+**Cost:**
+- Each teammate is a full Claude session (2-4x more than subagents)
+- Message overhead adds to cost
+- But parallel execution saves wall-clock time
+- And catches issues early (cheaper than debugging later)
 
 ## Red Flags
 
 **Never:**
-- Start team without enabling `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`
+- Start implementation on main/master branch without explicit user consent
+- Skip reviews (spec compliance OR code quality)
+- Proceed with unfixed issues
 - Exceed 6 agents (coordination overhead too high)
-- Let agents self-claim tasks concurrently (race condition — use lead-only assignment instead)
-- Skip the shared task list (how do agents coordinate?)
 - Ignore messages from teammates (breaks collaboration)
-- Mix team and subagent approaches in same workflow
+- Let implementer mark task complete before reviewer approves
+- **Start code quality review before spec compliance is ✅** (wrong order)
+- Move to next task while either review has open issues
 - Forget to budget for full sessions per agent
 
-**Task assignment — avoiding race conditions:**
+**If teammate asks questions:**
+- Answer clearly and completely via SendMessage
+- Provide additional context if needed
+- Don't rush them into implementation
 
-The safest approach is **lead-only task assignment**: the lead agent reads the task list and explicitly assigns tasks to teammates via message, rather than letting teammates self-claim. This eliminates concurrent write conflicts entirely.
+**If reviewer finds issues:**
+- Implementer fixes them
+- Reviewer reviews again
+- Repeat until approved
+- Don't skip the re-review
 
-```
-Lead assigns:
-  "implementer-1: please take task-1 (JWT generation)"
-  "implementer-2: please take task-3 (Login UI) after task-2 completes"
-```
-
-If you prefer self-claiming, the safest primitive is a sentinel lock file — create an empty file to "claim" a task and check if it already exists:
-
-```bash
-# Teammate claims task-1 atomically (works alongside tasks.json)
-LOCK="${HOME}/.claude/teams/<name>/locks/task-1.lock"
-mkdir -p "$(dirname "$LOCK")"
-# ln -s is atomic on POSIX filesystems; fails if file exists
-if ln -s "$$" "$LOCK" 2>/dev/null; then
-    echo "claimed task-1"
-    # update tasks.json to set status to "in-progress"
-else
-    echo "already taken"
-fi
-```
-
-Release the lock when the task is complete by removing the sentinel file:
-```bash
-rm -f "$LOCK"
-```
-
-**If agents conflict:**
-- Lead arbitrates based on plan requirements
-- Prefer simpler approach unless complex has clear benefit
-- Escalate to human if no clear winner
-
-**If coordination is failing:**
-- Too many messages = task too tightly coupled (should be sequential)
-- No messages = tasks too independent (use subagents instead)
-- Long message chains = architectural decision needed (escalate)
+**If teammate fails task:**
+- Send fix instructions via SendMessage
+- Don't try to fix manually (you're the lead, not the implementer)
 
 ## Integration
 
 **Required workflow skills:**
-- **h-superpowers:using-git-worktrees** - REQUIRED: Lead creates workspace before spawning team (or per-agent worktrees if planner specified — see Plan Preparation)
-- **h-superpowers:writing-plans** - Creates plan, identifies coordination needs
-- **h-superpowers:test-driven-development** - Teammates follow TDD
-- **h-superpowers:finishing-a-development-branch** - Complete after team done
+- **h-superpowers:using-git-worktrees** - REQUIRED: Set up isolated workspace before starting
+- **h-superpowers:writing-plans** - Creates the plan this skill executes
+- **h-superpowers:requesting-code-review** - Code review template for reviewer teammates
+- **h-superpowers:finishing-a-development-branch** - Complete development after all tasks
 
-**Alternative workflows:**
-- **h-superpowers:subagent-driven-development** - Use for independent tasks instead
-- **h-superpowers:dispatching-parallel-agents** - Use for truly independent parallel work
-- **h-superpowers:executing-plans** - Use for sequential manual execution
+**Teammates should use:**
+- **h-superpowers:test-driven-development** - Teammates follow TDD for each task
 
-## Cost Management
-
-### Estimation
-
-**Before starting, estimate:**
-```
-Base cost per task: ~$1-3 (depends on complexity)
-Number of tasks: 10
-Team size: 4 agents (1 lead + 2 implementers + 1 reviewer)
-
-Subagent approach:
-  10 tasks × 3 subagents/task × $2 = ~$60
-
-Team approach:
-  4 agents × full sessions × ~$40/session = ~$160
-  Plus message overhead: ~$20
-  Total: ~$180
-
-Multiplier: 3x cost for team approach
-Justified if: Coordination saves >3 hours of human time
-             or quality improvement worth >$120
-```
-
-### Cost Control
-
-**Reduce costs by:**
-- Smaller team (minimum: lead + implementer + reviewer = 3)
-- Shorter session (clear task boundaries, exit when done)
-- Fewer messages (provide full context upfront)
-- Clear task specs (reduce back-and-forth)
-
-**When to abort:**
-- Costs exceeding 5x estimate (something wrong)
-- Agents looping on coordination (architectural issue)
-- More messages than implementations (too much overhead)
-
-## Real-World Example
-
-See `./example-auth-feature.md` for a complete walkthrough of using team-driven development for an authentication feature. This example shows:
-- 8 tasks executed by 4 agents (lead + 2 implementers + reviewer)
-- Inter-agent coordination for API contracts
-- Security review catching 8 issues through adversarial discussion
-- Parallel implementation reducing wall-clock time
-- Cost comparison: $180 (teams) vs $70 (subagents), justified by security value and 75min time savings
-
-## Troubleshooting
-
-**"Agent teams not available"**
-- Check Claude Code version: `claude --version` (need Opus 4.6+)
-- Verify environment: `echo $CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`
-- Try explicit enable: `export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`
-
-**"Agents claiming same task"**
-- **Preferred fix:** Switch to lead-only assignment (see Red Flags section above)
-- Alternatively: use atomic file rename locking for self-claiming
-- Smaller team (less contention)
-
-**"Too many messages, no progress"**
-- Tasks too tightly coupled - break dependencies
-- Architectural decision needed - escalate to human
-- Consider sequential execution instead
-
-**"Costs exploding"**
-- Check message count (excessive coordination?)
-- Verify team size is reasonable (<= 6 agents)
-- Consider switching to subagent approach mid-flight
-
-## Success Metrics
-
-Track to evaluate if teams worth it:
-- **Cost efficiency:** Cost per task vs subagent baseline
-- **Quality:** Defect rate, review cycles
-- **Speed:** Wall-clock time vs sequential
-- **Collaboration value:** Issues found by peer review that would be missed
-
-Compare against subagent-driven-development to decide which approach works better for your task types.
+**Alternative workflow:**
+- **h-superpowers:subagent-driven-development** - Use for independent sequential tasks instead
+- **h-superpowers:executing-plans** - Use for parallel session instead of same-session execution

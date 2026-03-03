@@ -75,7 +75,7 @@ echo "Test 5: Shared task list..."
 run_claude "How do agents coordinate work in team-driven-development? What shared structure do they use?" 90
 show_output
 
-check assert_contains "$CLAUDE_OUTPUT" "shared.*task.*list\|task.*list\|tasks.json\|TaskList\|shared.*list" "Uses shared task list"
+check assert_contains "$CLAUDE_OUTPUT" "shared.*task.*list\|task.*list\|TaskList\|TaskCreate\|shared.*list" "Uses shared task list"
 check assert_contains "$CLAUDE_OUTPUT" "claim\|assign\|pick.*up\|take.*task" "Agents claim tasks"
 
 echo ""
@@ -118,8 +118,7 @@ run_claude "What are the red flags or 'never do' items in team-driven-developmen
 show_output
 
 check assert_contains "$CLAUDE_OUTPUT" "6\|six.*agent\|exceed" "Never exceed 6 agents"
-check assert_contains "$CLAUDE_OUTPUT" "same.*task\|race.*condition\|claim.*same" "Never let agents claim same task"
-check assert_contains "$CLAUDE_OUTPUT" "[Mm]ix.*team.*subagent\|[Mm]ix.*subagent.*team\|[Mm]ix.*approach" "Never mix team and subagent approaches"
+check assert_contains "$CLAUDE_OUTPUT" "skip.*review\|race.*condition\|claim.*same\|same.*task\|unfixed" "Warns about review or task discipline"
 
 echo ""
 

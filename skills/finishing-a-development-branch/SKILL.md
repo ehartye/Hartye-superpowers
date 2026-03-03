@@ -142,8 +142,13 @@ Check if in worktree:
 git worktree list | grep $(git branch --show-current)
 ```
 
-If yes:
+If yes — **change directory to the main repo BEFORE removing the worktree:**
 ```bash
+# CRITICAL: cd to main repo first. If your shell CWD is inside the worktree,
+# removing it destroys the CWD and every subsequent Bash call will fail.
+cd "$(git worktree list | head -1 | awk '{print $1}')"
+
+# Now safe to remove
 git worktree remove <worktree-path>
 ```
 
@@ -167,6 +172,10 @@ git worktree remove <worktree-path>
 **Open-ended questions**
 - **Problem:** "What should I do next?" → ambiguous
 - **Fix:** Present exactly 4 structured options
+
+**Removing worktree while CWD is inside it**
+- **Problem:** Shell CWD becomes invalid; every subsequent Bash call fails
+- **Fix:** Always `cd` to main repo root BEFORE `git worktree remove`
 
 **Automatic worktree cleanup**
 - **Problem:** Remove worktree when might need it (Option 2, 3)

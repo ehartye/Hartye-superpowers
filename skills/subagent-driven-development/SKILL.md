@@ -59,7 +59,6 @@ digraph process {
     "Read plan, extract all tasks with full text, note context, create TodoWrite" [shape=box];
     "More tasks remain?" [shape=diamond];
     "Dispatch final code reviewer subagent for entire implementation" [shape=box];
-    "Merge worktree branch back to original branch, run tests, cleanup worktree" [shape=box];
     "Use h-superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
 
     "Read plan, extract all tasks with full text, note context, create TodoWrite" -> "Dispatch implementer subagent (./implementer-prompt.md)";
@@ -79,8 +78,7 @@ digraph process {
     "Mark task complete in TodoWrite" -> "More tasks remain?";
     "More tasks remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
     "More tasks remain?" -> "Dispatch final code reviewer subagent for entire implementation" [label="no"];
-    "Dispatch final code reviewer subagent for entire implementation" -> "Merge worktree branch back to original branch, run tests, cleanup worktree";
-    "Merge worktree branch back to original branch, run tests, cleanup worktree" -> "Use h-superpowers:finishing-a-development-branch";
+    "Dispatch final code reviewer subagent for entire implementation" -> "Use h-superpowers:finishing-a-development-branch";
 }
 ```
 
@@ -171,24 +169,15 @@ Code reviewer: ✅ Approved
 [Dispatch final code-reviewer]
 Final reviewer: All requirements met, ready to merge
 
-[Merge worktree branch back to original branch]
-[Run tests on merged result]
-[Remove worktree]
-
-[Use finishing-a-development-branch for final disposition]
+[Use finishing-a-development-branch — handles merge, tests, worktree cleanup, and disposition]
 ```
 
 ## Worktree Completion
 
-After the final code review passes, the lead merges work back to the project's active branch:
+After the final code review passes, invoke `h-superpowers:finishing-a-development-branch`.
+That skill handles merge, test verification, worktree cleanup, and final disposition (push, PR, keep, discard). **Do not duplicate those steps here** — just invoke the skill and follow its instructions.
 
-1. **Switch to original branch** — `git checkout <original-branch>` (in the main project, not the worktree)
-2. **Merge the feature branch** — `git merge <worktree-branch>`
-3. **Run tests** — verify everything passes on the merged result
-4. **Remove the worktree** — `git worktree remove <worktree-path>`
-5. **Delete the feature branch** — `git branch -d <worktree-branch>`
-
-The lead controls this sequencing. Only after merge + test verification does the lead invoke `finishing-a-development-branch` for final disposition (push, PR, keep, etc.).
+**⚠️ CWD warning:** If your shell is inside the worktree, `finishing-a-development-branch` will `cd` to the main repo before removing it. If you do any manual cleanup yourself, always `cd` out of the worktree before `git worktree remove`.
 
 ## Advantages
 
