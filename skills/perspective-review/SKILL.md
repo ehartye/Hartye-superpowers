@@ -6,7 +6,7 @@ description: Use when you want diverse analytical perspectives on a project, cod
 # Perspective Review
 
 Evaluate projects and artifacts through multiple diverse analytical perspectives.
-Each perspective subagent gets its own context window, independently traverses the
+Each perspective agent gets its own context window, independently traverses the
 project using tools (Read, Glob, Grep), then a cross-pollination round lets
 perspectives react to each other's findings. A synthesis agent consolidates
 everything with clean separation between independent and reactive insights.
@@ -66,7 +66,24 @@ Want to adjust — add, remove, or swap any?"
 
 Wait for confirmation.
 
-### Step 3: Set up workspace
+### Step 3: Choose execution approach
+
+Present the choice:
+
+"**Two execution approaches:**
+
+**1. Subagent-Driven** — Parallel subagents per perspective, file-based
+cross-pollination with agent resume. Fast, efficient, proven.
+
+**2. Team-Driven** — Persistent teammate agents with direct messaging.
+Richer cross-pollination through real-time dialogue. Costs 2-4x more.
+Requires Opus 4.6+ and `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`.
+
+Which approach?"
+
+Default to subagent-driven if the user doesn't have a preference.
+
+### Step 4: Set up workspace
 
 Create a temporary directory for round outputs:
 
@@ -79,7 +96,11 @@ Create a temporary directory for round outputs:
 Use a reasonable location (e.g., sibling to the project being reviewed, or
 a temp directory).
 
-### Step 4: Round 1 — Independent Analysis
+---
+
+## Path A: Subagent-Driven
+
+### Step 5a: Round 1 — Independent Analysis
 
 Read `../shared-perspectives/perspective-subagent-prompt.md` for the Round 1
 review template.
@@ -100,10 +121,10 @@ these agents in Round 2.
 
 **Wait for all Round 1 subagents to complete.**
 
-### Step 5: Round 2 — Cross-Pollination
+### Step 6a: Round 2 — Cross-Pollination
 
 **Resume** each Round 1 subagent using the Agent tool's `resume` parameter
-with the agent ID captured in Step 4. The resumed agent retains its full
+with the agent ID captured in Step 5a. The resumed agent retains its full
 Round 1 context — every file it read, every pattern it traced — so it can
 make deeply informed reactions to other perspectives' findings.
 
@@ -119,7 +140,7 @@ Resume all perspectives **in parallel**.
 
 **Wait for all Round 2 subagents to complete.**
 
-### Step 6: Synthesis
+### Step 7a: Synthesis
 
 Read `../shared-perspectives/synthesis-agent-prompt.md` for the review
 synthesis template.
@@ -134,7 +155,68 @@ cross-pollination findings.
 
 Save the final report to a location the user can access.
 
-### Step 7: Present results
+---
+
+## Path B: Team-Driven
+
+### Step 5b: Set up team
+
+Create the team:
+
+```
+TeamCreate(team_name: "perspective-review", description: "Multi-perspective review of [target]")
+```
+
+Read `../shared-perspectives/perspective-teammate-prompt.md` for the review
+teammate template. For each confirmed perspective, fill the template with:
+- `{TEAM_NAME}` — the team name
+- `{PERSPECTIVE_NAME}` — the perspective name
+- `{PERSPECTIVE_SLUG}` — kebab-case name (e.g., `adversary`, `design-principles`)
+- `{PERSPECTIVE_PROCEDURE}` — the full analytical procedure from the catalogue
+- `{TARGET_DESCRIPTION}` — what they're reviewing
+- `{OUTPUT_PATH_ROUND_1}` — e.g., `<workspace>/round-1/adversary.md`
+- `{OUTPUT_PATH_ROUND_2}` — e.g., `<workspace>/round-2/adversary.md`
+
+Spawn one teammate per perspective using the Agent tool with `team_name`.
+
+Read `../shared-perspectives/synthesis-teammate-prompt.md` for the review
+synthesis teammate template. Spawn the synthesis teammate with `team_name`.
+
+### Step 6b: Round 1 + Cross-Pollination
+
+**Round 1:** Each perspective teammate independently explores the project
+and messages you when done. Wait for all perspectives to report completion.
+
+**Round 2:** Once all Round 1 outputs are saved, send each perspective
+teammate the file paths of all OTHER perspectives' Round 1 outputs via
+SendMessage:
+
+"Cross-pollination round. Read these other perspectives' Round 1 findings:
+- Adversary: `<workspace>/round-1/adversary.md`
+- Operator: `<workspace>/round-1/operator.md`
+- ...
+Your Round 1 findings are LOCKED. React only."
+
+Wait for all perspectives to report Round 2 completion.
+
+### Step 7b: Synthesis + Shutdown
+
+Send the synthesis teammate all file paths via SendMessage:
+
+"All rounds complete. Produce the synthesis report.
+Round 1 files: [list with perspective labels]
+Round 2 files: [list with perspective labels]
+Save report to: {OUTPUT_PATH}"
+
+Wait for synthesis to complete. Then shut down:
+
+1. Send `shutdown_request` to each teammate via SendMessage
+2. `Bash("sleep 30")`
+3. `TeamDelete`
+
+---
+
+### Step 8: Present results
 
 Present the synthesis report to the user. Offer next steps:
 - "Want me to revise the design based on these findings?" -> brainstorming
