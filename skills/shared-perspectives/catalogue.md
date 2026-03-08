@@ -98,17 +98,142 @@ external systems that aren't guaranteed.
 at boundaries, version incompatibilities, migration gaps, assumptions about
 external system behavior.
 
+---
+
+## Discipline-Based Perspectives
+
+These perspectives evaluate against specific technical disciplines rather than
+organizational roles. They complement role-based perspectives — a review might
+combine Adversary (role) with Testing Strategy (discipline) to catch both
+security vulnerabilities and test design gaps.
+
+### Design Principles
+**Analytical procedure:** Evaluate the codebase against established design
+principles: SOLID, DRY, YAGNI, separation of concerns, appropriate abstraction
+levels. For each component, assess coupling (how many other components does it
+depend on or affect?) and cohesion (does this component do one thing well, or
+is it a grab-bag?). Trace dependency directions — do high-level modules depend
+on low-level details, or are abstractions properly inverted? Look for premature
+abstractions (wrapping something used once) and missing abstractions (copy-pasted
+logic that should be extracted). Ask: "If the requirements change in a likely
+way, how many files need to change?"
+
+**Catches:** Violations of SOLID principles, premature or missing abstractions,
+high coupling, low cohesion, dependency direction problems, inappropriate
+inheritance vs composition, god classes/functions, feature envy, shotgun surgery.
+
+---
+
+### Conventions & Idioms
+**Analytical procedure:** Identify the languages, frameworks, and libraries in
+use. For each, evaluate whether the code follows idiomatic patterns — the way
+experienced practitioners of that technology would write it. Check for: using
+framework features as intended vs fighting the framework, language-specific
+patterns (Go error handling, Python context managers, React hooks rules,
+TypeScript narrowing), consistent naming conventions, project-level patterns
+that are followed in some places but violated in others. Look for patterns
+that work in one language but are anti-patterns in the one being used.
+
+**Catches:** Non-idiomatic code, framework misuse, inconsistent naming or
+structure, language-specific anti-patterns, reinventing built-in features,
+style inconsistencies across the codebase, patterns imported from other
+languages that don't fit.
+
+---
+
+### Testing Strategy
+**Analytical procedure:** Evaluate not just whether tests exist, but whether
+they're well-designed. For each test: does it test behavior or implementation
+details? Would it break if you refactored without changing behavior (fragile)?
+Does it actually verify the thing it claims to verify, or does it mock so
+heavily that it's testing the mocks? Check test boundaries — are unit tests
+truly isolated? Do integration tests cover real integration points? Look for
+missing boundary cases, error paths, and edge conditions. Assess the test
+suite as a whole: could you confidently refactor the codebase with these tests
+as your safety net?
+
+**Catches:** Tests that test mocks instead of behavior, missing boundary/edge
+cases, fragile tests coupled to implementation, gaps in error path coverage,
+missing integration tests at real boundaries, test setup that hides bugs,
+assertions that are too loose to catch regressions.
+
+---
+
+### Data Integrity
+**Analytical procedure:** Trace data from entry point through storage to
+retrieval. At each stage: what validates the data? What constraints enforce
+correctness? For schemas: is normalization appropriate (not over- or under-),
+are indexes aligned with query patterns, do migrations handle existing data
+safely? For data flows: where can data become inconsistent (partial writes,
+race conditions, failed transactions)? Check for orphaned references, missing
+cascade rules, and implicit assumptions about data shape that aren't enforced
+by the schema.
+
+**Catches:** Schema/migration mismatches, missing constraints, data races,
+partial write hazards, orphaned records, inconsistent data representations,
+unsafe migrations, missing validation at storage boundaries, implicit shape
+assumptions.
+
+---
+
+### API Design
+**Analytical procedure:** Evaluate APIs (REST, GraphQL, RPC, internal module
+interfaces) as contracts. For each endpoint/method: is the contract clear from
+the signature and documentation alone? Are error responses specific enough to
+act on? Is versioning handled? Check backward compatibility — could a consumer
+upgrade without breaking? Look for: inconsistent naming across endpoints,
+missing pagination on list operations, unclear ownership of side effects,
+operations that should be idempotent but aren't. Evaluate whether the API
+makes the common case easy and the complex case possible.
+
+**Catches:** Unclear contracts, inconsistent naming/patterns across endpoints,
+missing pagination, non-idempotent mutations, breaking changes without
+versioning, error responses that don't help callers recover, leaking internal
+implementation details through the API surface.
+
+---
+
+## Custom Perspectives
+
+If the catalogue doesn't cover a lens the user needs, create a custom
+perspective on the fly. Derive a specific analytical procedure from the
+user's description — it should be as concrete and actionable as the catalogue
+entries above, not a vague "look at X."
+
+Example: If the user says "review for our team's error handling conventions,"
+create a procedure like: "Trace every error path in the codebase. Check for
+consistent error wrapping, whether errors cross module boundaries with context,
+whether recovery vs propagation decisions follow a consistent pattern..."
+
+Custom perspectives participate in the same Round 1 → Round 2 → Synthesis
+flow as catalogue perspectives.
+
+---
+
 ## Selecting Perspectives
 
 When recommending perspectives for an artifact or question, consider:
 
-1. **Artifact type:** Design docs benefit from Maintainer + User/Consumer.
-   Architecture decisions benefit from Adversary + Performance/Scale.
-   Plans benefit from Operator + Business/Strategy.
-2. **Domain signals:** Security-sensitive → Adversary. User-facing → User/Consumer.
-   Infrastructure → Operator. API design → Integrator + User/Consumer.
-3. **Cap at 3-4:** Per collective intelligence research (Woolley et al.),
+1. **Artifact type determines the starting palette:**
+   - Design docs → Maintainer + User/Consumer (role) or Design Principles (discipline)
+   - Architecture decisions → Adversary + Performance/Scale
+   - Plans → Operator + Business/Strategy
+   - Code/implementation → mix role-based with discipline-based
+   - Tech stack evaluation → Business/Strategy + Integrator + Operator
+2. **Domain signals narrow the selection:**
+   - Security-sensitive → Adversary
+   - User-facing → User/Consumer
+   - Infrastructure → Operator
+   - API design → API Design (discipline) + Integrator (role)
+   - Pattern/standards review → Design Principles + Conventions & Idioms + Testing Strategy
+   - Data-heavy → Data Integrity + Performance/Scale
+3. **Mix role-based and discipline-based when both add value.** A code review
+   might pair Adversary (role — finds exploitable flaws) with Testing Strategy
+   (discipline — finds test gaps that let those flaws ship). The cross-pollination
+   between a role lens and a discipline lens is often more productive than
+   two of the same type.
+4. **Cap at 3-4:** Per collective intelligence research (Woolley et al.),
    3-4 perspectives is the sweet spot. More than 4 adds coordination overhead
    that degrades quality.
-4. **Explain why:** For each recommended perspective, state why it's relevant
+5. **Explain why:** For each recommended perspective, state why it's relevant
    to this specific artifact — not just generic reasoning.

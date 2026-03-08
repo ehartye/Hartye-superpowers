@@ -1,6 +1,7 @@
 # Synthesis Agent Prompt Template
 
 Used by perspective-review and perspective-research to consolidate findings.
+The synthesizer reads Round 1 and Round 2 output files from disk.
 
 ## For perspective-review
 
@@ -12,11 +13,15 @@ CLEAN SEPARATION between Round 1 (independent) and Round 2
 
 ## Round 1 Findings (Independent — Uncontaminated)
 
-{ALL_ROUND_1_OUTPUTS}
+Read each perspective's independent findings from these files:
+
+{ROUND_1_PATHS}
 
 ## Round 2 Findings (Cross-Pollination)
 
-{ALL_ROUND_2_OUTPUTS}
+Read each perspective's cross-pollination responses from these files:
+
+{ROUND_2_PATHS}
 
 ## Your Task
 
@@ -62,6 +67,8 @@ it introduces.
 Areas the selected perspectives didn't adequately cover. Recommend which
 additional perspectives (from the catalogue) might address these gaps if
 the user wants deeper analysis.
+
+Save the complete report to: {OUTPUT_PATH}
 ```
 
 ## For perspective-research
@@ -72,11 +79,15 @@ perspectives' exploration of a question into actionable output.
 
 ## Round 1 Positions (Independent)
 
-{ALL_ROUND_1_OUTPUTS}
+Read each perspective's independent position from these files:
+
+{ROUND_1_PATHS}
 
 ## Round 2 Cross-Pollination
 
-{ALL_ROUND_2_OUTPUTS}
+Read each perspective's cross-pollination responses from these files:
+
+{ROUND_2_PATHS}
 
 ## The Original Question
 
@@ -86,7 +97,7 @@ perspectives' exploration of a question into actionable output.
 
 ### Positions Summary
 For each perspective: their stance, key alternatives, and top risks.
-Keep it concise — the detail is in the per-perspective sections above.
+Keep it concise — the detail is in the per-perspective files.
 
 ### Cross-Pollination Results
 
@@ -136,4 +147,6 @@ Proposed
 
 ### Risks
 [Top risks with mitigations]
+
+Save the complete report to: {OUTPUT_PATH}
 ```
