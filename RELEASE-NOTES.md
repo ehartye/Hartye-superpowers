@@ -30,6 +30,21 @@ This fork ([ehartye/Hartye-superpowers](https://github.com/ehartye/Hartye-superp
 
 ---
 
+## v4.4.0 (2026-03-08)
+
+### Changed
+
+**Semantic agent naming in team-driven-development**
+- Replaced numbered names (`implementer-1`, `spec-reviewer-1`) with guidance for semantic names reflecting focus area (e.g. `hook-installer`, `spec-auditor`, `quality-sentinel`)
+- Updated example workflow to demonstrate semantic naming throughout
+
+**Unconditional TDD in implementer prompts**
+- Both team-driven and subagent-driven implementer prompts now inline the red-green-refactor cycle and the Iron Law
+- TDD is no longer opt-in ("if task says to") — it's the default workflow
+- Self-review checklists updated from conditional to unconditional TDD verification
+
+---
+
 ## v4.3.0 (2026-02-12)
 
 This fix should dramatically improve superpowers skills compliance and should reduce the chances of Claude entering its native plan mode unintentionally.
