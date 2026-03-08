@@ -22,6 +22,8 @@ This fork looked at that and said **"WHAT IF WE TURNED IT UP TO ELEVEN?"**
 
 **AGENT TEAMS, BABY.** Multiple agents working together — a lead agent spawning teammates, assigning tasks through shared task lists, agents talking DIRECTLY to each other, each one in its own isolated git worktree so nobody steps on anybody's toes. The lead watches the board, resolves blockers, merges the branches, and delivers a finished feature while you're out getting coffee.
 
+**MULTI-PERSPECTIVE ANALYSIS, BROTHER.** Want a second opinion on your architecture? How about FOUR second opinions? Perspective-review spawns a squad of independently-minded analysts — an Adversary looking for exploits, an Operator imagining the 3am production fire, a Performance engineer modeling 100x load — and then makes them ARGUE WITH EACH OTHER in a cross-pollination round. Novel insights the baseline brain CANNOT produce. It's like having a whole review board, except they actually read the code.
+
 Will it consume tokens like a man possessed? **YOU BET IT WILL.** That's the price of GREATNESS. The Token Bills don't lie.
 
 ## The Workflow — OOOH YEAH
@@ -41,7 +43,9 @@ Will it consume tokens like a man possessed? **YOU BET IT WILL.** That's the pri
 
 6. **CODE REVIEW** — Every task gets reviewed against the plan. Critical issues BLOCK PROGRESS. No sneaking past the ropes.
 
-7. **FINISH** — Tests pass, options presented, worktree cleaned up. Merge, PR, keep, or discard. Clean as a whistle.
+7. **PERSPECTIVE REVIEW** *(optional but DEVASTATING)* — Before you even write the plan, unleash 3-4 analytical perspectives on your design. They find things independently, then CROSS-POLLINATE. The Adversary reads the Operator's concerns and goes "actually that's even worse than you think." Cascading insights. Novel attack vectors. Budget-destroying but TRUTH-REVEALING.
+
+8. **FINISH** — Tests pass, options presented, worktree cleaned up. Merge, PR, keep, or discard. Clean as a whistle.
 
 **These aren't suggestions. They're MANDATORY WORKFLOWS.** The skills trigger automatically. Your agent doesn't get a choice. AND NEITHER DO YOU.
 
@@ -80,6 +84,10 @@ Fetch and follow instructions from https://raw.githubusercontent.com/ehartye/Har
 - **systematic-debugging** — 4-phase root cause analysis. No guessing.
 - **verification-before-completion** — Prove it's fixed or it ain't fixed
 
+**Analysis**
+- **perspective-review** — Multi-perspective review of projects, designs, and plans. 12 analytical lenses. Cross-pollination. The full tribunal.
+- **perspective-research** — Multi-perspective exploration of open questions. "Should we use X or Y?" becomes a structured debate with an ADR at the end.
+
 **Collaboration**
 - **brainstorming** — Socratic design refinement
 - **writing-plans** — Battle-tested implementation plans
@@ -108,6 +116,7 @@ The original [obra/superpowers](https://github.com/obra/superpowers) is the proj
 - **YAGNI** — You Ain't Gonna Need It. Build what the spec says. NOTHING MORE. Gold-plating is for championship belts, not code.
 - **Systematic over ad-hoc** — Process over guessing. EVERY TIME.
 - **Evidence over claims** — Verify before declaring victory.
+- **Diverse perspectives over groupthink** — One brain finds bugs. Four brains with different analytical procedures find FORTY-ONE PERCENT more unique defects. That's not hype, that's Basili's research.
 - **Go big or go home** — If you're gonna spend tokens, MAKE THEM COUNT.
 
 ## Contributing
