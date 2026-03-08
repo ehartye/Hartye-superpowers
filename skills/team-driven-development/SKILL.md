@@ -99,6 +99,16 @@ digraph process {
 - `./spec-reviewer-prompt.md` - Spawn spec compliance reviewer teammate
 - `./code-quality-reviewer-prompt.md` - Spawn code quality reviewer teammate
 
+### Teammate naming
+
+Give each teammate a **semantic name** that reflects their focus area or personality — never use numbered names like `implementer-1`. Good names make message logs readable and give each teammate a distinct identity.
+
+- **Implementers:** Name after their focus — `hook-installer`, `api-layer`, `ui-dashboard`, `test-harness`, `schema-migrator`
+- **Spec reviewer:** Name after their adversarial role — `spec-auditor`, `requirements-checker`, `compliance-eye`
+- **Code quality reviewer:** Name after their quality focus — `quality-sentinel`, `code-critic`, `standards-keeper`
+
+Pick names that fit the project. Be creative — the only constraint is that the name should be recognizable in message logs.
+
 ### Role summaries
 
 **Implementer self-review:** Before requesting review, implementers review their own work for completeness (all requirements met?), quality (clear naming, clean code?), discipline (no overbuilding, follows existing patterns?), and testing (tests verify real behavior, not just mock it?). Issues found during self-review are fixed before handoff to reviewers.
@@ -120,66 +130,66 @@ You: I'm using Team-Driven Development to execute this plan.
 [TaskCreate for each task, TaskUpdate to set dependencies]
 
 [Read ./implementer-prompt.md, fill in team context]
-[Spawn implementer-1 via Agent tool with team_name]
-[Spawn implementer-2 via Agent tool with team_name]
+[Spawn hook-installer (implementer, focus: hook setup) via Agent tool with team_name]
+[Spawn recovery-builder (implementer, focus: recovery modes) via Agent tool with team_name]
 [Read ./spec-reviewer-prompt.md, fill in team context]
-[Spawn spec-reviewer-1 via Agent tool with team_name]
+[Spawn spec-auditor (spec reviewer) via Agent tool with team_name]
 [Read ./code-quality-reviewer-prompt.md, fill in team context]
-[Spawn code-reviewer-1 via Agent tool with team_name]
+[Spawn quality-sentinel (code quality reviewer) via Agent tool with team_name]
 
 [Monitor TaskList, respond to messages]
 
 Task 1: Hook installation script
 
-implementer-1 claims task-1, messages you:
+hook-installer claims task-1, messages you:
   "Before I begin - should the hook be installed at user or system level?"
 
 You reply via SendMessage:
   "User level (~/.config/superpowers/hooks/)"
 
-implementer-1: "Got it. Implementing now..."
-[Later] implementer-1 messages spec-reviewer-1:
+hook-installer: "Got it. Implementing now..."
+[Later] hook-installer messages spec-auditor:
   - Implemented install-hook command
   - Added tests, 5/5 passing
   - Self-review: Found I missed --force flag, added it
   - Committed
   - Please review spec compliance
 
-spec-reviewer-1 messages implementer-1:
+spec-auditor messages hook-installer:
   ✅ Spec compliant - all requirements met, nothing extra
 
-implementer-1 messages code-reviewer-1:
+hook-installer messages quality-sentinel:
   Please review code quality
 
-code-reviewer-1 messages implementer-1:
+quality-sentinel messages hook-installer:
   Strengths: Good test coverage, clean. Issues: None. Approved.
 
-[implementer-1 marks task-1 complete via TaskUpdate]
+[hook-installer marks task-1 complete via TaskUpdate]
 
-Task 2: Recovery modes (meanwhile, implementer-2 is working on task-3 in parallel)
+Task 2: Recovery modes (meanwhile, recovery-builder is working on task-3 in parallel)
 
-implementer-1 claims task-2, proceeds without questions:
+hook-installer claims task-2, proceeds without questions:
   - Added verify/repair modes
   - 8/8 tests passing
   - Self-review: All good
   - Committed
 
-spec-reviewer-1 messages implementer-1:
+spec-auditor messages hook-installer:
   ❌ Issues:
   - Missing: Progress reporting (spec says "report every 100 items")
   - Extra: Added --json flag (not requested)
 
-[implementer-1 fixes, requests re-review]
+[hook-installer fixes, requests re-review]
 
-spec-reviewer-1: ✅ Spec compliant now
+spec-auditor: ✅ Spec compliant now
 
-code-reviewer-1: Strengths: Solid. Issues (Important): Magic number (100)
+quality-sentinel: Strengths: Solid. Issues (Important): Magic number (100)
 
-[implementer-1 fixes, requests re-review]
+[hook-installer fixes, requests re-review]
 
-code-reviewer-1: ✅ Approved
+quality-sentinel: ✅ Approved
 
-[implementer-1 marks task-2 complete]
+[hook-installer marks task-2 complete]
 
 ...
 
@@ -274,8 +284,8 @@ That skill handles merge, test verification, worktree cleanup, and final disposi
 - **h-superpowers:requesting-code-review** - Code review template for reviewer teammates
 - **h-superpowers:finishing-a-development-branch** - Complete development after all tasks
 
-**Teammates should use:**
-- **h-superpowers:test-driven-development** - Teammates follow TDD for each task
+**Teammates follow:**
+- **h-superpowers:test-driven-development** - TDD is baked into implementer prompts (red-green-refactor, Iron Law)
 
 **Alternative workflow:**
 - **h-superpowers:subagent-driven-development** - Use for independent sequential tasks instead

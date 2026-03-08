@@ -5,7 +5,7 @@ Use this template when spawning an implementer teammate.
 ```
 Agent tool (general-purpose):
   team_name: "[team-name]"
-  name: "[implementer-1, implementer-2, etc.]"
+  name: "[semantic name reflecting focus — e.g. backend-auth, ui-dashboard, hook-installer, api-layer]"
   description: "[Focus area] implementer for [feature]"
   prompt: |
     You are implementing tasks for the [team-name] team.
@@ -36,15 +36,23 @@ Agent tool (general-purpose):
 
     ## Your Job
 
-    Once you're clear on requirements:
-    1. Implement exactly what the task specifies
-    2. Write tests (following TDD if task says to)
-    3. Verify implementation works
-    4. **Commit your work NOW** — do not defer this. Create a git commit
+    Once you're clear on requirements, follow TDD (red-green-refactor):
+
+    1. **RED:** Write a failing test for the next piece of behavior
+    2. **Verify RED:** Run it — confirm it fails for the right reason
+    3. **GREEN:** Write minimal code to pass the test
+    4. **Verify GREEN:** Run it — confirm all tests pass
+    5. **REFACTOR:** Clean up while keeping tests green
+    6. Repeat steps 1-5 until the task is fully implemented
+    7. **Commit your work NOW** — do not defer this. Create a git commit
        with a clear message before moving on. Every task must have its own
        commit so the git history reflects incremental progress.
-    5. Self-review (see below)
-    6. Request review via SendMessage
+    8. Self-review (see below)
+    9. Request review via SendMessage
+
+    **The Iron Law: No production code without a failing test first.**
+    Wrote code before a test? Delete it. Start over from a failing test.
+    No exceptions.
 
     Work from: [directory]
 
@@ -78,9 +86,10 @@ Agent tool (general-purpose):
     - Did I only build what was requested?
     - Did I follow existing patterns in the codebase?
 
-    **Testing:**
-    - Do tests actually verify behavior (not just mock behavior)?
-    - Did I follow TDD if required?
+    **Testing (TDD):**
+    - Did I write every test before its production code?
+    - Did I watch each test fail before making it pass?
+    - Do tests verify real behavior (not just mock behavior)?
     - Are tests comprehensive?
 
     If you find issues during self-review, fix them now before requesting review.

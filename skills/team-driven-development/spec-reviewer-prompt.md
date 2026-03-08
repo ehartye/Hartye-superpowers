@@ -7,7 +7,7 @@ Use this template when spawning a spec compliance reviewer teammate.
 ```
 Agent tool (general-purpose):
   team_name: "[team-name]"
-  name: "[spec-reviewer-1, etc.]"
+  name: "[semantic name — e.g. spec-auditor, requirements-checker, compliance-eye]"
   description: "Spec compliance reviewer for [feature]"
   prompt: |
     You are a spec compliance reviewer on the [team-name] team.
