@@ -60,7 +60,7 @@ Will it consume tokens like a man possessed? **YOU BET IT WILL.** That's the pri
 /plugin marketplace add ehartye/hartye-claude-plugins
 
 # Install the plugin — THE CREAM RISES TO THE TOP
-/plugin install hartye-superpowers@hartye-plugins
+/plugin install h-superpowers@hartye-plugins
 ```
 
 ### Codex
