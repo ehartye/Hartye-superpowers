@@ -2,7 +2,7 @@
 
 > **Looking for the real deal?** Go to [obra/superpowers](https://github.com/obra/superpowers) — Jesse Vincent's original plugin that started it all. It's excellent, well-maintained, and won't burn through your token budget like this fork will.
 
-Hartye-Superpowers is an opinionated, token-hungry fork of [Jesse Vincent's Superpowers](https://github.com/obra/superpowers) — a complete software development workflow for coding agents, built on composable "skills" and initial instructions that ensure your agent uses them. This fork adds **agent team coordination** (multiple agents working in parallel with direct peer-to-peer communication, shared task lists, and worktree isolation) and other experimental enhancements.
+Hartye-Superpowers is an opinionated, token-hungry fork of [Jesse Vincent's Superpowers](https://github.com/obra/superpowers) — a complete software development workflow for coding agents, built on composable "skills" and initial instructions that ensure your agent uses them. This fork adds **agent team coordination** (multiple agents working in parallel with direct peer-to-peer communication, shared task lists, and worktree isolation), **multi-perspective analysis** (independent analytical perspectives that cross-pollinate findings for deeper review and research), and other experimental enhancements.
 
 > **Original project:** [obra/superpowers](https://github.com/obra/superpowers) by [Jesse Vincent](https://blog.fsck.com/2025/10/09/superpowers/)
 > **This fork:** [ehartye/Hartye-superpowers](https://github.com/ehartye/Hartye-superpowers) maintained by Eric Hartye
@@ -38,7 +38,7 @@ If Superpowers has been useful to you and you'd like to support the original aut
 /plugin marketplace add ehartye/hartye-claude-plugins
 
 # Install the plugin
-/plugin install hartye-superpowers@hartye-plugins
+/plugin install h-superpowers@hartye-plugins
 ```
 
 ### Verify Installation
@@ -79,7 +79,9 @@ Fetch and follow instructions from https://raw.githubusercontent.com/ehartye/Har
 
 6. **requesting-code-review** - Activates between tasks. Reviews against plan, reports issues by severity. Critical issues block progress.
 
-7. **finishing-a-development-branch** - Activates when tasks complete. Verifies tests, presents options (merge/PR/keep/discard), cleans up worktree.
+7. **perspective-review** or **perspective-research** (optional) - Spawns 3-4 independent analytical perspectives (e.g., Adversary, Operator, Performance/Scale) that each review or research independently, then cross-pollinate findings in a second round. The synthesis produces insights no single reviewer would catch — cascading failures, novel alternatives, multi-vector risks. Useful before planning or after design.
+
+8. **finishing-a-development-branch** - Activates when tasks complete. Verifies tests, presents options (merge/PR/keep/discard), cleans up worktree.
 
 **The agent checks for relevant skills before any task.** Mandatory workflows, not suggestions.
 
@@ -119,6 +121,10 @@ The whole thing — design through PR — typically runs without you touching co
 - **systematic-debugging** - 4-phase root cause process (includes root-cause-tracing, defense-in-depth, condition-based-waiting techniques)
 - **verification-before-completion** - Ensure it's actually fixed
 
+**Analysis**
+- **perspective-review** - Multi-perspective review of projects, designs, and plans through 12 analytical lenses (7 role-based, 5 discipline-based) with cross-pollination between perspectives
+- **perspective-research** - Multi-perspective exploration of open questions and decisions, producing a recommendation with confidence level and ADR template
+
 **Collaboration**
 - **brainstorming** - Socratic design refinement
 - **writing-plans** - Detailed implementation plans
@@ -143,6 +149,7 @@ The whole thing — design through PR — typically runs without you touching co
 - **Test-Driven Development** - Write tests first, always
 - **Systematic over ad-hoc** - Process over guessing
 - **Complexity reduction** - Simplicity as primary goal
+- **Diverse perspectives over groupthink** - Independent analytical lenses catch more unique issues than a single reviewer
 - **Evidence over claims** - Verify before declaring success
 
 Read more about the original project: [Superpowers for Claude Code](https://blog.fsck.com/2025/10/09/superpowers/) by Jesse Vincent.
@@ -161,7 +168,7 @@ See `skills/writing-skills/SKILL.md` for the complete guide.
 ## Updating
 
 ```bash
-/plugin install hartye-superpowers@hartye-plugins
+/plugin install h-superpowers@hartye-plugins
 ```
 
 ## License
