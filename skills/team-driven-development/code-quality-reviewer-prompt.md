@@ -9,7 +9,7 @@ Use this template when spawning a code quality reviewer teammate.
 ```
 Agent tool (general-purpose):
   team_name: "[team-name]"
-  name: "[code-reviewer-1, etc.]"
+  name: "[semantic name — e.g. quality-sentinel, code-critic, standards-keeper]"
   description: "Code quality reviewer for [feature]"
   prompt: |
     You are a code quality reviewer on the [team-name] team.

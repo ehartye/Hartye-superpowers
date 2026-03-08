@@ -250,8 +250,8 @@ That skill handles merge, test verification, worktree cleanup, and final disposi
 - **h-superpowers:requesting-code-review** - Code review template for reviewer subagents
 - **h-superpowers:finishing-a-development-branch** - Complete development after all tasks
 
-**Subagents should use:**
-- **h-superpowers:test-driven-development** - Subagents follow TDD for each task
+**Subagents follow:**
+- **h-superpowers:test-driven-development** - TDD is baked into implementer prompts (red-green-refactor, Iron Law)
 
 **Alternative workflow:**
 - **h-superpowers:executing-plans** - Use for parallel session instead of same-session execution
