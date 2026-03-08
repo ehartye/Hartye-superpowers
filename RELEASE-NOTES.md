@@ -30,6 +30,44 @@ This fork ([ehartye/Hartye-superpowers](https://github.com/ehartye/Hartye-superp
 
 ---
 
+## v4.6.0 (2026-03-08)
+
+### New Features
+
+**Perspective-review and perspective-research skills**
+
+Two new skills for multi-perspective analysis using PBR-style (Perspective-Based Reading) independent review with cross-pollination:
+
+- **perspective-review** — Evaluate projects, codebases, designs, or plans through 3-4 diverse analytical perspectives. Each perspective subagent independently traverses the project, then a cross-pollination round lets perspectives react to each other's findings. A synthesis agent consolidates everything with clean separation between independent and reactive insights.
+
+- **perspective-research** — Explore open questions (tech stack decisions, architecture approaches, risk assessment) through diverse perspectives that independently research, then cross-pollinate to produce hybrid approaches no single lens would generate alone. Produces a recommendation with confidence level and ADR template.
+
+**Architecture:** Round 1 spawns parallel subagents per perspective. Round 2 resumes each agent (preserving full Round 1 context) to read other perspectives' output files and react. A synthesis agent reads all outputs and produces the final structured report.
+
+**12 perspectives in the catalogue:**
+
+Role-based (7):
+- User/Consumer, Adversary, Operator, Maintainer, Business/Strategy, Performance/Scale, Integrator
+
+Discipline-based (5, new):
+- Design Principles — SOLID, DRY, YAGNI, coupling/cohesion analysis
+- Conventions & Idioms — Language-specific and framework-specific pattern adherence
+- Testing Strategy — Test design quality, coverage strategy, fragility assessment
+- Data Integrity — Schema design, migration safety, constraint enforcement
+- API Design — Contract clarity, versioning, backward compatibility
+
+Plus custom perspective support for user-defined lenses not in the catalogue.
+
+**Eval results (3 iterations, 4 test cases):**
+- Content detection: 100% with-skill vs 95.8% baseline
+- Cross-pollination value: novel insights baseline cannot produce (cascading failure analysis, novel options like AWS IAM Identity Center, multi-vector attack combinations)
+
+### Changed
+
+- Added `*-workspace/` to .gitignore (eval workspace artifacts)
+
+---
+
 ## v4.5.0 (2026-03-08)
 
 ### Changed
