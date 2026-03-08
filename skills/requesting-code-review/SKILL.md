@@ -81,6 +81,11 @@ You: [Fix progress indicators]
 - Catch issues before they compound
 - Fix before moving to next task
 
+**Team-Driven Development:**
+- Review after each task completion
+- Reviewer teammate provides feedback via SendMessage
+- Implementer follows receiving-code-review discipline when handling feedback
+
 **Executing Plans:**
 - Review after each batch (3 tasks)
 - Get feedback, apply, continue

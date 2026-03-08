@@ -94,3 +94,10 @@ digraph brainstorming {
 - **Explore alternatives** - Always propose 2-3 approaches before settling
 - **Incremental validation** - Present design, get approval before moving on
 - **Be flexible** - Go back and clarify when something doesn't make sense
+
+## Integration
+
+**Invoked by:** User directly (entry point for creative work)
+
+**Hands off to:**
+- **h-superpowers:writing-plans** - Creates implementation plan from the approved design

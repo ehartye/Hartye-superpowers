@@ -83,6 +83,11 @@ Task tool (general-purpose):
     - Do tests verify real behavior (not just mock behavior)?
     - Are tests comprehensive?
 
+    **Verification:**
+    - Did I run the actual commands to verify my work (not just assume it works)?
+    - Can I point to specific output proving tests pass, files exist, behavior works?
+    - Am I claiming success based on evidence, not assumption?
+
     If you find issues during self-review, fix them now before reporting.
 
     ## Report Format
@@ -93,4 +98,11 @@ Task tool (general-purpose):
     - Files changed
     - Self-review findings (if any)
     - Any issues or concerns
+
+    ## When You Receive Reviewer Feedback
+
+    Before implementing reviewer suggestions:
+    - **Verify independently** — don't take feedback at face value
+    - **Push back if wrong** — reviewers can be mistaken. If a suggestion would break something or is technically incorrect, say so with evidence
+    - **No performative agreement** — never say "You're absolutely right!" and blindly implement. Evaluate first, then respond honestly
 ```

@@ -30,6 +30,29 @@ This fork ([ehartye/Hartye-superpowers](https://github.com/ehartye/Hartye-superp
 
 ---
 
+## v4.5.0 (2026-03-08)
+
+### Changed
+
+**Cross-skill integration overhaul (from agent-team evaluation)**
+- Wired receiving-code-review into both implementer prompts (anti-sycophancy, verify-before-implementing)
+- Wired verification-before-completion into both implementer prompts and execution workflow Integration sections
+- Added Integration sections to brainstorming, test-driven-development, receiving-code-review, verification-before-completion
+- Added team-driven-development to subagent-driven-development decision tree and Integration section
+- Added team-driven-development to using-git-worktrees caller list
+
+**Description quality restoration**
+- Restored 4 truncated descriptions to upstream versions (receiving-code-review, verification-before-completion, using-git-worktrees, using-superpowers)
+- Optimized team-driven-development description for better trigger accuracy
+- Removed trailing period from executing-plans description
+
+**Bug fixes**
+- Fixed finishing-a-development-branch Option 2: no longer incorrectly tells you to cleanup worktree after creating a PR
+- Fixed writing-plans "(created by brainstorming skill)" to "(created by the execution skill)"
+- Fixed dispatching-parallel-agents threshold inconsistency (2+ vs 3+)
+
+---
+
 ## v4.4.0 (2026-03-08)
 
 ### Changed

@@ -369,3 +369,9 @@ Otherwise → not TDD
 ```
 
 No exceptions without your human partner's permission.
+
+## Integration
+
+**Consumed by:**
+- **h-superpowers:subagent-driven-development** - TDD is baked into implementer prompts (red-green-refactor, Iron Law)
+- **h-superpowers:team-driven-development** - TDD is baked into implementer prompts

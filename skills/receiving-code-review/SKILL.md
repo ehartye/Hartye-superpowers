@@ -1,6 +1,6 @@
 ---
 name: receiving-code-review
-description: Use when receiving code review feedback, before implementing suggestions, especially if feedback seems unclear or technically questionable
+description: Use when receiving code review feedback, before implementing suggestions, especially if feedback seems unclear or technically questionable - requires technical rigor and verification, not performative agreement or blind implementation
 ---
 
 # Code Review Reception
@@ -213,3 +213,9 @@ When replying to inline review comments on GitHub, reply in the comment thread (
 Verify. Question. Then implement.
 
 No performative agreement. Technical rigor always.
+
+## Integration
+
+**Referenced by:**
+- **h-superpowers:subagent-driven-development** - Implementer agents follow these patterns when receiving reviewer feedback
+- **h-superpowers:team-driven-development** - Implementer teammates follow these patterns during review loops
