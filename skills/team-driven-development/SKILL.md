@@ -1,6 +1,6 @@
 ---
 name: team-driven-development
-description: Use when executing plans requiring coordination between agents working in parallel with inter-agent communication
+description: Use when executing plans requiring coordination between persistent teammate agents working in parallel with shared tasks and inter-agent messaging
 ---
 
 # Team-Driven Development
@@ -286,6 +286,7 @@ That skill handles merge, test verification, worktree cleanup, and final disposi
 
 **Teammates follow:**
 - **h-superpowers:test-driven-development** - TDD is baked into implementer prompts (red-green-refactor, Iron Law)
+- **h-superpowers:verification-before-completion** - Evidence before completion claims, baked into implementer self-review
 
 **Alternative workflow:**
 - **h-superpowers:subagent-driven-development** - Use for independent sequential tasks instead

@@ -17,7 +17,7 @@ Guide completion of development work by presenting clear options and handling ch
 
 ### Step 1: Verify Tests
 
-**Before presenting options, verify tests pass:**
+**Before presenting options, verify tests pass** (applying `verification-before-completion` discipline — evidence, not assumption):
 
 ```bash
 # Run project's test suite
@@ -88,6 +88,8 @@ Then: Cleanup worktree (Step 5)
 
 #### Option 2: Push and Create PR
 
+**Note:** Keep the worktree after creating the PR (the branch is still active).
+
 ```bash
 # Push branch
 git push -u origin <feature-branch>
@@ -103,7 +105,7 @@ EOF
 )"
 ```
 
-Then: Cleanup worktree (Step 5)
+Then: Keep worktree (branch is still active for PR updates).
 
 #### Option 3: Keep As-Is
 
@@ -135,7 +137,7 @@ Then: Cleanup worktree (Step 5)
 
 ### Step 5: Cleanup Worktree
 
-**For Options 1, 2, 4:**
+**For Options 1 and 4:**
 
 Check if in worktree:
 ```bash
