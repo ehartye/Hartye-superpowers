@@ -195,7 +195,10 @@ quality-sentinel: ✅ Approved
 
 [All tasks complete — TaskList confirms all status: completed]
 [Run full test suite]
-[Send shutdown_request to all teammates]
+[SendMessage(to: "hook-installer", message: "shutdown_request")]
+[SendMessage(to: "recovery-builder", message: "shutdown_request")]
+[SendMessage(to: "spec-auditor", message: "shutdown_request")]
+[SendMessage(to: "quality-sentinel", message: "shutdown_request")]
 [Bash("sleep 30")]
 [TeamDelete]
 [Use finishing-a-development-branch — handles merge, tests, worktree cleanup, and disposition]
@@ -214,7 +217,7 @@ That skill handles merge, test verification, worktree cleanup, and final disposi
 
 1. Call `TaskList` to confirm every task shows status `completed`.
 2. Run the full test suite to verify the final result.
-3. Send `shutdown_request` to each teammate via SendMessage.
+3. Send `shutdown_request` to each teammate individually via `SendMessage`. **Do not broadcast** — `SendMessage` does not support `to: "*"` and will error. Send one message per teammate by name.
 4. Call `Bash("sleep 30")`. One wait. Do not send further messages, do not loop, do not check on teammates. They either shut down in 30 seconds or they don't.
 5. Call `TeamDelete`. If it fails, call `Bash("sleep 30")` and retry **once**. No other fallback — `TeamDelete` is the only path to a clean exit (it terminates agent processes; `rm -rf` leaves orphans that prevent the CLI from exiting).
 6. Summarize what was accomplished to the user.
