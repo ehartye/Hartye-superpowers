@@ -68,7 +68,7 @@ digraph process {
     }
 
     "More tasks remain?" [shape=diamond];
-    "Shutdown team (SendMessage shutdown_request, sleep 30, TeamDelete)" [shape=box];
+    "Shutdown team (SendMessage shutdown_request, background sleep 30, TeamDelete)" [shape=box];
     "Use h-superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
 
     "Read plan, extract all tasks, create TaskCreate for each" -> "TeamCreate";
@@ -88,8 +88,8 @@ digraph process {
     "Code quality reviewer approves?" -> "Implementer marks task complete in TaskUpdate" [label="yes"];
     "Implementer marks task complete in TaskUpdate" -> "More tasks remain?";
     "More tasks remain?" -> "Implementer claims task, asks questions via SendMessage" [label="yes"];
-    "More tasks remain?" -> "Shutdown team (SendMessage shutdown_request, sleep 30, TeamDelete)" [label="no"];
-    "Shutdown team (SendMessage shutdown_request, sleep 30, TeamDelete)" -> "Use h-superpowers:finishing-a-development-branch";
+    "More tasks remain?" -> "Shutdown team (SendMessage shutdown_request, background sleep 30, TeamDelete)" [label="no"];
+    "Shutdown team (SendMessage shutdown_request, background sleep 30, TeamDelete)" -> "Use h-superpowers:finishing-a-development-branch";
 }
 ```
 
@@ -199,7 +199,7 @@ quality-sentinel: ✅ Approved
 [SendMessage(to: "recovery-builder", message: "shutdown_request")]
 [SendMessage(to: "spec-auditor", message: "shutdown_request")]
 [SendMessage(to: "quality-sentinel", message: "shutdown_request")]
-[Bash("sleep 30")]
+[Bash("sleep 30", run_in_background=true)]  # wait for the completion notification, then continue
 [TeamDelete]
 [Use finishing-a-development-branch — handles merge, tests, worktree cleanup, and disposition]
 ```
@@ -218,8 +218,8 @@ That skill handles merge, test verification, worktree cleanup, and final disposi
 1. Call `TaskList` to confirm every task shows status `completed`.
 2. Run the full test suite to verify the final result.
 3. Send `shutdown_request` to each teammate individually via `SendMessage`. **Do not broadcast** — `SendMessage` does not support `to: "*"` and will error. Send one message per teammate by name.
-4. Call `Bash("sleep 30")`. One wait. Do not send further messages, do not loop, do not check on teammates. They either shut down in 30 seconds or they don't.
-5. Call `TeamDelete`. If it fails, call `Bash("sleep 30")` and retry **once**. No other fallback — `TeamDelete` is the only path to a clean exit (it terminates agent processes; `rm -rf` leaves orphans that prevent the CLI from exiting).
+4. Call `Bash("sleep 30", run_in_background=true)`. One wait. The harness blocks standalone/leading `sleep` calls, so the sleep must be backgrounded — you'll get a completion notification ~30s later. Do not send further messages, do not loop, do not check on teammates. They either shut down in 30 seconds or they don't.
+5. Call `TeamDelete`. If it fails, call `Bash("sleep 30", run_in_background=true)` and retry **once** after the notification. No other fallback — `TeamDelete` is the only path to a clean exit (it terminates agent processes; `rm -rf` leaves orphans that prevent the CLI from exiting).
 6. Summarize what was accomplished to the user.
 
 **Hard stop.** After step 3, the orchestration is over. No coordination messages, no "are you still there?", no additional review cycles. Shut down and get out.

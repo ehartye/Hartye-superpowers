@@ -208,7 +208,7 @@ Save report to: {OUTPUT_PATH}"
 Wait for synthesis to complete. Then shut down:
 
 1. Send `shutdown_request` to each teammate via SendMessage
-2. `Bash("sleep 30")`
+2. `Bash("sleep 30", run_in_background=true)` — the harness blocks standalone sleeps; background and wait for the completion notification before step 3
 3. `TeamDelete`
 
 ---
