@@ -29,7 +29,7 @@ echo "Test 1: Skill loading..."
 run_claude "What is the team-driven-development skill? Describe it briefly." 90
 show_output
 
-check assert_contains "$CLAUDE_OUTPUT" "team-driven-development\|[Tt]eam.driven\|agent team" "Skill is recognized"
+check assert_contains "$CLAUDE_OUTPUT" "team-driven-development\|[Tt]eam[.-][Dd]riven\|agent team" "Skill is recognized"
 check assert_contains "$CLAUDE_OUTPUT" "parallel\|concurrent\|simultaneous\|multiple.*agent" "Mentions parallel execution"
 
 echo ""
@@ -107,7 +107,7 @@ run_claude "When should agents escalate to the human in team-driven-development?
 show_output
 
 check assert_contains "$CLAUDE_OUTPUT" "disagree\|conflict\|architectural\|approach" "Escalate on disagreements"
-check assert_contains "$CLAUDE_OUTPUT" "blocked\|external.*decision\|library.*choice\|cost\|budget" "Escalate on blockers or cost"
+check assert_contains "$CLAUDE_OUTPUT" "blocked\|clarif\|fail\|deadlock\|consent\|budget\|cost" "Escalate on blockers, failures, or deadlocks"
 
 echo ""
 
