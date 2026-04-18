@@ -382,13 +382,11 @@ This applies to NEW skills AND EDITS to existing skills.
 Write skill before testing? Delete it. Start over.
 Edit skill without testing? Same violation.
 
-**No exceptions:**
-- Not for "simple additions"
-- Not for "just adding a section"
-- Not for "documentation updates"
-- Don't keep untested changes as "reference"
-- Don't "adapt" while running tests
-- Delete means delete
+This is absolute because the alternative is subtle:
+- "Simple additions" and "just adding a section" still change agent behavior
+- "Documentation updates" are the edits most likely to regress compliance
+- Keeping untested changes as "reference" biases your next attempt
+- Adapting while testing is tests-after, not tests-first
 
 **REQUIRED BACKGROUND:** The h-superpowers:test-driven-development skill explains why this matters. Same principles apply to documentation.
 
@@ -441,20 +439,20 @@ Different skill types need different test approaches:
 
 **Success criteria:** Agent finds and correctly applies reference information
 
-## Common Rationalizations for Skipping Testing
+## Common Objections, Answered
 
-| Excuse | Reality |
+| Objection | Answer |
 |--------|---------|
-| "Skill is obviously clear" | Clear to you ≠ clear to other agents. Test it. |
-| "It's just a reference" | References can have gaps, unclear sections. Test retrieval. |
-| "Testing is overkill" | Untested skills have issues. Always. 15 min testing saves hours. |
-| "I'll test if problems emerge" | Problems = agents can't use skill. Test BEFORE deploying. |
-| "Too tedious to test" | Testing is less tedious than debugging bad skill in production. |
-| "I'm confident it's good" | Overconfidence guarantees issues. Test anyway. |
-| "Academic review is enough" | Reading ≠ using. Test application scenarios. |
-| "No time to test" | Deploying untested skill wastes more time fixing it later. |
+| "Skill is obviously clear" | Clear to you doesn't mean clear to other agents. Test it. |
+| "It's just a reference" | References can have gaps and unclear sections. Test retrieval. |
+| "Testing is overkill" | 15 minutes of testing reliably saves hours of downstream fixes. |
+| "I'll test if problems emerge" | Problems emerge as agents failing to use the skill. Catch that before deploy. |
+| "Too tedious to test" | Less tedious than debugging the bad skill later. |
+| "I'm confident it's good" | Confidence and verification aren't the same thing. Verify. |
+| "Academic review is enough" | Reading isn't using. Test application scenarios. |
+| "No time to test" | The time cost of an untested skill compounds across every future use. |
 
-**All of these mean: Test before deploying. No exceptions.**
+**Test before deploying.** No exceptions.
 
 ## Bulletproofing Skills Against Rationalization
 
@@ -591,7 +589,7 @@ helper1, helper2, step3, pattern4
 
 **The deployment checklist below is MANDATORY for EACH skill.**
 
-Deploying untested skills = deploying untested code. It's a violation of quality standards.
+Deploying untested skills is the same quality bar as shipping untested code — don't.
 
 ## Skill Creation Checklist (TDD Adapted)
 
