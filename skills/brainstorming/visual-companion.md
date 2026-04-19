@@ -243,6 +243,218 @@ The frame template provides these CSS classes for your content:
 - `.section` — content block with bottom margin
 - `.label` — small uppercase label text
 
+## Diagrams and Architecture
+
+For architecture diagrams, flowcharts, sequences, and state machines, use **Mermaid**. The frame template lazy-loads Mermaid when it sees a `<pre class="mermaid">` block — no setup needed, just drop the block in.
+
+**The pattern:**
+
+```html
+<h2>Our proposed service architecture</h2>
+<pre class="mermaid">
+graph LR
+    Client --> API
+    API --> Auth[Auth Service]
+    API --> DB[(Postgres)]
+    API --> Queue[[Job Queue]]
+    Queue --> Worker
+    Worker --> DB
+</pre>
+```
+
+That's it. The mermaid block renders inline as an SVG on page load. Combine freely with options, cards, mockups, and pros/cons.
+
+### Which diagram type for which question
+
+| Question shape | Mermaid diagram type |
+|---|---|
+| "How do these services talk to each other?" | `graph LR` / `graph TD` (flowchart) |
+| "What are the layers of this system?" | `graph TB` with subgraphs |
+| "How does data move through the pipeline?" | `graph LR` with labeled edges |
+| "What's the request/response flow for X?" | `sequenceDiagram` |
+| "Where does this run — which servers, containers, clouds?" | `graph TB` with subgraphs representing zones |
+| "What states can this resource be in?" | `stateDiagram-v2` |
+| "What's the decision logic for Y?" | `flowchart TD` with diamond decision nodes |
+
+### Worked examples
+
+Each example below is ready to paste into a `<pre class="mermaid">` block.
+
+**1. System / component diagram** — services and their dependencies:
+
+```
+graph LR
+    Client[Web Client] --> Gateway[API Gateway]
+    Mobile[Mobile App] --> Gateway
+    Gateway --> Auth[Auth Service]
+    Gateway --> Orders[Orders Service]
+    Gateway --> Inventory[Inventory Service]
+    Orders --> OrdersDB[(Orders DB)]
+    Inventory --> InvDB[(Inventory DB)]
+    Orders -.publishes.-> Queue[[Event Queue]]
+    Queue -.consumes.-> Notifier[Notifier]
+```
+
+Use `[(...)]` for databases, `[[...]]` for queues, dashed arrows (`-.-`) for async events.
+
+**2. Layered architecture** — use subgraphs to stack tiers:
+
+```
+graph TB
+    subgraph Presentation
+        UI[Web UI]
+        API[REST API]
+    end
+    subgraph Business
+        OrdersSvc[Orders Service]
+        PaymentSvc[Payments Service]
+    end
+    subgraph Data
+        DB[(Postgres)]
+        Cache[(Redis)]
+    end
+    UI --> API
+    API --> OrdersSvc
+    API --> PaymentSvc
+    OrdersSvc --> DB
+    OrdersSvc --> Cache
+    PaymentSvc --> DB
+```
+
+**3. Data flow diagram** — edges labeled with what moves across them:
+
+```
+graph LR
+    Source[Event Source] -->|raw events| Ingest[Ingestion]
+    Ingest -->|normalized| Validator
+    Validator -->|valid| Stream[[Kafka]]
+    Validator -->|rejected| DLQ[[Dead Letter Queue]]
+    Stream --> Processor
+    Processor -->|aggregates| Warehouse[(Data Warehouse)]
+    Processor -->|metrics| Metrics[Prometheus]
+```
+
+**4. Sequence diagram** — interactions over time:
+
+```
+sequenceDiagram
+    participant U as User
+    participant W as Web App
+    participant A as Auth Service
+    participant D as Database
+
+    U->>W: Login (email, password)
+    W->>A: POST /authenticate
+    A->>D: SELECT user WHERE email=?
+    D-->>A: user record
+    A->>A: verify password hash
+    A-->>W: JWT token
+    W-->>U: Set session, redirect
+```
+
+Use `->>` for requests, `-->>` for responses, `->>` with a note for internal work.
+
+**5. Deployment diagram** — physical zones as subgraphs:
+
+```
+graph TB
+    subgraph Browser
+        App[SPA]
+    end
+    subgraph CloudFront
+        CDN[Static Assets]
+    end
+    subgraph AWS_VPC[AWS VPC]
+        subgraph Public_Subnet[Public Subnet]
+            LB[Application Load Balancer]
+        end
+        subgraph Private_Subnet[Private Subnet]
+            API1[API Instance 1]
+            API2[API Instance 2]
+            RDS[(RDS Postgres)]
+        end
+    end
+    App --> CDN
+    App --> LB
+    LB --> API1
+    LB --> API2
+    API1 --> RDS
+    API2 --> RDS
+```
+
+**6. State machine** — lifecycle of a resource:
+
+```
+stateDiagram-v2
+    [*] --> Draft
+    Draft --> PendingReview: submit
+    PendingReview --> Approved: reviewer approves
+    PendingReview --> Draft: reviewer requests changes
+    Approved --> Published: publish
+    Published --> Archived: archive
+    Archived --> [*]
+    PendingReview --> Rejected: reviewer rejects
+    Rejected --> [*]
+```
+
+Use `[*]` for start/end; the colon after each transition is the event.
+
+**7. Decision flowchart** — branching logic:
+
+```
+flowchart TD
+    Start([Incoming request]) --> Auth{Authenticated?}
+    Auth -->|no| Reject[401 Unauthorized]
+    Auth -->|yes| Rate{Within rate limit?}
+    Rate -->|no| RateLimit[429 Too Many Requests]
+    Rate -->|yes| Tier{User tier?}
+    Tier -->|free| FreeHandler[Free handler]
+    Tier -->|paid| PaidHandler[Paid handler]
+    FreeHandler --> Response([Respond])
+    PaidHandler --> Response
+```
+
+Diamond shapes (`{...}`) are decisions; rounded-rectangle (`([...])`) are start/end.
+
+### Styling notes
+
+- Diagrams render centered inside a card-style container that matches the theme (light/dark auto-switches with OS preference).
+- For larger diagrams, wrap the `<pre class="mermaid">` in a `.mockup` if you want a labeled header.
+- Combine with a `.subtitle` above for context: `<p class="subtitle">Three candidate architectures — click the one to refine</p>`.
+- To show multiple architecture *options* for the user to pick, use `.options` or `.cards` with one `<pre class="mermaid">` inside each. The user clicks the container to select; the diagrams render regardless of selection.
+
+### Combining mermaid with choice options
+
+For "here are three architecture approaches, which do you prefer?", embed a diagram inside each option:
+
+```html
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content" style="width:100%">
+      <h3>Monolith</h3>
+      <pre class="mermaid">graph LR; Client --> App; App --> DB[(Postgres)]</pre>
+      <p>Single deployable. Simplest to ship, hardest to scale parts independently.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content" style="width:100%">
+      <h3>Service-per-bounded-context</h3>
+      <pre class="mermaid">
+graph LR
+    Client --> Gateway
+    Gateway --> Orders
+    Gateway --> Catalog
+    Orders --> OrdersDB[(Orders)]
+    Catalog --> CatalogDB[(Catalog)]
+      </pre>
+      <p>Isolated data stores per service. Heavier to operate, clearer boundaries.</p>
+    </div>
+  </div>
+</div>
+```
+
 ## Browser Events Format
 
 When the user clicks options in the browser, their interactions are recorded to `$STATE_DIR/events` (one JSON object per line). The file is cleared automatically when you push a new screen.

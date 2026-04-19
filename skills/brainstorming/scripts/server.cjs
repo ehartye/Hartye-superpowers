@@ -154,6 +154,18 @@ function handleRequest(req, res) {
     const contentType = MIME_TYPES[ext] || 'application/octet-stream';
     res.writeHead(200, { 'Content-Type': contentType });
     res.end(fs.readFileSync(filePath));
+  } else if (req.method === 'GET' && req.url.startsWith('/_static/')) {
+    const fileName = req.url.slice(9);
+    const filePath = path.join(__dirname, path.basename(fileName));
+    if (!fs.existsSync(filePath)) {
+      res.writeHead(404);
+      res.end('Not found');
+      return;
+    }
+    const ext = path.extname(filePath).toLowerCase();
+    const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+    res.writeHead(200, { 'Content-Type': contentType, 'Cache-Control': 'public, max-age=3600' });
+    res.end(fs.readFileSync(filePath));
   } else {
     res.writeHead(404);
     res.end('Not found');
