@@ -30,6 +30,82 @@ This fork ([ehartye/Hartye-superpowers](https://github.com/ehartye/Hartye-superp
 
 ---
 
+## v4.9.0 (2026-04-19)
+
+### Visual brainstorming companion
+
+Ported upstream's browser-based brainstorming tool into our fork. During a
+brainstorm, the agent can push HTML mockups, diagrams, and side-by-side
+comparisons to a local browser; user clicks flow back to the agent via
+events written to the session's `state/` directory.
+
+- Zero-dependency Node server (pure `http`, `fs`, `crypto` built-ins with
+  a manual RFC 6455 WebSocket implementation)
+- Windows support baked in via MSYS/MinGW auto-detection — forces
+  foreground mode, works with `run_in_background=true` on Bash tool calls
+- Session directories persist under `<project>/.superpowers/brainstorm/`
+  when `--project-dir` is set; file watcher live-reloads browsers on any
+  HTML push
+- `brainstorming/SKILL.md` gained a step 2 offer, process-flow branch,
+  and Visual Companion section with the consent text
+
+### Mermaid support for architecture diagrams
+
+Added mermaid v11.4.1 as a bundled static asset so the companion can
+render real diagrams, not just UI mockups.
+
+- `server.cjs` now serves a `/_static/` route from the scripts directory
+  alongside the existing `/files/` route
+- Frame template lazy-loads `mermaid.min.js` only when the current
+  screen contains a `pre.mermaid` or `code.language-mermaid` block
+- `visual-companion.md` gained a "Diagrams and Architecture" section
+  with a decision table (which diagram type for which question) and
+  seven worked examples ready to paste: system/component, layered
+  architecture, data flow, sequence, deployment, state machine,
+  decision flowchart
+- Documented the pattern for embedding diagrams inside `.options` so
+  users can compare architectural alternatives visually
+
+### Distinctive terminal/phosphor theme with toggle
+
+Replaced the generic grey/blue Apple-ish palette with a technical
+aesthetic.
+
+- **Dark mode:** deep cool blue-black + azure phosphor. CRT scanlines
+  at ~3.5% opacity, cool cream text, amber status dot with glow
+- **Light mode:** warm cream base with blueprint-ink accent and a
+  subtle azure-tinted 24px grid overlay
+- **Typography:** IBM Plex Mono everywhere (headings, body, labels,
+  diagrams) with IBM Plex Sans available for prose
+- **Terminal flourishes:** shell-prompt header (`~$ ~/brainstorming/session.md`),
+  `//` comment-style labels, bracketed `[A]/[B]/[C]` option letters,
+  `[+]`/`[-]` pros/cons bullets, `── diagram ──` mermaid captions,
+  blinking `▋` cursor in the statusline, `[x] SELECTED` stamp
+- Custom scrollbar, selection highlight, and focus states match the theme
+
+### Theme toggle in the header
+
+`[dark] · [light]` buttons persist the choice across brainstorm sessions.
+
+- Cookie-based (not `localStorage`) because the server picks a random
+  port per session; `localStorage` is origin-scoped (host + port) and
+  would reset on every restart. Cookies are host-scoped, so the
+  preference follows the host across port changes. 1-year expiry,
+  `SameSite=Lax`.
+- Falls back to `prefers-color-scheme` when no cookie is set, and
+  continues to follow OS changes as long as the user hasn't explicitly
+  toggled
+- Mermaid diagrams re-render with new theme variables on toggle —
+  sources are cached in `data-source` so we can restore and re-run
+  without reload
+
+### Housekeeping
+
+- `.gitattributes`: added `*.cjs` and `*.html` to LF enforcement
+- `.gitignore`: added `.superpowers/` for session directories
+
+---
+
 ## v4.8.0 (2026-04-19)
 
 ### Tone refactor: from accusation to mission framing
