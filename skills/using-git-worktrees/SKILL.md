@@ -191,20 +191,21 @@ Tests passing (47 tests, 0 failures)
 Ready to implement auth feature
 ```
 
-## Red Flags
+## Hard Rules
 
-**Never:**
-- Create worktree without verifying it's ignored (project-local)
-- Skip baseline test verification
-- Proceed with failing tests without asking
-- Assume directory location when ambiguous
-- Skip CLAUDE.md check
+These guardrails prevent subtle contamination of the repo or hidden baseline failures:
+
+- Don't create a worktree without verifying it's ignored (project-local only)
+- Don't skip baseline test verification
+- Don't proceed with failing tests without asking
+- Don't assume directory location when ambiguous
+- Don't skip the CLAUDE.md check
 
 **Always:**
 - Follow directory priority: existing > CLAUDE.md > ask
-- Verify directory is ignored for project-local
+- Verify the directory is ignored for project-local worktrees
 - Auto-detect and run project setup
-- Verify clean test baseline
+- Verify a clean test baseline before handing off
 
 ## Integration
 

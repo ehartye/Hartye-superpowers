@@ -28,7 +28,7 @@ Write the test first. Watch it fail. Write minimal code to pass.
 
 Tempted to skip TDD "just this once"? That's exactly when to use it — the confidence TDD gives you pays off precisely when the shortcut felt attractive.
 
-## The Iron Law
+## The Prime Directive
 
 ```
 NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST
@@ -373,5 +373,5 @@ No exceptions without your human partner's permission.
 ## Integration
 
 **Consumed by:**
-- **h-superpowers:subagent-driven-development** - TDD is baked into implementer prompts (red-green-refactor, Iron Law)
+- **h-superpowers:subagent-driven-development** - TDD is baked into implementer prompts (red-green-refactor, Prime Directive)
 - **h-superpowers:team-driven-development** - TDD is baked into implementer prompts

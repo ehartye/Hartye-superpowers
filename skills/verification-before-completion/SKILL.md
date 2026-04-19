@@ -13,7 +13,7 @@ A completion claim without verification isn't efficient — it's a guess dressed
 
 **The spirit of this rule is the letter of this rule.** There's no way to follow it partially.
 
-## The Iron Law
+## The Prime Directive
 
 ```
 NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE

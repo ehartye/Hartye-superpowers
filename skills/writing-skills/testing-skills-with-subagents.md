@@ -199,18 +199,18 @@ Write code before test? Delete it. Start over.
 ```
 </After>
 
-### 2. Entry in Rationalization Table
+### 2. Entry in the Objections Table
 
 ```markdown
-| Excuse | Reality |
+| Objection | Answer |
 |--------|---------|
-| "Keep as reference, write tests first" | You'll adapt it. That's testing after. Delete means delete. |
+| "Keep as reference, write tests first" | The reference will bias the tests. Start fresh. |
 ```
 
-### 3. Red Flag Entry
+### 3. Signals-to-Watch-For Entry
 
 ```markdown
-## Red Flags - STOP
+## Signals to Watch For
 
 - "Keep as reference" or "adapt existing code"
 - "I'm following the spirit not the letter"

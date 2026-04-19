@@ -371,7 +371,7 @@ pptx/
 ```
 When: Reference material too large for inline
 
-## The Iron Law (Same as TDD)
+## The Prime Directive (Same as TDD)
 
 ```
 NO SKILL WITHOUT A FAILING TEST FIRST
@@ -379,8 +379,7 @@ NO SKILL WITHOUT A FAILING TEST FIRST
 
 This applies to NEW skills AND EDITS to existing skills.
 
-Write skill before testing? Delete it. Start over.
-Edit skill without testing? Same violation.
+Wrote a skill before testing it? Remove the untested version and restart from a baseline test. Edits to existing skills are the same — they change agent behavior too.
 
 This is absolute because the alternative is subtle:
 - "Simple additions" and "just adding a section" still change agent behavior
@@ -583,16 +582,16 @@ step2 [label="read file"];
 helper1, helper2, step3, pattern4
 **Why bad:** Labels should have semantic meaning
 
-## STOP: Before Moving to Next Skill
+## Before Moving to the Next Skill
 
-**After writing ANY skill, you MUST STOP and complete the deployment process.**
+After writing any skill, complete the deployment process before starting another one. The discipline matters here for the same reason TDD does — the quality feedback loop only works if each skill is verified before the next one starts.
 
-**Do NOT:**
-- Create multiple skills in batch without testing each
-- Move to next skill before current one is verified
-- Skip testing because "batching is more efficient"
+**Avoid:**
+- Creating multiple skills in a batch without testing each one
+- Moving to the next skill before the current one is verified
+- Skipping testing because "batching is more efficient" (batching compounds untested changes)
 
-**The deployment checklist below is MANDATORY for EACH skill.**
+**The deployment checklist below runs for each skill.**
 
 Deploying untested skills is the same quality bar as shipping untested code — don't.
 
@@ -651,7 +650,7 @@ How future Claude finds your skill:
 
 **Creating skills IS TDD for process documentation.**
 
-Same Iron Law: No skill without failing test first.
+Same Prime Directive: No skill without failing test first.
 Same cycle: RED (baseline) → GREEN (write skill) → REFACTOR (close loopholes).
 Same benefits: Better quality, fewer surprises, bulletproof results.
 

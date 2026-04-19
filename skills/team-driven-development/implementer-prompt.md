@@ -50,7 +50,7 @@ Agent tool (general-purpose):
     8. Self-review (see below)
     9. Request review via SendMessage
 
-    **The Iron Law: No production code without a failing test first.**
+    **The Prime Directive: No production code without a failing test first.**
     Wrote code before a test? Delete it. Start over from a failing test.
     No exceptions.
 

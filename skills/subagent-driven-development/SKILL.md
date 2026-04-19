@@ -256,7 +256,7 @@ These are the guardrails the workflow depends on — skipping any of them breaks
 - **h-superpowers:finishing-a-development-branch** - Complete development after all tasks
 
 **Subagents follow:**
-- **h-superpowers:test-driven-development** - TDD is baked into implementer prompts (red-green-refactor, Iron Law)
+- **h-superpowers:test-driven-development** - TDD is baked into implementer prompts (red-green-refactor, Prime Directive)
 - **h-superpowers:verification-before-completion** - Evidence before completion claims, baked into implementer self-review
 
 **Alternative workflow:**
