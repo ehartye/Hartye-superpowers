@@ -113,7 +113,7 @@ Pick names that fit the project. Be creative — the only constraint is that the
 
 **Implementer self-review:** Before requesting review, implementers review their own work for completeness (all requirements met?), quality (clear naming, clean code?), discipline (no overbuilding, follows existing patterns?), and testing (tests verify real behavior, not just mock it?). Issues found during self-review are fixed before handoff to reviewers.
 
-**Spec reviewer mindset:** Adversarial — does not trust the implementer's report. The reviewer reads code independently, compares against the spec line-by-line, and treats the implementer's claims as unverified until confirmed by code inspection. Checks three things: (1) missing requirements — did they skip anything? (2) extra work — did they build things not in spec? (3) misunderstandings — did they solve the wrong problem?
+**Spec reviewer mindset:** Independent verification — reads code directly against the spec rather than taking the implementer's summary on faith. Not adversarial, just complementary: authors are the least likely people to catch what they missed. Checks three things: (1) missing requirements — did anything get skipped? (2) extra work — did anything not in spec get built? (3) misunderstandings — was the wrong problem solved?
 
 **Code quality reviewer:** Only reviews after spec compliance passes. Reviews the diff for clean code, test coverage, maintainability, and adherence to project conventions. Returns strengths, issues (critical/important/minor), and an overall assessment.
 
@@ -251,31 +251,31 @@ That skill handles merge, test verification, worktree cleanup, and final disposi
 - But parallel execution saves wall-clock time
 - And catches issues early (cheaper than debugging later)
 
-## Red Flags
+## Hard Rules
 
-**Never:**
-- Start implementation on main/master branch without explicit user consent
-- Skip reviews (spec compliance OR code quality)
-- Proceed with unfixed issues
-- Exceed 6 agents (coordination overhead too high)
-- Ignore messages from teammates (breaks collaboration)
-- Let implementer mark task complete before reviewer approves
-- **Start code quality review before spec compliance is ✅** (wrong order)
-- Move to next task while either review has open issues
-- Forget to budget for full sessions per agent
+These are the guardrails the workflow depends on — skipping any of them breaks the quality guarantees of the skill:
 
-**If teammate asks questions:**
+- Don't start implementation on main/master branch without explicit user consent
+- Don't skip reviews (spec compliance OR code quality)
+- Don't proceed with unfixed issues
+- Don't exceed 6 agents (coordination overhead gets too high)
+- Don't ignore messages from teammates — that breaks collaboration
+- Don't let an implementer mark a task complete before the reviewer approves
+- **Don't start code quality review before spec compliance is ✅** — wrong order
+- Don't move to the next task while either review has open issues
+- Budget for full sessions per agent before spawning the team
+
+**If a teammate asks questions:**
 - Answer clearly and completely via SendMessage
 - Provide additional context if needed
 - Don't rush them into implementation
 
-**If reviewer finds issues:**
+**If a reviewer finds issues:**
 - Implementer fixes them
 - Reviewer reviews again
-- Repeat until approved
-- Don't skip the re-review
+- Repeat until approved — don't skip the re-review
 
-**If teammate fails task:**
+**If a teammate fails a task:**
 - Send fix instructions via SendMessage
 - Don't try to fix manually (you're the lead, not the implementer)
 

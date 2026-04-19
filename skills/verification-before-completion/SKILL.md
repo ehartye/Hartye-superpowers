@@ -7,11 +7,11 @@ description: Use when about to claim work is complete, fixed, or passing, before
 
 ## Overview
 
-Claiming work is complete without verification is dishonesty, not efficiency.
+A completion claim without verification isn't efficient — it's a guess dressed up as a fact. Your human partner depends on the difference.
 
 **Core principle:** Evidence before claims, always.
 
-**Violating the letter of this rule is violating the spirit of this rule.**
+**The spirit of this rule is the letter of this rule.** There's no way to follow it partially.
 
 ## The Iron Law
 
@@ -19,7 +19,7 @@ Claiming work is complete without verification is dishonesty, not efficiency.
 NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE
 ```
 
-If you haven't run the verification command in this message, you cannot claim it passes.
+If you haven't run the verification command in this message, you don't yet know whether it passes — so don't claim it.
 
 ## The Gate Function
 
@@ -34,7 +34,7 @@ BEFORE claiming any status or expressing satisfaction:
    - If YES: State claim WITH evidence
 5. ONLY THEN: Make the claim
 
-Skip any step = lying, not verifying
+Skipping any step means the claim isn't verified yet — and a claim that isn't verified shouldn't be stated as one that is.
 ```
 
 ## Common Failures
@@ -49,29 +49,31 @@ Skip any step = lying, not verifying
 | Agent completed | VCS diff shows changes | Agent reports "success" |
 | Requirements met | Line-by-line checklist | Tests passing |
 
-## Red Flags - STOP
+## Signals to Watch For
+
+When you notice these in your own thinking or output, the claim is running ahead of the evidence — pause and run the verification:
 
 - Using "should", "probably", "seems to"
 - Expressing satisfaction before verification ("Great!", "Perfect!", "Done!", etc.)
 - About to commit/push/PR without verification
-- Trusting agent success reports
+- Trusting agent success reports without checking the diff
 - Relying on partial verification
-- Thinking "just this once"
-- Tired and wanting work over
-- **ANY wording implying success without having run verification**
+- "Just this once"
+- Tired and wanting the work over
+- **Any wording implying success without having run verification in this message**
 
-## Rationalization Prevention
+## Common Objections, Answered
 
-| Excuse | Reality |
+| Objection | Answer |
 |--------|---------|
-| "Should work now" | RUN the verification |
-| "I'm confident" | Confidence ≠ evidence |
-| "Just this once" | No exceptions |
-| "Linter passed" | Linter ≠ compiler |
-| "Agent said success" | Verify independently |
-| "I'm tired" | Exhaustion ≠ excuse |
-| "Partial check is enough" | Partial proves nothing |
-| "Different words so rule doesn't apply" | Spirit over letter |
+| "Should work now" | Run the verification — "should" is a guess, output is evidence. |
+| "I'm confident" | Confidence isn't evidence. |
+| "Just this once" | The cycle is short. Run it. |
+| "Linter passed" | The linter doesn't run the build. Run the build. |
+| "Agent said success" | Check the diff independently — agents can be wrong about their own work. |
+| "I'm tired" | Verification is faster than fixing trust later. |
+| "Partial check is enough" | A partial check proves part of the claim. State what you checked, not the whole claim. |
+| "Different words so the rule doesn't apply" | The rule is about the claim, not the phrasing. |
 
 ## Key Patterns
 
@@ -108,11 +110,12 @@ Skip any step = lying, not verifying
 ## Why This Matters
 
 These failures have been observed repeatedly in practice:
-- your human partner said "I don't believe you" - trust broken
-- Undefined functions shipped - would crash
-- Missing requirements shipped - incomplete features
-- Time wasted on false completion → redirect → rework
-- Violates: "Honesty is a core value. If you lie, you'll be replaced."
+- "I don't believe you" — trust lost, costly to rebuild
+- Undefined functions shipped — would have crashed in production
+- Missing requirements shipped — incomplete features
+- Time wasted when false completion leads to redirect and rework
+
+Your human partner needs to know the difference between a verified claim and a guess. Honesty is the foundation everything else relies on — making this the rule we hold hardest.
 
 ## When To Apply
 

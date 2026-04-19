@@ -96,7 +96,7 @@ digraph process {
 
 **Implementer self-review:** Before reporting back, implementers review their own work for completeness (all requirements met?), quality (clear naming, clean code?), discipline (no overbuilding, follows existing patterns?), and testing (tests verify real behavior, not just mock it?). Issues found during self-review are fixed before handoff to reviewers.
 
-**Spec reviewer mindset:** Adversarial — does not trust the implementer's report. The reviewer reads code independently, compares against the spec line-by-line, and treats the implementer's claims as unverified until confirmed by code inspection. Checks three things: (1) missing requirements — did they skip anything? (2) extra work — did they build things not in spec? (3) misunderstandings — did they solve the wrong problem?
+**Spec reviewer mindset:** Independent verification — reads code directly against the spec rather than taking the implementer's summary on faith. Not adversarial, just complementary: authors are the least likely people to catch what they missed. Checks three things: (1) missing requirements — did anything get skipped? (2) extra work — did anything not in spec get built? (3) misunderstandings — was the wrong problem solved?
 
 **Code quality reviewer:** Only dispatched after spec compliance passes. Dispatch using the `code-reviewer` custom agent included with this plugin (it has full tool access including Bash for git commands in worktrees). Reviews the diff for clean code, test coverage, maintainability, and adherence to project conventions. Returns strengths, issues (critical/important/minor), and an overall assessment.
 
@@ -215,21 +215,22 @@ That skill handles merge, test verification, worktree cleanup, and final disposi
 - Review loops add iterations
 - But catches issues early (cheaper than debugging later)
 
-## Red Flags
+## Hard Rules
 
-**Never:**
-- Start implementation on main/master branch without explicit user consent
-- Skip reviews (spec compliance OR code quality)
-- Proceed with unfixed issues
-- Dispatch multiple implementation subagents in parallel (conflicts)
-- Make subagent read plan file (provide full text instead)
-- Skip scene-setting context (subagent needs to understand where task fits)
-- Ignore subagent questions (answer before letting them proceed)
-- Accept "close enough" on spec compliance (spec reviewer found issues = not done)
-- Skip review loops (reviewer found issues = implementer fixes = review again)
-- Let implementer self-review replace actual review (both are needed)
-- **Start code quality review before spec compliance is ✅** (wrong order)
-- Move to next task while either review has open issues
+These are the guardrails the workflow depends on — skipping any of them breaks the quality guarantees of the skill:
+
+- Don't start implementation on main/master branch without explicit user consent
+- Don't skip reviews (spec compliance OR code quality)
+- Don't proceed with unfixed issues
+- Don't dispatch multiple implementation subagents in parallel (they conflict on shared files)
+- Don't make the subagent read the plan file — provide full text instead
+- Don't skip scene-setting context — subagents need to understand where the task fits
+- Don't ignore subagent questions — answer before letting them proceed
+- Don't accept "close enough" on spec compliance — reviewer issues mean the task isn't done
+- Don't skip review loops — reviewer finds issues → implementer fixes → reviewer re-reviews
+- Don't let implementer self-review replace actual review — both are needed
+- **Don't start code quality review before spec compliance is ✅** — wrong order
+- Don't move to the next task while either review has open issues
 
 **If subagent asks questions:**
 - Answer clearly and completely
