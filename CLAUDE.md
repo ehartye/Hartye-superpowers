@@ -25,6 +25,34 @@ When making changes:
 - If upstream and this fork diverge on a design point, flag it to the user
   rather than silently picking one.
 
+## Remotes and PRs
+
+This fork has two remotes that matter:
+
+- **Our remote (push target):** `https://github.com/ehartye/Hartye-superpowers`
+- **Upstream (read-only, source of design intent):** `https://github.com/obra/superpowers`
+
+`gh pr create` defaults to targeting the fork-parent repo, not the user's
+fork. From this repo, that default is `obra/superpowers` — not what we
+almost always want. Always pass `--repo ehartye/Hartye-superpowers` when
+creating PRs against our fork.
+
+**Before submitting any PR to `obra/superpowers`:**
+
+- Get explicit, in-conversation user approval. General prior authorization
+  does not count — each upstream PR needs specific sign-off for that
+  specific PR.
+- Confirm the content actually belongs upstream (generally-useful, not
+  fork-specific, matches their design philosophy, fills their PR template
+  if they have one).
+- Be aware that upstream is sensitive about accidental or low-quality
+  agent-submitted PRs. They've publicly called them "slop" and close them
+  within hours. An accidental PR to obra burns both the user's reputation
+  and upstream maintainer time.
+
+A prior session accidentally submitted a PR to `obra/superpowers` that
+should have gone to our fork. Don't repeat that.
+
 ## Testing
 
 ### Unit tests must reflect realistic operating conditions
