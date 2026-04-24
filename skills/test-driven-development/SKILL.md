@@ -13,6 +13,15 @@ Write the test first. Watch it fail. Write minimal code to pass.
 
 **Violating the letter of the rules is violating the spirit of the rules.**
 
+## Escalation Chain
+
+When you're unsure whether TDD applies, how to test something, or whether an exception is warranted:
+
+1. **Implementers** → ask your **coordinator** (team lead) for guidance
+2. **Coordinators** → ask **your human partner** for a decision
+
+Don't guess. Don't skip. Escalate.
+
 ## When to Use
 
 **Always:**
@@ -21,12 +30,12 @@ Write the test first. Watch it fail. Write minimal code to pass.
 - Refactoring
 - Behavior changes
 
-**Exceptions (ask your human partner):**
+**Possible exceptions (get coordinator approval first):**
 - Throwaway prototypes
 - Generated code
 - Configuration files
 
-Thinking "skip TDD just this once"? Stop. That's rationalization.
+If you're tempted to skip TDD, that's usually a sign you should follow it. If you genuinely think it doesn't apply, escalate — don't decide on your own.
 
 ## The Iron Law
 
@@ -285,7 +294,7 @@ Tests-first force edge case discovery before implementing. Tests-after verify yo
 - "TDD is dogmatic, I'm being pragmatic"
 - "This is different because..."
 
-**All of these mean: Delete code. Start over with TDD.**
+**If any of these apply, stop and reconsider.** Usually the right move is to delete and start over with TDD. If you're unsure, escalate to your coordinator.
 
 ## Example: Bug Fix
 
@@ -337,13 +346,13 @@ Before marking work complete:
 - [ ] Tests use real code (mocks only if unavoidable)
 - [ ] Edge cases and errors covered
 
-Can't check all boxes? You skipped TDD. Start over.
+Can't check all boxes? You likely skipped TDD. Restart the cycle, or escalate to your coordinator if you're stuck.
 
 ## When Stuck
 
 | Problem | Solution |
 |---------|----------|
-| Don't know how to test | Write wished-for API. Write assertion first. Ask your human partner. |
+| Don't know how to test | Write wished-for API. Write assertion first. Escalate to your coordinator. |
 | Test too complicated | Design too complicated. Simplify interface. |
 | Must mock everything | Code too coupled. Use dependency injection. |
 | Test setup huge | Extract helpers. Still complex? Simplify design. |
@@ -368,7 +377,7 @@ Production code → test exists and failed first
 Otherwise → not TDD
 ```
 
-No exceptions without your human partner's permission.
+No exceptions without coordinator approval (coordinators: escalate to your human partner).
 
 ## Integration
 
