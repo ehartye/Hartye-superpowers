@@ -30,6 +30,14 @@ This fork ([ehartye/Hartye-superpowers](https://github.com/ehartye/Hartye-superp
 
 ---
 
+## v4.9.1 (2026-04-24)
+
+### TDD guidance tone adjustment
+
+Adapted the upstream tone-shift refactor in `test-driven-development/SKILL.md` to preserve escalation guidance for team/coordinator workflows. When in doubt, TDD it — and if you're genuinely unsure whether it applies, escalate to your coordinator rather than deciding alone.
+
+---
+
 ## v4.9.0 (2026-04-19)
 
 ### Visual brainstorming companion
