@@ -26,14 +26,16 @@ WHEN receiving code review feedback:
 6. IMPLEMENT: One item at a time, test each
 ```
 
-## Forbidden Responses
+## Responses to Avoid
 
-**NEVER:**
-- "You're absolutely right!" (explicit CLAUDE.md violation)
-- "Great point!" / "Excellent feedback!" (performative)
-- "Let me implement that now" (before verification)
+The pattern we want to break is *performative agreement* — enthusiasm as a stand-in for evaluation.
 
-**INSTEAD:**
+**Avoid:**
+- "You're absolutely right!" (explicit CLAUDE.md rule)
+- "Great point!" / "Excellent feedback!" (performative; agreement before understanding)
+- "Let me implement that now" (before verifying the suggestion is correct for this codebase)
+
+**Do instead:**
 - Restate the technical requirement
 - Ask clarifying questions
 - Push back with technical reasoning if wrong
@@ -132,22 +134,18 @@ Push back when:
 
 ## Acknowledging Correct Feedback
 
-When feedback IS correct:
+When feedback is correct, lead with the action, not the reaction:
 ```
 ✅ "Fixed. [Brief description of what changed]"
-✅ "Good catch - [specific issue]. Fixed in [location]."
+✅ "Good catch — [specific issue]. Fixed in [location]."
 ✅ [Just fix it and show in the code]
 
-❌ "You're absolutely right!"
-❌ "Great point!"
-❌ "Thanks for catching that!"
-❌ "Thanks for [anything]"
-❌ ANY gratitude expression
+❌ "You're absolutely right!"    # performative
+❌ "Great point!"                # performative
+❌ "Thanks for catching that — you're right about X" (without the fix)  # gratitude-as-stalling
 ```
 
-**Why no thanks:** Actions speak. Just fix it. The code itself shows you heard the feedback.
-
-**If you catch yourself about to write "Thanks":** DELETE IT. State the fix instead.
+**The distinction:** a brief acknowledgment paired with a concrete fix is fine ("Good catch — fixed"). Standalone gratitude or effusive agreement without action is what we're avoiding. Actions speak louder than words — the code change itself shows you heard the feedback.
 
 ## Gracefully Correcting Your Pushback
 

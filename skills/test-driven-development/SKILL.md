@@ -35,23 +35,21 @@ Don't guess. Don't skip. Escalate.
 - Generated code
 - Configuration files
 
-If you're tempted to skip TDD, that's usually a sign you should follow it. If you genuinely think it doesn't apply, escalate — don't decide on your own.
+Tempted to skip TDD "just this once"? That's exactly when to use it — the confidence TDD gives you pays off precisely when the shortcut felt attractive. When in doubt, TDD it. If you genuinely think it doesn't apply, escalate to your coordinator rather than deciding alone — mission success depends on following the battle-tested process.
 
-## The Iron Law
+## The Prime Directive
 
 ```
 NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST
 ```
 
-Write code before the test? Delete it. Start over.
+Wrote code before the test? Remove it and start fresh from a failing test. This rule is absolute because the alternative is subtle:
 
-**No exceptions:**
-- Don't keep it as "reference"
-- Don't "adapt" it while writing tests
-- Don't look at it
-- Delete means delete
+- Keeping it "as reference" → the reference biases the tests you write
+- "Adapting" it while writing tests → that's tests-after, not TDD
+- Glancing at it for structure → the shape leaks into the tests
 
-Implement fresh from tests. Period.
+Implement fresh from tests. The few minutes saved by keeping code you wrote ahead of time is consistently outweighed by the confidence tests give you when you build to them honestly.
 
 ## Red-Green-Refactor
 
@@ -262,30 +260,32 @@ Tests-first force edge case discovery before implementing. Tests-after verify yo
 
 30 minutes of tests after ≠ TDD. You get coverage, lose proof tests work.
 
-## Common Rationalizations
+## Common Objections, Answered
 
-| Excuse | Reality |
+| Objection | Answer |
 |--------|---------|
-| "Too simple to test" | Simple code breaks. Test takes 30 seconds. |
-| "I'll test after" | Tests passing immediately prove nothing. |
-| "Tests after achieve same goals" | Tests-after = "what does this do?" Tests-first = "what should this do?" |
-| "Already manually tested" | Ad-hoc ≠ systematic. No record, can't re-run. |
-| "Deleting X hours is wasteful" | Sunk cost fallacy. Keeping unverified code is technical debt. |
-| "Keep as reference, write tests first" | You'll adapt it. That's testing after. Delete means delete. |
-| "Need to explore first" | Fine. Throw away exploration, start with TDD. |
-| "Test hard = design unclear" | Listen to test. Hard to test = hard to use. |
-| "TDD will slow me down" | TDD faster than debugging. Pragmatic = test-first. |
-| "Manual test faster" | Manual doesn't prove edge cases. You'll re-test every change. |
-| "Existing code has no tests" | You're improving it. Add tests for existing code. |
+| "Too simple to test" | Simple code breaks too. The test takes 30 seconds. |
+| "I'll test after" | Tests written after code pass immediately — that proves nothing about coverage. |
+| "Tests after achieve same goals" | Tests-after answer "what does this do?" Tests-first answer "what should this do?" Different questions, different catches. |
+| "Already manually tested" | Ad-hoc ≠ systematic. No record, can't re-run when code changes. |
+| "Deleting X hours is wasteful" | The hours are already spent either way. Keeping unverified code means paying again later to debug it. |
+| "Keep as reference, write tests first" | The reference will bias the tests. Start fresh. |
+| "Need to explore first" | Explore freely — then discard the exploration and start with TDD. |
+| "Test hard = design unclear" | Listen to the test. Code that's hard to test is usually hard to use. |
+| "TDD will slow me down" | TDD is faster than debugging unverified code. |
+| "Manual test faster" | Manual doesn't prove edge cases. You'll re-test manually on every change. |
+| "Existing code has no tests" | You're improving it — add them as you go. |
 
-## Red Flags - STOP and Start Over
+## Signals to Watch For
+
+When you notice any of these in your own thinking, it means the TDD cycle has drifted — pause and restart from a failing test:
 
 - Code before test
-- Test after implementation
-- Test passes immediately
-- Can't explain why test failed
+- Test written after implementation
+- Test passes immediately on first run
+- Can't explain why the test failed
 - Tests added "later"
-- Rationalizing "just this once"
+- "Just this once"
 - "I already manually tested it"
 - "Tests after achieve the same purpose"
 - "It's about spirit not ritual"
@@ -294,7 +294,7 @@ Tests-first force edge case discovery before implementing. Tests-after verify yo
 - "TDD is dogmatic, I'm being pragmatic"
 - "This is different because..."
 
-**If any of these apply, stop and reconsider.** Usually the right move is to delete and start over with TDD. If you're unsure, escalate to your coordinator.
+**Restart from a failing test.** The cycle is short — you'll catch up fast. If you're unsure whether restarting is the right call, escalate to your coordinator before skipping the process.
 
 ## Example: Bug Fix
 
@@ -346,7 +346,7 @@ Before marking work complete:
 - [ ] Tests use real code (mocks only if unavoidable)
 - [ ] Edge cases and errors covered
 
-Can't check all boxes? You likely skipped TDD. Restart the cycle, or escalate to your coordinator if you're stuck.
+Any box unchecked? The cycle isn't complete — restart from a failing test for that piece. If you're stuck, escalate to your coordinator — the process is battle-tested so you don't have to improvise alone.
 
 ## When Stuck
 
@@ -382,5 +382,5 @@ No exceptions without coordinator approval (coordinators: escalate to your human
 ## Integration
 
 **Consumed by:**
-- **h-superpowers:subagent-driven-development** - TDD is baked into implementer prompts (red-green-refactor, Iron Law)
+- **h-superpowers:subagent-driven-development** - TDD is baked into implementer prompts (red-green-refactor, Prime Directive)
 - **h-superpowers:team-driven-development** - TDD is baked into implementer prompts

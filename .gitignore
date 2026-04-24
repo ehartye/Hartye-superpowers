@@ -1,6 +1,7 @@
 .worktrees/
 .private-journal/
 .claude/
+.superpowers/
 skills/*/diagrams/
 research-results/
 node_modules/

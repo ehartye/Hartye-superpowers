@@ -371,7 +371,7 @@ pptx/
 ```
 When: Reference material too large for inline
 
-## The Iron Law (Same as TDD)
+## The Prime Directive (Same as TDD)
 
 ```
 NO SKILL WITHOUT A FAILING TEST FIRST
@@ -379,16 +379,13 @@ NO SKILL WITHOUT A FAILING TEST FIRST
 
 This applies to NEW skills AND EDITS to existing skills.
 
-Write skill before testing? Delete it. Start over.
-Edit skill without testing? Same violation.
+Wrote a skill before testing it? Remove the untested version and restart from a baseline test. Edits to existing skills are the same — they change agent behavior too.
 
-**No exceptions:**
-- Not for "simple additions"
-- Not for "just adding a section"
-- Not for "documentation updates"
-- Don't keep untested changes as "reference"
-- Don't "adapt" while running tests
-- Delete means delete
+This is absolute because the alternative is subtle:
+- "Simple additions" and "just adding a section" still change agent behavior
+- "Documentation updates" are the edits most likely to regress compliance
+- Keeping untested changes as "reference" biases your next attempt
+- Adapting while testing is tests-after, not tests-first
 
 **REQUIRED BACKGROUND:** The h-superpowers:test-driven-development skill explains why this matters. Same principles apply to documentation.
 
@@ -441,30 +438,30 @@ Different skill types need different test approaches:
 
 **Success criteria:** Agent finds and correctly applies reference information
 
-## Common Rationalizations for Skipping Testing
+## Common Objections, Answered
 
-| Excuse | Reality |
+| Objection | Answer |
 |--------|---------|
-| "Skill is obviously clear" | Clear to you ≠ clear to other agents. Test it. |
-| "It's just a reference" | References can have gaps, unclear sections. Test retrieval. |
-| "Testing is overkill" | Untested skills have issues. Always. 15 min testing saves hours. |
-| "I'll test if problems emerge" | Problems = agents can't use skill. Test BEFORE deploying. |
-| "Too tedious to test" | Testing is less tedious than debugging bad skill in production. |
-| "I'm confident it's good" | Overconfidence guarantees issues. Test anyway. |
-| "Academic review is enough" | Reading ≠ using. Test application scenarios. |
-| "No time to test" | Deploying untested skill wastes more time fixing it later. |
+| "Skill is obviously clear" | Clear to you doesn't mean clear to other agents. Test it. |
+| "It's just a reference" | References can have gaps and unclear sections. Test retrieval. |
+| "Testing is overkill" | 15 minutes of testing reliably saves hours of downstream fixes. |
+| "I'll test if problems emerge" | Problems emerge as agents failing to use the skill. Catch that before deploy. |
+| "Too tedious to test" | Less tedious than debugging the bad skill later. |
+| "I'm confident it's good" | Confidence and verification aren't the same thing. Verify. |
+| "Academic review is enough" | Reading isn't using. Test application scenarios. |
+| "No time to test" | The time cost of an untested skill compounds across every future use. |
 
-**All of these mean: Test before deploying. No exceptions.**
+**Test before deploying.** No exceptions.
 
-## Bulletproofing Skills Against Rationalization
+## Hardening Skills Against Shortcuts
 
-Skills that enforce discipline (like TDD) need to resist rationalization. Agents are smart and will find loopholes when under pressure.
+Discipline-enforcing skills (like TDD) need to resist the shortcuts agents naturally reach for under pressure. Agents are smart — they'll find the loopholes. A well-written skill closes them ahead of time without being preachy about it.
 
-**Psychology note:** Understanding WHY persuasion techniques work helps you apply them systematically. See persuasion-principles.md for research foundation (Cialdini, 2021; Meincke et al., 2025) on authority, commitment, scarcity, social proof, and unity principles.
+**Psychology note:** Understanding WHY persuasion techniques work helps you apply them systematically. See persuasion-principles.md for the research foundation (Cialdini, 2021; Meincke et al., 2025) on authority, commitment, scarcity, social proof, and unity principles.
 
-### Close Every Loophole Explicitly
+### Close Loopholes by Naming the Subtle Ones
 
-Don't just state the rule - forbid specific workarounds:
+Don't just state the rule — name the specific moves that feel like they're *not* violating it:
 
 <Bad>
 ```markdown
@@ -474,44 +471,47 @@ Write code before test? Delete it.
 
 <Good>
 ```markdown
-Write code before test? Delete it. Start over.
+Wrote code before the test? Remove it and start fresh from a failing test.
+This rule is absolute because the alternative is subtle:
 
-**No exceptions:**
-- Don't keep it as "reference"
-- Don't "adapt" it while writing tests
-- Don't look at it
-- Delete means delete
+- Keeping it "as reference" → the reference biases the tests you write
+- "Adapting" it while writing tests → that's tests-after, not TDD
+- Glancing at it for structure → the shape leaks into the tests
 ```
 </Good>
 
 ### Address "Spirit vs Letter" Arguments
 
-Add foundational principle early:
+State early that the spirit of a rule can't live without its letter:
 
 ```markdown
-**Violating the letter of the rules is violating the spirit of the rules.**
+**The spirit of this rule is the letter of this rule.**
 ```
 
-This cuts off entire class of "I'm following the spirit" rationalizations.
+This cuts off the entire class of "I'm following the spirit" shortcuts without needing to accuse anyone of taking them.
 
-### Build Rationalization Table
+### Build an Objections Table
 
-Capture rationalizations from baseline testing (see Testing section below). Every excuse agents make goes in the table:
+Capture the objections agents raise from baseline testing. Answer each one directly — not as refutation, but as clarification:
 
 ```markdown
-| Excuse | Reality |
+| Objection | Answer |
 |--------|---------|
-| "Too simple to test" | Simple code breaks. Test takes 30 seconds. |
-| "I'll test after" | Tests passing immediately prove nothing. |
-| "Tests after achieve same goals" | Tests-after = "what does this do?" Tests-first = "what should this do?" |
+| "Too simple to test" | Simple code breaks too. The test takes 30 seconds. |
+| "I'll test after" | Tests written after code pass immediately — that proves nothing about coverage. |
+| "Tests after achieve same goals" | Tests-after answer "what does this do?" Tests-first answer "what should this do?" |
 ```
 
-### Create Red Flags List
+The framing matters. "Rationalization Prevention" reads as "here's why you're wrong." "Objections, Answered" reads as "here's what this rule actually says." Same content, very different relationship with the reader.
 
-Make it easy for agents to self-check when rationalizing:
+### Create a Signals-to-Watch-For List
+
+Make it easy for agents to self-check when a shortcut is taking shape:
 
 ```markdown
-## Red Flags - STOP and Start Over
+## Signals to Watch For
+
+When you notice any of these in your own thinking, the cycle has drifted — pause and restart from a failing test:
 
 - Code before test
 - "I already manually tested it"
@@ -519,12 +519,14 @@ Make it easy for agents to self-check when rationalizing:
 - "It's about spirit not ritual"
 - "This is different because..."
 
-**All of these mean: Delete code. Start over with TDD.**
+**Restart from a failing test.** The cycle is short — you'll catch up fast.
 ```
 
-### Update CSO for Violation Symptoms
+Same function as the older "Red Flags" pattern, but it invites reflection rather than accusation — and agents are consistently better at catching themselves when they're invited to reflect than when they're told they're rationalizing.
 
-Add to description: symptoms of when you're ABOUT to violate the rule:
+### Update Description for Shortcut Symptoms
+
+Include in the description the symptoms of when the rule is about to be bent:
 
 ```yaml
 description: use when implementing any feature or bugfix, before writing implementation code
@@ -580,18 +582,18 @@ step2 [label="read file"];
 helper1, helper2, step3, pattern4
 **Why bad:** Labels should have semantic meaning
 
-## STOP: Before Moving to Next Skill
+## Before Moving to the Next Skill
 
-**After writing ANY skill, you MUST STOP and complete the deployment process.**
+After writing any skill, complete the deployment process before starting another one. The discipline matters here for the same reason TDD does — the quality feedback loop only works if each skill is verified before the next one starts.
 
-**Do NOT:**
-- Create multiple skills in batch without testing each
-- Move to next skill before current one is verified
-- Skip testing because "batching is more efficient"
+**Avoid:**
+- Creating multiple skills in a batch without testing each one
+- Moving to the next skill before the current one is verified
+- Skipping testing because "batching is more efficient" (batching compounds untested changes)
 
-**The deployment checklist below is MANDATORY for EACH skill.**
+**The deployment checklist below runs for each skill.**
 
-Deploying untested skills = deploying untested code. It's a violation of quality standards.
+Deploying untested skills is the same quality bar as shipping untested code — don't.
 
 ## Skill Creation Checklist (TDD Adapted)
 
@@ -648,7 +650,7 @@ How future Claude finds your skill:
 
 **Creating skills IS TDD for process documentation.**
 
-Same Iron Law: No skill without failing test first.
+Same Prime Directive: No skill without failing test first.
 Same cycle: RED (baseline) → GREEN (write skill) → REFACTOR (close loopholes).
 Same benefits: Better quality, fewer surprises, bulletproof results.
 

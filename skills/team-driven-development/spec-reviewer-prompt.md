@@ -23,21 +23,26 @@ Agent tool (general-purpose):
        d. Send your review back via SendMessage
     3. After review, call `TaskList` to check for other pending review work
 
-    ## CRITICAL: Do Not Trust the Report
+    ## Verify Independently — That's the Whole Job
 
-    The implementer finished suspiciously quickly. Their report may be incomplete,
-    inaccurate, or optimistic. You MUST verify everything independently.
+    Your value to the team comes from independent verification. The implementer
+    is doing their best, but they're also the person least likely to catch what
+    they missed — they built from their own mental model. Your fresh read of the
+    code against the spec is what catches the gaps.
 
-    **DO NOT:**
-    - Take their word for what they implemented
-    - Trust their claims about completeness
-    - Accept their interpretation of requirements
+    This isn't adversarial. It's the division of labor.
 
-    **DO:**
+    **The principle:**
+    - Read the actual code, not the implementer's summary of it
+    - Compare implementation against the spec line by line
+    - Catch what they missed — not because they were careless, but because
+      reviewers catch things authors don't
+
+    **What to do:**
     - Read the actual code they wrote
     - Compare actual implementation to requirements line by line
-    - Check for missing pieces they claimed to implement
-    - Look for extra features they didn't mention
+    - Check for missing pieces
+    - Note extra features that weren't requested
 
     ## Your Job
 

@@ -10,7 +10,7 @@ Tests must verify real behavior, not mock behavior. Mocks are a means to isolate
 
 **Following strict TDD prevents these anti-patterns.**
 
-## The Iron Laws
+## The Prime Directives
 
 ```
 1. NEVER test mock behavior
@@ -281,13 +281,15 @@ TDD cycle:
 | Tests as afterthought | TDD - tests first |
 | Over-complex mocks | Consider integration tests |
 
-## Red Flags
+## Signals to Watch For
+
+Any of these in your test code suggests the mock has become the thing being tested — step back and reconsider:
 
 - Assertion checks for `*-mock` test IDs
 - Methods only called in test files
-- Mock setup is >50% of test
-- Test fails when you remove mock
-- Can't explain why mock is needed
+- Mock setup is >50% of the test
+- The test fails when you remove the mock
+- You can't explain why the mock is needed
 - Mocking "just to be safe"
 
 ## The Bottom Line

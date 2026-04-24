@@ -94,17 +94,18 @@ You: [Fix progress indicators]
 - Review before merge
 - Review when stuck
 
-## Red Flags
+## Hard Rules
 
-**Never:**
-- Skip review because "it's simple"
-- Ignore Critical issues
-- Proceed with unfixed Important issues
-- Argue with valid technical feedback
+Review catches issues while they're cheap to fix. Skipping it is a false economy:
 
-**If reviewer wrong:**
+- Don't skip review because "it's simple" — simple code ships bugs too
+- Don't ignore Critical issues
+- Don't proceed with unfixed Important issues
+- When the feedback is technically valid, implement it — don't argue
+
+**If the reviewer is wrong:**
 - Push back with technical reasoning
-- Show code/tests that prove it works
-- Request clarification
+- Show code or tests that prove the current approach works
+- Ask for clarification if something is ambiguous
 
 See template at: requesting-code-review/code-reviewer.md

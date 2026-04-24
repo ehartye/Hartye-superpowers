@@ -189,28 +189,27 @@ Write code before test? Delete it.
 
 <After>
 ```markdown
-Write code before test? Delete it. Start over.
+Wrote code before the test? Remove it and start fresh from a failing test.
+This rule is absolute because the alternative is subtle:
 
-**No exceptions:**
-- Don't keep it as "reference"
-- Don't "adapt" it while writing tests
-- Don't look at it
-- Delete means delete
+- Keeping it "as reference" → the reference biases the tests you write
+- "Adapting" it while writing tests → that's tests-after, not TDD
+- Glancing at it for structure → the shape leaks into the tests
 ```
 </After>
 
-### 2. Entry in Rationalization Table
+### 2. Entry in the Objections Table
 
 ```markdown
-| Excuse | Reality |
+| Objection | Answer |
 |--------|---------|
-| "Keep as reference, write tests first" | You'll adapt it. That's testing after. Delete means delete. |
+| "Keep as reference, write tests first" | The reference will bias the tests. Start fresh. |
 ```
 
-### 3. Red Flag Entry
+### 3. Signals-to-Watch-For Entry
 
 ```markdown
-## Red Flags - STOP
+## Signals to Watch For
 
 - "Keep as reference" or "adapt existing code"
 - "I'm following the spirit not the letter"

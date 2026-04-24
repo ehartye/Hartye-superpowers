@@ -68,7 +68,7 @@ digraph process {
     }
 
     "More tasks remain?" [shape=diamond];
-    "Shutdown team (SendMessage shutdown_request, sleep 30, TeamDelete)" [shape=box];
+    "Shutdown team (SendMessage shutdown_request, background sleep 30, TeamDelete)" [shape=box];
     "Use h-superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
 
     "Read plan, extract all tasks, create TaskCreate for each" -> "TeamCreate";
@@ -88,8 +88,8 @@ digraph process {
     "Code quality reviewer approves?" -> "Implementer marks task complete in TaskUpdate" [label="yes"];
     "Implementer marks task complete in TaskUpdate" -> "More tasks remain?";
     "More tasks remain?" -> "Implementer claims task, asks questions via SendMessage" [label="yes"];
-    "More tasks remain?" -> "Shutdown team (SendMessage shutdown_request, sleep 30, TeamDelete)" [label="no"];
-    "Shutdown team (SendMessage shutdown_request, sleep 30, TeamDelete)" -> "Use h-superpowers:finishing-a-development-branch";
+    "More tasks remain?" -> "Shutdown team (SendMessage shutdown_request, background sleep 30, TeamDelete)" [label="no"];
+    "Shutdown team (SendMessage shutdown_request, background sleep 30, TeamDelete)" -> "Use h-superpowers:finishing-a-development-branch";
 }
 ```
 
@@ -113,7 +113,7 @@ Pick names that fit the project. Be creative — the only constraint is that the
 
 **Implementer self-review:** Before requesting review, implementers review their own work for completeness (all requirements met?), quality (clear naming, clean code?), discipline (no overbuilding, follows existing patterns?), and testing (tests verify real behavior, not just mock it?). Issues found during self-review are fixed before handoff to reviewers.
 
-**Spec reviewer mindset:** Adversarial — does not trust the implementer's report. The reviewer reads code independently, compares against the spec line-by-line, and treats the implementer's claims as unverified until confirmed by code inspection. Checks three things: (1) missing requirements — did they skip anything? (2) extra work — did they build things not in spec? (3) misunderstandings — did they solve the wrong problem?
+**Spec reviewer mindset:** Independent verification — reads code directly against the spec rather than taking the implementer's summary on faith. Not adversarial, just complementary: authors are the least likely people to catch what they missed. Checks three things: (1) missing requirements — did anything get skipped? (2) extra work — did anything not in spec get built? (3) misunderstandings — was the wrong problem solved?
 
 **Code quality reviewer:** Only reviews after spec compliance passes. Reviews the diff for clean code, test coverage, maintainability, and adherence to project conventions. Returns strengths, issues (critical/important/minor), and an overall assessment.
 
@@ -195,8 +195,11 @@ quality-sentinel: ✅ Approved
 
 [All tasks complete — TaskList confirms all status: completed]
 [Run full test suite]
-[Send shutdown_request to all teammates]
-[Bash("sleep 30")]
+[SendMessage(to: "hook-installer", message: "shutdown_request")]
+[SendMessage(to: "recovery-builder", message: "shutdown_request")]
+[SendMessage(to: "spec-auditor", message: "shutdown_request")]
+[SendMessage(to: "quality-sentinel", message: "shutdown_request")]
+[Bash("sleep 30", run_in_background=true)]  # wait for the completion notification, then continue
 [TeamDelete]
 [Use finishing-a-development-branch — handles merge, tests, worktree cleanup, and disposition]
 ```
@@ -214,9 +217,9 @@ That skill handles merge, test verification, worktree cleanup, and final disposi
 
 1. Call `TaskList` to confirm every task shows status `completed`.
 2. Run the full test suite to verify the final result.
-3. Send `shutdown_request` to each teammate via SendMessage.
-4. Call `Bash("sleep 30")`. One wait. Do not send further messages, do not loop, do not check on teammates. They either shut down in 30 seconds or they don't.
-5. Call `TeamDelete`. If it fails, call `Bash("sleep 30")` and retry **once**. No other fallback — `TeamDelete` is the only path to a clean exit (it terminates agent processes; `rm -rf` leaves orphans that prevent the CLI from exiting).
+3. Send `shutdown_request` to each teammate individually via `SendMessage`. **Do not broadcast** — `SendMessage` does not support `to: "*"` and will error. Send one message per teammate by name.
+4. Call `Bash("sleep 30", run_in_background=true)`. One wait. The harness blocks standalone/leading `sleep` calls, so the sleep must be backgrounded — you'll get a completion notification ~30s later. Do not send further messages, do not loop, do not check on teammates. They either shut down in 30 seconds or they don't.
+5. Call `TeamDelete`. If it fails, call `Bash("sleep 30", run_in_background=true)` and retry **once** after the notification. No other fallback — `TeamDelete` is the only path to a clean exit (it terminates agent processes; `rm -rf` leaves orphans that prevent the CLI from exiting).
 6. Summarize what was accomplished to the user.
 
 **Hard stop.** After step 3, the orchestration is over. No coordination messages, no "are you still there?", no additional review cycles. Shut down and get out.
@@ -248,31 +251,31 @@ That skill handles merge, test verification, worktree cleanup, and final disposi
 - But parallel execution saves wall-clock time
 - And catches issues early (cheaper than debugging later)
 
-## Red Flags
+## Hard Rules
 
-**Never:**
-- Start implementation on main/master branch without explicit user consent
-- Skip reviews (spec compliance OR code quality)
-- Proceed with unfixed issues
-- Exceed 6 agents (coordination overhead too high)
-- Ignore messages from teammates (breaks collaboration)
-- Let implementer mark task complete before reviewer approves
-- **Start code quality review before spec compliance is ✅** (wrong order)
-- Move to next task while either review has open issues
-- Forget to budget for full sessions per agent
+These are the guardrails the workflow depends on — skipping any of them breaks the quality guarantees of the skill:
 
-**If teammate asks questions:**
+- Don't start implementation on main/master branch without explicit user consent
+- Don't skip reviews (spec compliance OR code quality)
+- Don't proceed with unfixed issues
+- Don't exceed 6 agents (coordination overhead gets too high)
+- Don't ignore messages from teammates — that breaks collaboration
+- Don't let an implementer mark a task complete before the reviewer approves
+- **Don't start code quality review before spec compliance is ✅** — wrong order
+- Don't move to the next task while either review has open issues
+- Budget for full sessions per agent before spawning the team
+
+**If a teammate asks questions:**
 - Answer clearly and completely via SendMessage
 - Provide additional context if needed
 - Don't rush them into implementation
 
-**If reviewer finds issues:**
+**If a reviewer finds issues:**
 - Implementer fixes them
 - Reviewer reviews again
-- Repeat until approved
-- Don't skip the re-review
+- Repeat until approved — don't skip the re-review
 
-**If teammate fails task:**
+**If a teammate fails a task:**
 - Send fix instructions via SendMessage
 - Don't try to fix manually (you're the lead, not the implementer)
 
@@ -285,7 +288,7 @@ That skill handles merge, test verification, worktree cleanup, and final disposi
 - **h-superpowers:finishing-a-development-branch** - Complete development after all tasks
 
 **Teammates follow:**
-- **h-superpowers:test-driven-development** - TDD is baked into implementer prompts (red-green-refactor, Iron Law)
+- **h-superpowers:test-driven-development** - TDD is baked into implementer prompts (red-green-refactor, Prime Directive)
 - **h-superpowers:verification-before-completion** - Evidence before completion claims, baked into implementer self-review
 
 **Alternative workflow:**

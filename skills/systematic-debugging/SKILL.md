@@ -13,7 +13,7 @@ Random fixes waste time and create new bugs. Quick patches mask underlying issue
 
 **Violating the letter of this process is violating the spirit of debugging.**
 
-## The Iron Law
+## The Prime Directive
 
 ```
 NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST
@@ -212,9 +212,10 @@ You MUST complete each phase before proceeding to the next.
 
    This is NOT a failed hypothesis - this is a wrong architecture.
 
-## Red Flags - STOP and Follow Process
+## Signals to Watch For
 
-If you catch yourself thinking:
+When any of these show up in your thinking, the investigation has drifted — return to Phase 1:
+
 - "Quick fix for now, investigate later"
 - "Just try changing X and see if it works"
 - "Add multiple changes, run tests"
@@ -225,11 +226,11 @@ If you catch yourself thinking:
 - "Here are the main problems: [lists fixes without investigation]"
 - Proposing solutions before tracing data flow
 - **"One more fix attempt" (when already tried 2+)**
-- **Each fix reveals new problem in different place**
+- **Each fix reveals a new problem in a different place**
 
-**ALL of these mean: STOP. Return to Phase 1.**
+**Return to Phase 1** and rebuild from the root cause.
 
-**If 3+ fixes failed:** Question the architecture (see Phase 4.5)
+**If 3+ fixes failed:** the problem is architectural, not behavioral — see Phase 4.5 and talk to your human partner.
 
 ## Warning Signs From Your Human Partner
 
@@ -242,18 +243,18 @@ If you catch yourself thinking:
 
 **When you see these:** STOP. Return to Phase 1.
 
-## Common Rationalizations
+## Common Objections, Answered
 
-| Excuse | Reality |
+| Objection | Answer |
 |--------|---------|
-| "Issue is simple, don't need process" | Simple issues have root causes too. Process is fast for simple bugs. |
-| "Emergency, no time for process" | Systematic debugging is FASTER than guess-and-check thrashing. |
-| "Just try this first, then investigate" | First fix sets the pattern. Do it right from the start. |
-| "I'll write test after confirming fix works" | Untested fixes don't stick. Test first proves it. |
-| "Multiple fixes at once saves time" | Can't isolate what worked. Causes new bugs. |
-| "Reference too long, I'll adapt the pattern" | Partial understanding guarantees bugs. Read it completely. |
-| "I see the problem, let me fix it" | Seeing symptoms ≠ understanding root cause. |
-| "One more fix attempt" (after 2+ failures) | 3+ failures = architectural problem. Question pattern, don't fix again. |
+| "Issue is simple, don't need the process" | Simple issues have root causes too. The process runs fast on simple bugs. |
+| "Emergency, no time for process" | Systematic debugging is faster than guess-and-check thrashing under pressure. |
+| "Just try this first, then investigate" | The first fix sets the pattern. Start systematic and stay there. |
+| "I'll write the test after confirming the fix works" | Untested fixes don't stick. The test proves the fix solves the right problem. |
+| "Multiple fixes at once saves time" | You can't isolate what worked, and overlapping fixes often cause new bugs. |
+| "Reference too long, I'll adapt the pattern" | Partial understanding ships bugs. Read the full pattern before applying. |
+| "I see the problem, let me fix it" | Seeing symptoms isn't the same as understanding the root cause. |
+| "One more fix attempt" (after 2+ failures) | 3+ failures usually means the architecture is wrong, not the fix. Zoom out. |
 
 ## Quick Reference
 
