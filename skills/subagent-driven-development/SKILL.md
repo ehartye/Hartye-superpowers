@@ -7,7 +7,11 @@ description: Use when executing implementation plans with independent tasks in t
 
 Execute plan by dispatching fresh subagent per task, with two-stage review after each: spec compliance review first, then code quality review.
 
+**Why subagents:** You delegate tasks to specialized agents with isolated context. By precisely crafting their instructions and context, you ensure they stay focused and succeed. They never inherit your session's history — you construct exactly what they need. This also preserves your own context for coordination work.
+
 **Core principle:** Fresh subagent per task + two-stage review (spec then quality) = high quality, fast iteration
+
+**Continuous execution:** Do not pause to check in with your human partner between tasks. Execute all tasks from the plan without stopping. The only reasons to stop are: a BLOCKED status you cannot resolve, ambiguity that genuinely prevents progress, or all tasks complete. "Should I continue?" prompts and progress summaries between tasks waste the user's time — they asked you to execute the plan, so execute it.
 
 ## When to Use
 
@@ -85,6 +89,27 @@ digraph process {
     "Dispatch final code reviewer subagent for entire implementation" -> "Use h-superpowers:finishing-a-development-branch";
 }
 ```
+
+## Model Selection
+
+Use the least powerful model that can handle each role, to conserve cost and increase speed.
+
+- **Mechanical implementation** (isolated functions, clear spec, 1–2 files): a fast, cheap model. Most well-specified implementation tasks are mechanical.
+- **Integration and judgment** (multi-file coordination, pattern matching, debugging): a standard model.
+- **Architecture, design, and review**: the most capable available model.
+
+Complexity signals: touches 1–2 files with a complete spec → cheap; multiple files with integration concerns → standard; requires design judgment or broad codebase understanding → most capable.
+
+## Handling Implementer Status
+
+Implementer subagents report one of four statuses. Handle each:
+
+- **DONE** — proceed to spec compliance review.
+- **DONE_WITH_CONCERNS** — read the concerns before proceeding. If they bear on correctness or scope, address them before review; if they're observations (e.g., "this file is getting large"), note and proceed to review.
+- **NEEDS_CONTEXT** — the implementer is missing information that wasn't provided. Provide it and re-dispatch.
+- **BLOCKED** — assess the blocker: (1) context problem → provide more context, re-dispatch with the same model; (2) needs more reasoning → re-dispatch with a more capable model; (3) task too large → break it into smaller pieces; (4) the plan itself is wrong → escalate to the human.
+
+**Never** ignore an escalation or force the same model to retry without changes. If the implementer is stuck, something must change before retrying.
 
 ## Prompt Templates
 
