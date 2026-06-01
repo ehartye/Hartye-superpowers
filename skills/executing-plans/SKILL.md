@@ -18,7 +18,7 @@ Load plan, review critically, execute all tasks, report when complete.
 ## The Process
 
 ### Step 0: Set Up Workspace
-Before starting: Use `h-superpowers:using-git-worktrees` to set up an isolated workspace.
+Before starting: Use `h-superpowers:using-git-worktrees` to set up an isolated workspace via the native worktree tool (`EnterWorktree`). Teardown is deferred to `finishing-a-development-branch` (Step 3), which uses `ExitWorktree`.
 
 ### Step 1: Load and Review Plan
 1. Read plan file
@@ -72,6 +72,6 @@ After all tasks complete and verified:
 ## Integration
 
 **Required workflow skills:**
-- **h-superpowers:using-git-worktrees** - REQUIRED: Set up isolated workspace before starting
+- **h-superpowers:using-git-worktrees** - REQUIRED: Set up isolated workspace before starting (native `EnterWorktree`)
 - **h-superpowers:writing-plans** - Creates the plan this skill executes
-- **h-superpowers:finishing-a-development-branch** - Complete development after all tasks
+- **h-superpowers:finishing-a-development-branch** - Complete development after all tasks; handles worktree teardown via `ExitWorktree`

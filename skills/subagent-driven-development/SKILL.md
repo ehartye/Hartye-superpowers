@@ -203,10 +203,12 @@ Final reviewer: All requirements met, ready to merge
 
 ## Worktree Completion
 
-After the final code review passes, invoke `h-superpowers:finishing-a-development-branch`.
-That skill handles merge, test verification, worktree cleanup, and final disposition (push, PR, keep, discard). **Do not duplicate those steps here** — just invoke the skill and follow its instructions.
+Workspace **setup** goes through `h-superpowers:using-git-worktrees` (native `EnterWorktree`). **Teardown is deferred** to `finishing-a-development-branch` — do not remove the worktree here.
 
-**⚠️ CWD warning:** If your shell is inside the worktree, `finishing-a-development-branch` will `cd` to the main repo before removing it. If you do any manual cleanup yourself, always `cd` out of the worktree before `git worktree remove`.
+After the final code review passes, invoke `h-superpowers:finishing-a-development-branch`.
+That skill handles merge, test verification, worktree teardown (via native `ExitWorktree`, with a manual `git worktree remove` fallback), and final disposition (push, PR, keep, discard). **Do not duplicate those steps here** — just invoke the skill and follow its instructions.
+
+**⚠️ CWD warning (manual-git fallback only):** If a worktree was created via the manual git fallback (not native `EnterWorktree`/`ExitWorktree`) and your shell is inside it, always `cd` out of the worktree to the main repo before any manual `git worktree remove` — removing the CWD invalidates the shell. Native `ExitWorktree` handles this for you.
 
 ## Advantages
 
@@ -275,10 +277,10 @@ These are the guardrails the workflow depends on — skipping any of them breaks
 ## Integration
 
 **Required workflow skills:**
-- **h-superpowers:using-git-worktrees** - REQUIRED: Set up isolated workspace before starting
+- **h-superpowers:using-git-worktrees** - REQUIRED: Set up isolated workspace before starting (native `EnterWorktree`)
 - **h-superpowers:writing-plans** - Creates the plan this skill executes
 - **h-superpowers:requesting-code-review** - Code review template for reviewer subagents
-- **h-superpowers:finishing-a-development-branch** - Complete development after all tasks
+- **h-superpowers:finishing-a-development-branch** - Complete development after all tasks; handles worktree teardown via `ExitWorktree`
 
 **Subagents follow:**
 - **h-superpowers:test-driven-development** - TDD is baked into implementer prompts (red-green-refactor, Prime Directive)

@@ -48,6 +48,24 @@ Or ask: "This branch split from main - is that correct?"
 
 ### Step 3: Present Options
 
+**Environment note:** Determine workspace state first:
+```bash
+GIT_DIR=$(cd "$(git rev-parse --git-dir)" 2>/dev/null && pwd -P)
+GIT_COMMON=$(cd "$(git rev-parse --git-common-dir)" 2>/dev/null && pwd -P)
+```
+If `GIT_DIR != GIT_COMMON` and HEAD is detached (externally-managed workspace), present the reduced 3-option menu (no local merge):
+
+```
+Implementation complete. You're on a detached HEAD (externally managed workspace).
+
+1. Push as new branch and create a Pull Request
+2. Keep as-is (I'll handle it later)
+3. Discard this work
+
+Which option?
+```
+Otherwise present the standard 4 options below.
+
 Present exactly these 4 options:
 
 ```
@@ -68,23 +86,19 @@ Which option?
 #### Option 1: Merge Locally
 
 ```bash
-# Switch to base branch
+# Operate in the MAIN repo, not inside the feature worktree
+MAIN_ROOT=$(git -C "$(git rev-parse --git-common-dir)/.." rev-parse --show-toplevel)
+cd "$MAIN_ROOT"
 git checkout <base-branch>
-
-# Pull latest
 git pull
-
-# Merge feature branch
 git merge <feature-branch>
-
-# Verify tests on merged result
-<test command>
-
-# If tests pass
+<test command>     # verify tests on merged result BEFORE removing anything
+# Then tear down the worktree (Step 5): native ExitWorktree(remove), or manual worktree remove
+# Only AFTER the worktree is gone:
 git branch -d <feature-branch>
 ```
 
-Then: Cleanup worktree (Step 5)
+Then: Cleanup worktree (Step 5), then delete the branch as shown above.
 
 #### Option 2: Push and Create PR
 
@@ -127,15 +141,27 @@ Type 'discard' to confirm.
 
 Wait for exact confirmation.
 
-If confirmed:
+If confirmed, switch to the base branch, tear down the worktree FIRST, then force-delete the branch:
 ```bash
 git checkout <base-branch>
+# Tear down the worktree (Step 5): native ExitWorktree(remove, discard_changes), or manual worktree remove
+# Only AFTER the worktree is gone:
 git branch -D <feature-branch>
 ```
 
-Then: Cleanup worktree (Step 5)
+Then: Cleanup worktree (Step 5) before the `git branch -D` above.
 
 ### Step 5: Cleanup Worktree
+
+**Native teardown (preferred).** If the worktree was created with `EnterWorktree` this session, use `ExitWorktree` — it returns the session to the original directory and removes or keeps the worktree safely (it only ever touches worktrees this session created):
+
+- Option 1 (merge locally): after merge + verify in the main repo, `ExitWorktree(action: "remove")`.
+- Option 4 (discard): after typed confirmation, `ExitWorktree(action: "remove", discard_changes: true)`.
+- Options 2 (PR) and 3 (keep): `ExitWorktree(action: "keep")` (or leave in place) — branch stays active.
+
+If `ExitWorktree` reports no active worktree session (e.g., the worktree was created manually or in a different session), fall back to the manual cleanup below.
+
+**Manual fallback (non-native worktrees):**
 
 **For Options 1 and 4:**
 
@@ -164,6 +190,8 @@ git worktree remove <worktree-path>
 | 2. Create PR | - | ✓ | ✓ | - |
 | 3. Keep as-is | - | - | ✓ | - |
 | 4. Discard | - | - | - | ✓ (force) |
+
+For Options 1 and 4, remove the worktree **before** deleting the branch (a branch backing an active worktree can't be cleanly deleted).
 
 ## Common Mistakes
 
