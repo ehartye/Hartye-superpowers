@@ -87,8 +87,7 @@ You: [Fix progress indicators]
 - Implementer follows receiving-code-review discipline when handling feedback
 
 **Executing Plans:**
-- Review after each batch (3 tasks)
-- Get feedback, apply, continue
+- Review after all tasks complete, before finishing the branch
 
 **Ad-Hoc Development:**
 - Review before merge

@@ -98,7 +98,7 @@ git merge <feature-branch>
 git branch -d <feature-branch>
 ```
 
-Then: Cleanup worktree (Step 5), then delete the branch as shown above.
+Tear down the worktree (Step 5) first; the `git branch -d` shown above runs only after the worktree is gone.
 
 #### Option 2: Push and Create PR
 
@@ -149,7 +149,7 @@ git checkout <base-branch>
 git branch -D <feature-branch>
 ```
 
-Then: Cleanup worktree (Step 5) before the `git branch -D` above.
+Tear down the worktree (Step 5) first; the `git branch -D` shown above runs only after the worktree is gone.
 
 ### Step 5: Cleanup Worktree
 
@@ -235,7 +235,7 @@ These guardrails exist because the stakes — someone else's code, history, or w
 **Called by:**
 - **subagent-driven-development** (Step 7) - After all tasks complete
 - **team-driven-development** (Step 6) - After lead consolidates team results
-- **executing-plans** (Step 5) - After all batches complete
+- **executing-plans** (Step 3) - After all tasks complete
 
 **Pairs with:**
 - **using-git-worktrees** - Cleans up worktree created by that skill
