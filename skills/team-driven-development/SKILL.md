@@ -7,7 +7,11 @@ description: Use when executing plans requiring coordination between persistent 
 
 Execute plan by spawning persistent teammate agents that collaborate via shared task list and direct messaging, with two-stage review after each task: spec compliance review first, then code quality review.
 
+**Why teammates:** You coordinate persistent specialized agents that collaborate through a shared task list and direct messaging. Each teammate works in isolated context you help shape; they don't inherit your history. This preserves your context for coordination and lets independent work proceed in parallel.
+
 **Core principle:** Persistent teammates + shared task list + direct messaging + two-stage review (spec then quality) = high quality, parallel execution
+
+**Continuous execution:** Teammates keep pulling tasks from the shared list until none remain — they don't pause to ask "should I continue?" between tasks. The lead stops the flow only for an unresolvable BLOCKED status, genuine ambiguity, or completion of all tasks.
 
 **EXPERIMENTAL:** Requires Claude Code with Opus 4.6+ and `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`
 
@@ -92,6 +96,27 @@ digraph process {
     "Shutdown team (SendMessage shutdown_request, background sleep 30, TeamDelete)" -> "Use h-superpowers:finishing-a-development-branch";
 }
 ```
+
+## Model Selection
+
+Use the least powerful model that can handle each teammate's role, to conserve cost and increase speed.
+
+- **Mechanical implementer teammate** (isolated functions, clear spec, 1–2 files): a fast, cheap model. Most well-specified implementation tasks are mechanical.
+- **Integration / debugging teammate** (multi-file coordination, pattern matching): a standard model.
+- **Architecture, design, and review teammate**: the most capable available model.
+
+Complexity signals: touches 1–2 files with a complete spec → cheap; multiple files with integration concerns → standard; requires design judgment or broad codebase understanding → most capable.
+
+## Handling Teammate Status
+
+Implementer teammates report one of four statuses to the lead via `SendMessage`, and reflect it in the shared task list (`TaskUpdate`). The lead handles each:
+
+- **DONE** — proceed to spec compliance review.
+- **DONE_WITH_CONCERNS** — read the concerns before proceeding. If they bear on correctness or scope, address them before review; if they're observations (e.g., "this file is getting large"), note and proceed to review.
+- **NEEDS_CONTEXT** — the teammate is missing information that wasn't provided. Send it via `SendMessage` and let them continue.
+- **BLOCKED** — assess the blocker: (1) context problem → send more context; (2) needs more reasoning → reassign to a more capable model; (3) task too large → split it into smaller shared-list tasks; (4) the plan itself is wrong → escalate to the human.
+
+**Never** ignore an escalation or force the same model to retry without changes. If a teammate is stuck, something must change before retrying.
 
 ## Prompt Templates
 
