@@ -143,7 +143,7 @@ After saving the plan, offer execution choice:
 
 **2. Team-Driven (this session, experimental)** - Multiple persistent agents work in parallel with direct inter-agent communication; best when tasks need coordination. Requires Opus 4.6+ and `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`. Costs 2–4x more.
 
-**3. Parallel Session (separate)** - Open new session with executing-plans, batch execution with human checkpoints
+**3. Inline Execution (this session)** - Execute tasks in this session using executing-plans (no subagents); the fallback when subagent/team execution isn't desired
 
 **Which approach?"**
 
@@ -157,6 +157,7 @@ After saving the plan, offer execution choice:
 - Stay in this session
 - Persistent agents + peer-to-peer communication
 
-**If Parallel Session chosen:**
-- Guide them to open new session in worktree
-- **REQUIRED SUB-SKILL:** New session uses h-superpowers:executing-plans
+**If Inline Execution chosen:**
+- Stay in this session
+- **REQUIRED SUB-SKILL:** Use h-superpowers:executing-plans
+- Execute all tasks, then report
