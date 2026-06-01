@@ -124,7 +124,7 @@ Pick names that fit the project. Be creative — the only constraint is that the
 ```
 You: I'm using Team-Driven Development to execute this plan.
 
-[Read plan file once: docs/plans/feature-plan.md]
+[Read plan file once: docs/superpowers/plans/feature-plan.md]
 [Extract all 5 tasks with full text and context]
 [TeamCreate(team_name: "feature-plan", description: "Implementing feature plan")]
 [TaskCreate for each task, TaskUpdate to set dependencies]
