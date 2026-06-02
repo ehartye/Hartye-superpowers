@@ -58,7 +58,7 @@ HEAD_SHA=$(git rev-parse HEAD)
 
 [Dispatch code-reviewer agent via Agent tool]
   WHAT_WAS_IMPLEMENTED: Verification and repair functions for conversation index
-  PLAN_OR_REQUIREMENTS: Task 2 from docs/plans/deployment-plan.md
+  PLAN_OR_REQUIREMENTS: Task 2 from docs/superpowers/plans/deployment-plan.md
   BASE_SHA: a7981ec
   HEAD_SHA: 3df7661
   DESCRIPTION: Added verifyIndex() and repairIndex() with 4 issue types
@@ -87,8 +87,7 @@ You: [Fix progress indicators]
 - Implementer follows receiving-code-review discipline when handling feedback
 
 **Executing Plans:**
-- Review after each batch (3 tasks)
-- Get feedback, apply, continue
+- Review after all tasks complete, before finishing the branch
 
 **Ad-Hoc Development:**
 - Review before merge

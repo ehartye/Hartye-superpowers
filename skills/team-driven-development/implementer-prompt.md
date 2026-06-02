@@ -101,6 +101,14 @@ Agent tool (general-purpose):
 
     ## Review Request Format
 
+    Begin your report to the lead (via SendMessage) with exactly one status line:
+    - `STATUS: DONE` — task complete, all tests pass, ready for review
+    - `STATUS: DONE_WITH_CONCERNS` — complete, but you have doubts worth flagging (state them)
+    - `STATUS: NEEDS_CONTEXT` — you cannot proceed without information that wasn't provided (state exactly what you need)
+    - `STATUS: BLOCKED` — you cannot complete the task (state the blocker and what you tried)
+
+    Then update your task in the shared list (TaskUpdate) and report what you implemented, what you tested, files changed, and any remaining concerns.
+
     When requesting review via SendMessage, include:
     - What you implemented
     - What you tested and test results

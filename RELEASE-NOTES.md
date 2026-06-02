@@ -30,6 +30,23 @@ This fork ([ehartye/Hartye-superpowers](https://github.com/ehartye/Hartye-superp
 
 ---
 
+## v4.10.0 (2026-06-02)
+
+### Upstream skill-content adoption (v4.3.0 → v5.1.0)
+
+Selectively adopted upstream improvements while preserving deliberate fork divergences (custom `code-reviewer` agent, fork-only `team-driven-development`, two-stage review). Cross-harness porting and contributor-governance changes were out of scope. See `docs/superpowers/specs/2026-06-01-upstream-adoption-design.md`.
+
+- **brainstorming**: scope/decomposition guidance + design-for-isolation + working-in-existing-codebases sections.
+- **writing-plans**: Scope Check + File Structure sections; checkbox (`- [ ]`) task-step syntax.
+- **subagent-driven / team-driven**: why-framing, continuous-execution rule, model selection guidance, and a four-status protocol (DONE / DONE_WITH_CONCERNS / NEEDS_CONTEXT / BLOCKED) with controller handling; team-driven mirrors these adapted to the teammate/messaging model.
+- **executing-plans**: reframed as an inline, same-session, no-subagent fallback (dropped the separate-session/batch-with-checkpoints flow); writing-plans option 3 renamed to "Inline Execution".
+- **using-git-worktrees**: native-first rewrite around `EnterWorktree` (Step 0 isolation detection + submodule guard), with a manual `git worktree` + sandbox fallback.
+- **finishing-a-development-branch**: native `ExitWorktree` teardown, detached-HEAD reduced menu, and a merge-before-cleanup ordering fix; worktree references cascaded across the execution skills.
+- **requesting-code-review**: kept the custom `code-reviewer` agent; added a praise-first rationale.
+- **docs**: aligned stale `docs/plans/` references to the `docs/superpowers/{specs,plans}/` convention.
+
+---
+
 ## v4.9.1 (2026-04-24)
 
 ### TDD guidance tone adjustment

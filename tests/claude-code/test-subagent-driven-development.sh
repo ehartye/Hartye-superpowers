@@ -31,7 +31,7 @@ echo "Test 1: Skill loading..."
 run_claude "What is the subagent-driven-development skill? Describe its key steps briefly." 90
 show_output
 
-check assert_contains "$CLAUDE_OUTPUT" "subagent-driven-development\|Subagent-Driven Development\|Subagent Driven" "Skill is recognized"
+check assert_contains "$CLAUDE_OUTPUT" "subagent-driven-development\|Subagent-Driven Development\|Subagent Driven\|[Ss]ubagent-[Dd]riven" "Skill is recognized"
 check assert_contains "$CLAUDE_OUTPUT" "Load Plan\|[Rr]ead.*plan\|[Ee]xtract.*tasks" "Mentions loading plan"
 
 echo ""

@@ -92,12 +92,18 @@ Task tool (general-purpose):
 
     ## Report Format
 
-    When done, report:
+    Begin your report with exactly one status line:
+    - `STATUS: DONE` — task complete, all tests pass, ready for review
+    - `STATUS: DONE_WITH_CONCERNS` — complete, but you have doubts worth flagging (state them)
+    - `STATUS: NEEDS_CONTEXT` — you cannot proceed without information that wasn't provided (state exactly what you need)
+    - `STATUS: BLOCKED` — you cannot complete the task (state the blocker and what you tried)
+
+    Then report:
     - What you implemented
     - What you tested and test results
     - Files changed
     - Self-review findings (if any)
-    - Any issues or concerns
+    - Any remaining issues or concerns
 
     ## When You Receive Reviewer Feedback
 

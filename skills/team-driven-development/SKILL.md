@@ -7,7 +7,11 @@ description: Use when executing plans requiring coordination between persistent 
 
 Execute plan by spawning persistent teammate agents that collaborate via shared task list and direct messaging, with two-stage review after each task: spec compliance review first, then code quality review.
 
+**Why teammates:** You coordinate persistent specialized agents that collaborate through a shared task list and direct messaging. Each teammate works in isolated context you help shape; they don't inherit your history. This preserves your context for coordination and lets independent work proceed in parallel.
+
 **Core principle:** Persistent teammates + shared task list + direct messaging + two-stage review (spec then quality) = high quality, parallel execution
+
+**Continuous execution:** Teammates keep pulling tasks from the shared list until none remain — they don't pause to ask "should I continue?" between tasks. The lead stops the flow only for an unresolvable BLOCKED status, genuine ambiguity, or completion of all tasks.
 
 **EXPERIMENTAL:** Requires Claude Code with Opus 4.6+ and `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`
 
@@ -93,6 +97,27 @@ digraph process {
 }
 ```
 
+## Model Selection
+
+Use the least powerful model that can handle each teammate's role, to conserve cost and increase speed.
+
+- **Mechanical implementer teammate** (isolated functions, clear spec, 1–2 files): a fast, cheap model. Most well-specified implementation tasks are mechanical.
+- **Integration / debugging teammate** (multi-file coordination, pattern matching): a standard model.
+- **Architecture, design, and review teammate**: the most capable available model.
+
+Complexity signals: touches 1–2 files with a complete spec → cheap; multiple files with integration concerns → standard; requires design judgment or broad codebase understanding → most capable.
+
+## Handling Teammate Status
+
+Implementer teammates report one of four statuses to the lead via `SendMessage`, and reflect it in the shared task list (`TaskUpdate`). The lead handles each:
+
+- **DONE** — proceed to spec compliance review.
+- **DONE_WITH_CONCERNS** — read the concerns before proceeding. If they bear on correctness or scope, address them before review; if they're observations (e.g., "this file is getting large"), note and proceed to review.
+- **NEEDS_CONTEXT** — the teammate is missing information that wasn't provided. Send it via `SendMessage` and let them continue.
+- **BLOCKED** — assess the blocker: (1) context problem → send more context; (2) needs more reasoning → reassign to a more capable model; (3) task too large → split it into smaller shared-list tasks; (4) the plan itself is wrong → escalate to the human.
+
+**Never** ignore an escalation or force the same model to retry without changes. If a teammate is stuck, something must change before retrying.
+
 ## Prompt Templates
 
 - `./implementer-prompt.md` - Spawn implementer teammate
@@ -124,7 +149,7 @@ Pick names that fit the project. Be creative — the only constraint is that the
 ```
 You: I'm using Team-Driven Development to execute this plan.
 
-[Read plan file once: docs/plans/feature-plan.md]
+[Read plan file once: docs/superpowers/plans/feature-plan.md]
 [Extract all 5 tasks with full text and context]
 [TeamCreate(team_name: "feature-plan", description: "Implementing feature plan")]
 [TaskCreate for each task, TaskUpdate to set dependencies]
@@ -206,10 +231,12 @@ quality-sentinel: ✅ Approved
 
 ## Worktree Completion
 
-After all tasks are complete and shutdown is done, invoke `h-superpowers:finishing-a-development-branch`.
-That skill handles merge, test verification, worktree cleanup, and final disposition (push, PR, keep, discard). **Do not duplicate those steps here** — just invoke the skill and follow its instructions.
+Workspace **setup** goes through `h-superpowers:using-git-worktrees` (native `EnterWorktree`). **Teardown is deferred** to `finishing-a-development-branch` — do not remove the worktree here.
 
-**⚠️ CWD warning:** If your shell is inside the worktree, `finishing-a-development-branch` will `cd` to the main repo before removing it. If you do any manual cleanup yourself, always `cd` out of the worktree before `git worktree remove`.
+After all tasks are complete and shutdown is done, invoke `h-superpowers:finishing-a-development-branch`.
+That skill handles merge, test verification, worktree teardown (via native `ExitWorktree`, with a manual `git worktree remove` fallback), and final disposition (push, PR, keep, discard). **Do not duplicate those steps here** — just invoke the skill and follow its instructions.
+
+**⚠️ CWD warning (manual-git fallback only):** If a worktree was created via the manual git fallback (not native `EnterWorktree`/`ExitWorktree`) and your shell is inside it, always `cd` out of the worktree to the main repo before any manual `git worktree remove` — removing the CWD invalidates the shell. Native `ExitWorktree` handles this for you.
 
 ## Completion and Shutdown
 
@@ -282,10 +309,10 @@ These are the guardrails the workflow depends on — skipping any of them breaks
 ## Integration
 
 **Required workflow skills:**
-- **h-superpowers:using-git-worktrees** - REQUIRED: Set up isolated workspace before starting
+- **h-superpowers:using-git-worktrees** - REQUIRED: Set up isolated workspace before starting (native `EnterWorktree`)
 - **h-superpowers:writing-plans** - Creates the plan this skill executes
 - **h-superpowers:requesting-code-review** - Code review template for reviewer teammates
-- **h-superpowers:finishing-a-development-branch** - Complete development after all tasks
+- **h-superpowers:finishing-a-development-branch** - Complete development after all tasks; handles worktree teardown via `ExitWorktree`
 
 **Teammates follow:**
 - **h-superpowers:test-driven-development** - TDD is baked into implementer prompts (red-green-refactor, Prime Directive)
@@ -293,4 +320,4 @@ These are the guardrails the workflow depends on — skipping any of them breaks
 
 **Alternative workflow:**
 - **h-superpowers:subagent-driven-development** - Use for independent sequential tasks instead
-- **h-superpowers:executing-plans** - Use for parallel session instead of same-session execution
+- **h-superpowers:executing-plans** - Use for inline, no-subagent execution in this session (simpler fallback)

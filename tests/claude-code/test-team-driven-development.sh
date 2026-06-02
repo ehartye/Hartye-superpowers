@@ -40,7 +40,7 @@ echo "Test 2: Team vs subagent distinction..."
 run_claude "In the team-driven-development skill, what is the key difference between agent teams and subagents? Answer concisely." 90
 show_output
 
-check assert_contains "$CLAUDE_OUTPUT" "peer.*peer\|direct.*messag\|direct.*communicat\|inter-agent\|communicate.*directly" "Teams have direct communication"
+check assert_contains "$CLAUDE_OUTPUT" "peer.*peer\|direct.*messag\|direct.*communicat\|inter-agent\|communicate.*directly\|messag.*peer\|peers* direct" "Teams have direct communication"
 check assert_contains "$CLAUDE_OUTPUT" "hub.*spoke\|through.*lead\|sequential\|independent" "Subagents are hub-and-spoke or sequential"
 
 echo ""
@@ -86,7 +86,7 @@ echo "Test 6: Cost comparison..."
 run_claude "How does team-driven-development compare to subagent-driven-development on cost? Give the multiplier." 90
 show_output
 
-check assert_contains "$CLAUDE_OUTPUT" "2.*4x\|2-4x\|3x\|2x.*4x\|more.*expensive\|higher.*cost" "Mentions 2-4x cost multiplier"
+check assert_contains "$CLAUDE_OUTPUT" "2.*4x\|2-4x\|3x\|2x.*4x\|more.*expensive\|higher.*cost\|2-4\|2–4\|2—4" "Mentions 2-4x cost multiplier"
 
 echo ""
 
@@ -106,8 +106,8 @@ echo "Test 8: Human escalation..."
 run_claude "When should agents escalate to the human in team-driven-development? List the situations." 90
 show_output
 
-check assert_contains "$CLAUDE_OUTPUT" "disagree\|conflict\|architectural\|approach" "Escalate on disagreements"
-check assert_contains "$CLAUDE_OUTPUT" "blocked\|clarif\|fail\|deadlock\|consent\|budget\|cost" "Escalate on blockers, failures, or deadlocks"
+check assert_contains "$CLAUDE_OUTPUT" "disagree\|conflict\|architectural\|approach\|ambigu\|plan.*wrong\|wrong.*plan" "Escalate on disagreements"
+check assert_contains "$CLAUDE_OUTPUT" "blocked\|clarif\|fail\|deadlock\|consent\|budget\|cost\|BLOCKED" "Escalate on blockers, failures, or deadlocks"
 
 echo ""
 

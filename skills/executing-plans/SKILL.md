@@ -1,22 +1,24 @@
 ---
 name: executing-plans
-description: Use when you have a written implementation plan to execute in a separate session with review checkpoints
+description: Use when you have a written implementation plan to execute inline in the current session as the no-subagent fallback
 ---
 
 # Executing Plans
 
 ## Overview
 
-Load plan, review critically, execute tasks in batches, report for review between batches.
+Load plan, review critically, execute all tasks, report when complete.
 
-**Core principle:** Batch execution with checkpoints for architect review.
+**Core principle:** Inline execution — run the whole plan, then report.
 
 **Announce at start:** "I'm using the executing-plans skill to implement this plan."
+
+**Note:** This skill works much better with access to subagents. If subagents are available, prefer h-superpowers:subagent-driven-development (fresh subagent + two-stage review per task) instead of this skill.
 
 ## The Process
 
 ### Step 0: Set Up Workspace
-Before starting: Use `h-superpowers:using-git-worktrees` to set up an isolated workspace.
+Before starting: Use `h-superpowers:using-git-worktrees` to set up an isolated workspace via the native worktree tool (`EnterWorktree`). Teardown is deferred to `finishing-a-development-branch` (Step 3), which uses `ExitWorktree`.
 
 ### Step 1: Load and Review Plan
 1. Read plan file
@@ -24,28 +26,17 @@ Before starting: Use `h-superpowers:using-git-worktrees` to set up an isolated w
 3. If concerns: Raise them with your human partner before starting
 4. If no concerns: Create TodoWrite and proceed
 
-### Step 2: Execute Batch
-**Default: First 3 tasks**
+### Step 2: Execute All Tasks
 
-For each task:
-1. Mark as in_progress
+For each task, in order:
+1. Mark as in_progress in TodoWrite
 2. Follow each step exactly (plan has bite-sized steps)
 3. Run verifications as specified
 4. Mark as completed
 
-### Step 3: Report
-When batch complete:
-- Show what was implemented
-- Show verification output
-- Say: "Ready for feedback."
+Do not pause for human checkpoints between tasks. Execute the full plan, then report. Stop only when blocked (see below).
 
-### Step 4: Continue
-Based on feedback:
-- Apply changes if needed
-- Execute next batch
-- Repeat until complete
-
-### Step 5: Complete Development
+### Step 3: Complete Development
 
 After all tasks complete and verified:
 - Announce: "I'm using the finishing-a-development-branch skill to complete this work."
@@ -55,7 +46,7 @@ After all tasks complete and verified:
 ## When to Stop and Ask for Help
 
 **STOP executing immediately when:**
-- Hit a blocker mid-batch (missing dependency, test fails, instruction unclear)
+- Hit a blocker (missing dependency, test fails, instruction unclear)
 - Plan has critical gaps preventing starting
 - You don't understand an instruction
 - Verification fails repeatedly
@@ -75,13 +66,12 @@ After all tasks complete and verified:
 - Follow plan steps exactly
 - Don't skip verifications
 - Reference skills when plan says to
-- Between batches: just report and wait
 - Stop when blocked, don't guess
 - Never start implementation on main/master branch without explicit user consent
 
 ## Integration
 
 **Required workflow skills:**
-- **h-superpowers:using-git-worktrees** - REQUIRED: Set up isolated workspace before starting
+- **h-superpowers:using-git-worktrees** - REQUIRED: Set up isolated workspace before starting (native `EnterWorktree`)
 - **h-superpowers:writing-plans** - Creates the plan this skill executes
-- **h-superpowers:finishing-a-development-branch** - Complete development after all tasks
+- **h-superpowers:finishing-a-development-branch** - Complete development after all tasks; handles worktree teardown via `ExitWorktree`

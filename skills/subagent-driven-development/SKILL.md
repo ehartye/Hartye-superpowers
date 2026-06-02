@@ -7,7 +7,11 @@ description: Use when executing implementation plans with independent tasks in t
 
 Execute plan by dispatching fresh subagent per task, with two-stage review after each: spec compliance review first, then code quality review.
 
+**Why subagents:** You delegate tasks to specialized agents with isolated context. By precisely crafting their instructions and context, you ensure they stay focused and succeed. They never inherit your session's history — you construct exactly what they need. This also preserves your own context for coordination work.
+
 **Core principle:** Fresh subagent per task + two-stage review (spec then quality) = high quality, fast iteration
+
+**Continuous execution:** Do not pause to check in with your human partner between tasks. Execute all tasks from the plan without stopping. The only reasons to stop are: a BLOCKED status you cannot resolve, ambiguity that genuinely prevents progress, or all tasks complete. "Should I continue?" prompts and progress summaries between tasks waste the user's time — they asked you to execute the plan, so execute it.
 
 ## When to Use
 
@@ -16,7 +20,7 @@ digraph when_to_use {
     "Have implementation plan?" [shape=diamond];
     "Tasks mostly independent?" [shape=diamond];
     "Tasks need coordination?" [shape=diamond];
-    "Stay in this session?" [shape=diamond];
+    "Subagents available?" [shape=diamond];
     "subagent-driven-development" [shape=box];
     "team-driven-development" [shape=box];
     "executing-plans" [shape=box];
@@ -27,14 +31,13 @@ digraph when_to_use {
     "Tasks mostly independent?" -> "Tasks need coordination?" [label="yes"];
     "Tasks mostly independent?" -> "Manual execution or brainstorm first" [label="no - tightly coupled"];
     "Tasks need coordination?" -> "team-driven-development" [label="yes"];
-    "Tasks need coordination?" -> "Stay in this session?" [label="no"];
-    "Stay in this session?" -> "subagent-driven-development" [label="yes"];
-    "Stay in this session?" -> "executing-plans" [label="no - parallel session"];
+    "Tasks need coordination?" -> "Subagents available?" [label="no"];
+    "Subagents available?" -> "subagent-driven-development" [label="yes"];
+    "Subagents available?" -> "executing-plans" [label="no - inline fallback"];
 }
 ```
 
-**vs. Executing Plans (parallel session):**
-- Same session (no context switch)
+**vs. Executing Plans (inline, no subagents):**
 - Fresh subagent per task (no context pollution)
 - Two-stage review after each task: spec compliance first, then code quality
 - Faster iteration (no human-in-loop between tasks)
@@ -86,6 +89,27 @@ digraph process {
 }
 ```
 
+## Model Selection
+
+Use the least powerful model that can handle each role, to conserve cost and increase speed.
+
+- **Mechanical implementation** (isolated functions, clear spec, 1–2 files): a fast, cheap model. Most well-specified implementation tasks are mechanical.
+- **Integration and judgment** (multi-file coordination, pattern matching, debugging): a standard model.
+- **Architecture, design, and review**: the most capable available model.
+
+Complexity signals: touches 1–2 files with a complete spec → cheap; multiple files with integration concerns → standard; requires design judgment or broad codebase understanding → most capable.
+
+## Handling Implementer Status
+
+Implementer subagents report one of four statuses. Handle each:
+
+- **DONE** — proceed to spec compliance review.
+- **DONE_WITH_CONCERNS** — read the concerns before proceeding. If they bear on correctness or scope, address them before review; if they're observations (e.g., "this file is getting large"), note and proceed to review.
+- **NEEDS_CONTEXT** — the implementer is missing information that wasn't provided. Provide it and re-dispatch.
+- **BLOCKED** — assess the blocker: (1) context problem → provide more context, re-dispatch with the same model; (2) needs more reasoning → re-dispatch with a more capable model; (3) task too large → break it into smaller pieces; (4) the plan itself is wrong → escalate to the human.
+
+**Never** ignore an escalation or force the same model to retry without changes. If the implementer is stuck, something must change before retrying.
+
 ## Prompt Templates
 
 - `./implementer-prompt.md` - Dispatch implementer subagent
@@ -105,7 +129,7 @@ digraph process {
 ```
 You: I'm using Subagent-Driven Development to execute this plan.
 
-[Read plan file once: docs/plans/feature-plan.md]
+[Read plan file once: docs/superpowers/plans/feature-plan.md]
 [Extract all 5 tasks with full text and context]
 [Create TodoWrite with all tasks]
 
@@ -178,10 +202,12 @@ Final reviewer: All requirements met, ready to merge
 
 ## Worktree Completion
 
-After the final code review passes, invoke `h-superpowers:finishing-a-development-branch`.
-That skill handles merge, test verification, worktree cleanup, and final disposition (push, PR, keep, discard). **Do not duplicate those steps here** — just invoke the skill and follow its instructions.
+Workspace **setup** goes through `h-superpowers:using-git-worktrees` (native `EnterWorktree`). **Teardown is deferred** to `finishing-a-development-branch` — do not remove the worktree here.
 
-**⚠️ CWD warning:** If your shell is inside the worktree, `finishing-a-development-branch` will `cd` to the main repo before removing it. If you do any manual cleanup yourself, always `cd` out of the worktree before `git worktree remove`.
+After the final code review passes, invoke `h-superpowers:finishing-a-development-branch`.
+That skill handles merge, test verification, worktree teardown (via native `ExitWorktree`, with a manual `git worktree remove` fallback), and final disposition (push, PR, keep, discard). **Do not duplicate those steps here** — just invoke the skill and follow its instructions.
+
+**⚠️ CWD warning (manual-git fallback only):** If a worktree was created via the manual git fallback (not native `EnterWorktree`/`ExitWorktree`) and your shell is inside it, always `cd` out of the worktree to the main repo before any manual `git worktree remove` — removing the CWD invalidates the shell. Native `ExitWorktree` handles this for you.
 
 ## Advantages
 
@@ -250,10 +276,10 @@ These are the guardrails the workflow depends on — skipping any of them breaks
 ## Integration
 
 **Required workflow skills:**
-- **h-superpowers:using-git-worktrees** - REQUIRED: Set up isolated workspace before starting
+- **h-superpowers:using-git-worktrees** - REQUIRED: Set up isolated workspace before starting (native `EnterWorktree`)
 - **h-superpowers:writing-plans** - Creates the plan this skill executes
 - **h-superpowers:requesting-code-review** - Code review template for reviewer subagents
-- **h-superpowers:finishing-a-development-branch** - Complete development after all tasks
+- **h-superpowers:finishing-a-development-branch** - Complete development after all tasks; handles worktree teardown via `ExitWorktree`
 
 **Subagents follow:**
 - **h-superpowers:test-driven-development** - TDD is baked into implementer prompts (red-green-refactor, Prime Directive)
@@ -261,4 +287,4 @@ These are the guardrails the workflow depends on — skipping any of them breaks
 
 **Alternative workflow:**
 - **h-superpowers:team-driven-development** - Use when tasks need inter-agent coordination and parallel execution
-- **h-superpowers:executing-plans** - Use for parallel session instead of same-session execution
+- **h-superpowers:executing-plans** - Use for inline, no-subagent execution in this session (simpler fallback)

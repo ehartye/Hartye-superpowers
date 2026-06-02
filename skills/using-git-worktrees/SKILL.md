@@ -1,6 +1,6 @@
 ---
 name: using-git-worktrees
-description: Use when starting feature work that needs isolation from current workspace or before executing implementation plans - creates isolated git worktrees with smart directory selection and safety verification
+description: Use when starting feature work that needs isolation from current workspace or before executing implementation plans - ensures an isolated workspace via the native worktree tool, with a manual git fallback
 ---
 
 # Using Git Worktrees
@@ -9,96 +9,53 @@ description: Use when starting feature work that needs isolation from current wo
 
 Git worktrees create isolated workspaces sharing the same repository, allowing work on multiple branches simultaneously without switching.
 
-**Core principle:** Systematic directory selection + safety verification = reliable isolation.
+**Core principle:** Detect existing isolation first; then use the native worktree tool; fall back to manual git only when native is unavailable.
 
 **Announce at start:** "I'm using the using-git-worktrees skill to set up an isolated workspace."
 
-## Directory Selection Process
+## Step 0: Detect Existing Isolation
 
-Follow this priority order:
-
-### 1. Check Existing Directories
+Before creating anything, check whether you are already in an isolated workspace.
 
 ```bash
-# Check in priority order
-ls -d .worktrees 2>/dev/null     # Preferred (hidden)
-ls -d worktrees 2>/dev/null      # Alternative
+GIT_DIR=$(cd "$(git rev-parse --git-dir 2>/dev/null)" 2>/dev/null && pwd -P)
+GIT_COMMON=$(cd "$(git rev-parse --git-common-dir 2>/dev/null)" 2>/dev/null && pwd -P)
 ```
 
-**If found:** Use that directory. If both exist, `.worktrees` wins.
+**Submodule guard:** `GIT_DIR != GIT_COMMON` is also true inside a git submodule. If `git rev-parse --show-superproject-working-tree` returns a path, you're in a submodule, not a worktree — treat it as a normal repo.
 
-### 2. Check CLAUDE.md
+- **If `GIT_DIR != GIT_COMMON` (and not a submodule):** you're already in a linked worktree (including a native `.claude/worktrees/` one). Do NOT create another. Skip to "Run Project Setup".
+- **If `GIT_DIR == GIT_COMMON`:** you're in a normal checkout. Proceed to create a worktree (with consent — see below).
+
+If no worktree preference is already declared by the user or CLAUDE.md, ask for consent before creating one:
+> "Would you like me to set up an isolated worktree? It protects your current branch from changes."
+
+## Create the Worktree
+
+### Native tool (preferred)
+
+Use the harness's native worktree tool, `EnterWorktree`. It creates the worktree under `.claude/worktrees/` on a new branch and switches the session into it — directory placement, branch creation, and cleanup are handled for you.
+
+```
+EnterWorktree(name: "<feature-name>")
+```
+
+Base ref is governed by the `worktree.baseRef` setting: `fresh` (default) branches from `origin/<default-branch>`; `head` branches from the current local HEAD. Mention this to the user if they need a specific base.
+
+Native creation requires worktree use to be explicitly requested. The Step 0 consent prompt — or a worktree preference already declared by the user or in CLAUDE.md/memory — is what satisfies this: the user agreeing to the worktree is the explicit instruction `EnterWorktree` needs. Announcing the skill alone does not count.
+
+### Manual git fallback (only if no native tool)
+
+If `EnterWorktree` is unavailable, create one manually. First verify `.worktrees/` is git-ignored (`git check-ignore -q .worktrees` — if not ignored, add it to `.gitignore` and commit first), then create the worktree:
 
 ```bash
-grep -i "worktree.*director" CLAUDE.md 2>/dev/null
+git worktree add ".worktrees/$BRANCH_NAME" -b "$BRANCH_NAME"
+cd ".worktrees/$BRANCH_NAME"
 ```
 
-**If preference specified:** Use it without asking.
+**Sandbox fallback:** if `git worktree add` fails with a permission/sandbox denial, tell the user the sandbox blocked worktree creation and work in the current directory instead; then run setup and baseline tests in place.
 
-### 3. Ask User
-
-If no directory exists and no CLAUDE.md preference:
-
-```
-No worktree directory found. Where should I create worktrees?
-
-1. .worktrees/ (project-local, hidden)
-2. ~/.config/superpowers/worktrees/<project-name>/ (global location)
-
-Which would you prefer?
-```
-
-## Safety Verification
-
-### For Project-Local Directories (.worktrees or worktrees)
-
-**MUST verify directory is ignored before creating worktree:**
-
-```bash
-# Check if directory is ignored (respects local, global, and system gitignore)
-git check-ignore -q .worktrees 2>/dev/null || git check-ignore -q worktrees 2>/dev/null
-```
-
-**If NOT ignored:**
-
-Fix broken things immediately:
-1. Add appropriate line to .gitignore
-2. Commit the change
-3. Proceed with worktree creation
-
-**Why critical:** Prevents accidentally committing worktree contents to repository.
-
-### For Global Directory (~/.config/superpowers/worktrees)
-
-No .gitignore verification needed - outside project entirely.
-
-## Creation Steps
-
-### 1. Detect Project Name
-
-```bash
-project=$(basename "$(git rev-parse --show-toplevel)")
-```
-
-### 2. Create Worktree
-
-```bash
-# Determine full path
-case $LOCATION in
-  .worktrees|worktrees)
-    path="$LOCATION/$BRANCH_NAME"
-    ;;
-  ~/.config/superpowers/worktrees/*)
-    path="~/.config/superpowers/worktrees/$project/$BRANCH_NAME"
-    ;;
-esac
-
-# Create worktree with new branch
-git worktree add "$path" -b "$BRANCH_NAME"
-cd "$path"
-```
-
-### 3. Run Project Setup
+### Run Project Setup
 
 Auto-detect and run appropriate setup:
 
@@ -117,7 +74,7 @@ if [ -f pyproject.toml ]; then poetry install; fi
 if [ -f go.mod ]; then go mod download; fi
 ```
 
-### 4. Verify Clean Baseline
+### Verify Clean Baseline
 
 Run tests to ensure worktree starts clean:
 
@@ -133,7 +90,7 @@ go test ./...
 
 **If tests pass:** Report ready.
 
-### 5. Report Location
+### Report Location
 
 ```
 Worktree ready at <full-path>
@@ -145,25 +102,23 @@ Ready to implement <feature-name>
 
 | Situation | Action |
 |-----------|--------|
-| `.worktrees/` exists | Use it (verify ignored) |
-| `worktrees/` exists | Use it (verify ignored) |
-| Both exist | Use `.worktrees/` |
-| Neither exists | Check CLAUDE.md → Ask user |
-| Directory not ignored | Add to .gitignore + commit |
+| Already in a worktree | Use it (skip creation) |
+| Native tool available | `EnterWorktree` |
+| No native tool | Manual `git worktree` under `.worktrees/` (verify ignored) |
 | Tests fail during baseline | Report failures + ask |
 | No package.json/Cargo.toml | Skip dependency install |
 
 ## Common Mistakes
 
-### Skipping ignore verification
+### Creating a nested worktree
+
+- **Problem:** Didn't run Step 0 detection, so you create a worktree while already inside one — worktree-in-worktree
+- **Fix:** Always run Step 0 detection first; if already in a linked worktree, skip creation
+
+### Skipping ignore verification (manual fallback)
 
 - **Problem:** Worktree contents get tracked, pollute git status
-- **Fix:** Always use `git check-ignore` before creating project-local worktree
-
-### Assuming directory location
-
-- **Problem:** Creates inconsistency, violates project conventions
-- **Fix:** Follow priority: existing > CLAUDE.md > ask
+- **Fix:** For the manual fallback, always run `git check-ignore` before creating
 
 ### Proceeding with failing tests
 
@@ -180,13 +135,13 @@ Ready to implement <feature-name>
 ```
 You: I'm using the using-git-worktrees skill to set up an isolated workspace.
 
-[Check .worktrees/ - exists]
-[Verify ignored - git check-ignore confirms .worktrees/ is ignored]
-[Create worktree: git worktree add .worktrees/auth -b feature/auth]
+[Step 0: git-dir == git-common-dir → normal checkout, not nested]
+[Native tool available → EnterWorktree(name: "auth")]
+[Session switched into .claude/worktrees/auth]
 [Run npm install]
 [Run npm test - 47 passing]
 
-Worktree ready at /Users/developer/project/.worktrees/auth
+Worktree ready at .claude/worktrees/auth
 Tests passing (47 tests, 0 failures)
 Ready to implement auth feature
 ```
@@ -195,15 +150,14 @@ Ready to implement auth feature
 
 These guardrails prevent subtle contamination of the repo or hidden baseline failures:
 
-- Don't create a worktree without verifying it's ignored (project-local only)
+- Run Step 0 detection before creating — never nest worktrees
+- Prefer the native tool; use manual git only as a fallback
+- For the manual fallback, verify `.worktrees/` is ignored before creating
 - Don't skip baseline test verification
 - Don't proceed with failing tests without asking
-- Don't assume directory location when ambiguous
-- Don't skip the CLAUDE.md check
 
 **Always:**
-- Follow directory priority: existing > CLAUDE.md > ask
-- Verify the directory is ignored for project-local worktrees
+- Run Step 0 detection first; prefer native tool
 - Auto-detect and run project setup
 - Verify a clean test baseline before handing off
 
