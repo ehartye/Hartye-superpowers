@@ -294,10 +294,16 @@ flow.
   finishing flow end-to-end once, exercising `EnterWorktree`/
   `ExitWorktree`.
 
-## Open Questions
+## Resolved Questions
 
-- Item 7e: does the fork's CLAUDE.md need an explicit worktree-preference
-  line to reliably satisfy `EnterWorktree`'s gating, or is the skill's
-  announced flow sufficient? Resolve during implementation.
-</content>
-</invoke>
+- **Item 7e (resolved):** `EnterWorktree`'s "explicit instruction" gate is
+  satisfied by the **Step 0 consent prompt** (or a worktree preference
+  already declared by the user or in CLAUDE.md/memory) — the user agreeing
+  to the worktree IS the explicit instruction. This matches upstream's
+  framing ("The user has asked for an isolated workspace (Step 0 consent)").
+  No line in this repo's CLAUDE.md is needed — and would not help anyway,
+  since a plugin's own CLAUDE.md is not loaded when the plugin runs inside
+  an end-user's project (only the user's project/global CLAUDE.md is). The
+  `using-git-worktrees` Native-tool section was corrected to attribute the
+  gate to consent/declared-preference rather than to the skill "announcing"
+  the worktree step (announcing alone does not satisfy the gate).

@@ -735,7 +735,6 @@ git commit -m "test: verification fixes for upstream adoption"
 
 ## Notes for the executor
 
-- **Open question (spec item 7e):** `EnterWorktree` only fires when worktree use is explicitly instructed. If, during Task 8/9 validation, the execution skills don't reliably trigger native worktree creation, add an explicit worktree-preference line to the fork's CLAUDE.md (e.g., "Use worktrees for implementation work") and note it in that task's commit.
+- **Resolved (spec item 7e):** `EnterWorktree`'s "explicit instruction" gate is satisfied by the Step 0 consent prompt (or a user/CLAUDE.md-declared worktree preference) — the user agreeing to the worktree is the instruction. No repo CLAUDE.md line is needed (and a plugin's own CLAUDE.md isn't loaded inside an end-user's project anyway). The `using-git-worktrees` Native-tool section attributes the gate to consent, not to the skill "announcing."
 - **team-driven-development is fork-only** — there is no upstream counterpart to diff against. Tasks 7 and the Task 9 cascade are pure fork maintenance.
 - Do not adopt upstream's `general-purpose` code-reviewer restructure or single-review structure (explicitly rejected in the spec).
-</content>

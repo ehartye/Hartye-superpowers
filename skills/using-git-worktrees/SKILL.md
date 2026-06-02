@@ -42,7 +42,7 @@ EnterWorktree(name: "<feature-name>")
 
 Base ref is governed by the `worktree.baseRef` setting: `fresh` (default) branches from `origin/<default-branch>`; `head` branches from the current local HEAD. Mention this to the user if they need a specific base.
 
-Native creation requires worktree use to be explicitly requested (by the user or CLAUDE.md/memory). The execution skills that call this skill satisfy that by announcing the worktree step.
+Native creation requires worktree use to be explicitly requested. The Step 0 consent prompt — or a worktree preference already declared by the user or in CLAUDE.md/memory — is what satisfies this: the user agreeing to the worktree is the explicit instruction `EnterWorktree` needs. Announcing the skill alone does not count.
 
 ### Manual git fallback (only if no native tool)
 
