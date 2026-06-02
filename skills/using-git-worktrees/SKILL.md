@@ -18,8 +18,8 @@ Git worktrees create isolated workspaces sharing the same repository, allowing w
 Before creating anything, check whether you are already in an isolated workspace.
 
 ```bash
-GIT_DIR=$(cd "$(git rev-parse --git-dir)" 2>/dev/null && pwd -P)
-GIT_COMMON=$(cd "$(git rev-parse --git-common-dir)" 2>/dev/null && pwd -P)
+GIT_DIR=$(cd "$(git rev-parse --git-dir 2>/dev/null)" 2>/dev/null && pwd -P)
+GIT_COMMON=$(cd "$(git rev-parse --git-common-dir 2>/dev/null)" 2>/dev/null && pwd -P)
 ```
 
 **Submodule guard:** `GIT_DIR != GIT_COMMON` is also true inside a git submodule. If `git rev-parse --show-superproject-working-tree` returns a path, you're in a submodule, not a worktree — treat it as a normal repo.
@@ -46,15 +46,12 @@ Native creation requires worktree use to be explicitly requested. The Step 0 con
 
 ### Manual git fallback (only if no native tool)
 
-If `EnterWorktree` is unavailable, create one manually:
+If `EnterWorktree` is unavailable, create one manually. First verify `.worktrees/` is git-ignored (`git check-ignore -q .worktrees` — if not ignored, add it to `.gitignore` and commit first), then create the worktree:
 
 ```bash
-project=$(basename "$(git rev-parse --show-toplevel)")
 git worktree add ".worktrees/$BRANCH_NAME" -b "$BRANCH_NAME"
 cd ".worktrees/$BRANCH_NAME"
 ```
-
-Verify `.worktrees/` is git-ignored before creating (`git check-ignore -q .worktrees` — if not ignored, add it to `.gitignore` and commit first).
 
 **Sandbox fallback:** if `git worktree add` fails with a permission/sandbox denial, tell the user the sandbox blocked worktree creation and work in the current directory instead; then run setup and baseline tests in place.
 

@@ -727,7 +727,7 @@ This is a manual acceptance gate, not part of routine CI for this change. The te
 - [ ] **Step 5: Final commit (if any verification-driven fixes were made)**
 
 ```bash
-git add -A
+git add -u  # stage only modifications to already-tracked files (avoid -A / git add .)
 git commit -m "test: verification fixes for upstream adoption"
 ```
 

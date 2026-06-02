@@ -50,8 +50,8 @@ Or ask: "This branch split from main - is that correct?"
 
 **Environment note:** Determine workspace state first:
 ```bash
-GIT_DIR=$(cd "$(git rev-parse --git-dir)" 2>/dev/null && pwd -P)
-GIT_COMMON=$(cd "$(git rev-parse --git-common-dir)" 2>/dev/null && pwd -P)
+GIT_DIR=$(cd "$(git rev-parse --git-dir 2>/dev/null)" 2>/dev/null && pwd -P)
+GIT_COMMON=$(cd "$(git rev-parse --git-common-dir 2>/dev/null)" 2>/dev/null && pwd -P)
 ```
 If `GIT_DIR != GIT_COMMON` and HEAD is detached (externally-managed workspace), present the reduced 3-option menu (no local merge):
 
@@ -64,9 +64,7 @@ Implementation complete. You're on a detached HEAD (externally managed workspace
 
 Which option?
 ```
-Otherwise present the standard 4 options below.
-
-Present exactly these 4 options:
+Otherwise (normal repo or named-branch worktree), present exactly these 4 options:
 
 ```
 Implementation complete. What would you like to do?
@@ -165,9 +163,10 @@ If `ExitWorktree` reports no active worktree session (e.g., the worktree was cre
 
 **For Options 1 and 4:**
 
-Check if in worktree:
+Check if in worktree (match on the worktree's root path — `git branch --show-current` is empty on a detached HEAD and would make `grep` match every line):
 ```bash
-git worktree list | grep $(git branch --show-current)
+WORKTREE_ROOT=$(git rev-parse --show-toplevel)
+git worktree list | grep -F "$WORKTREE_ROOT"
 ```
 
 If yes — **change directory to the main repo BEFORE removing the worktree:**

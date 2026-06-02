@@ -320,4 +320,4 @@ These are the guardrails the workflow depends on — skipping any of them breaks
 
 **Alternative workflow:**
 - **h-superpowers:subagent-driven-development** - Use for independent sequential tasks instead
-- **h-superpowers:executing-plans** - Use for parallel session instead of same-session execution
+- **h-superpowers:executing-plans** - Use for inline, no-subagent execution in this session (simpler fallback)
