@@ -86,7 +86,7 @@ echo "Test 6: Cost comparison..."
 run_claude "How does team-driven-development compare to subagent-driven-development on cost? Give the multiplier." 90
 show_output
 
-check assert_contains "$CLAUDE_OUTPUT" "2.*4x\|2-4x\|3x\|2x.*4x\|more.*expensive\|higher.*cost\|2[-–—]4" "Mentions 2-4x cost multiplier"
+check assert_contains "$CLAUDE_OUTPUT" "2.*4x\|2-4x\|3x\|2x.*4x\|more.*expensive\|higher.*cost\|2-4\|2–4\|2—4" "Mentions 2-4x cost multiplier"
 
 echo ""
 
