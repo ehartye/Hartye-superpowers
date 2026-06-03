@@ -87,6 +87,29 @@ When multiple skills could apply, use this order:
 "Review this design" → perspective-review.
 "Should we use X or Y?" → perspective-research.
 
+## Right-Sizing Process (default to action; escalate on triggers)
+
+Don't classify every task into a tier first — that deliberation is itself overhead. **Default to disciplined implementation**, and escalate to design ceremony only when a concrete trigger is present.
+
+**Default path (most tasks):** state a one-line intent ("Adding X to do Y"), then implement directly under the discipline below. No design doc, no approval gate.
+
+**Escalate to brainstorming (design + approval) only if a trigger fires:**
+
+- the work spans multiple independent components or subsystems, **or**
+- requirements are ambiguous or underspecified — you'd be guessing at intent, **or**
+- the change is hard to reverse or destructive — data loss, migrations, a public API, **or**
+- the user explicitly asks to design or discuss before building.
+
+No trigger? You're already right-sized — build it. If a trigger surfaces mid-task (a "simple" change reveals a hidden design question), stop and escalate then.
+
+**Discipline — never skipped, at any size:**
+
+- **test-driven-development** — a failing test before the code that passes it.
+- **systematic-debugging** — root cause before fix.
+- **verification-before-completion** — evidence before any "done" / "fixed" / "passing" claim.
+
+**Autonomous / headless runs:** with no user to approve, never stall waiting for an approval that cannot come. If a trigger fires, state the open question and make the most reasonable assumption explicit; then implement and verify.
+
 ## Skill Types
 
 **Rigid** (TDD, debugging): Follow exactly. Don't adapt away the discipline — the discipline is the point.

@@ -12,12 +12,19 @@ Help turn ideas into fully formed designs and specs through natural collaborativ
 Start by understanding the current project context, then ask questions one at a time to refine the idea. Once you understand what you're building, present the design and get user approval.
 
 <HARD-GATE>
-Do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until you have presented a design and the user has approved it. This applies to EVERY project regardless of perceived simplicity.
+Escalate to a design-and-approval cycle before implementing ONLY when a trigger is present (see using-superpowers → Right-Sizing Process): the work spans multiple subsystems, requirements are ambiguous, the change is hard to reverse or destructive, or the user asks to design first. When a trigger fires, do NOT invoke any implementation skill, write code, scaffold, or take implementation action until you have presented a design and the user has approved it.
+
+Absent any trigger, do NOT gate: state a one-line intent and implement directly under the discipline (test-driven-development, systematic-debugging, verification-before-completion). In autonomous/headless runs with no user to approve, never stall — state your assumptions and proceed.
 </HARD-GATE>
 
-## Anti-Pattern: "This Is Too Simple To Need A Design"
+## Anti-Pattern: Mis-Sizing The Ceremony
 
-Every project goes through this process. A todo list, a single-function utility, a config change — all of them. "Simple" projects are where unexamined assumptions cause the most wasted work. The design can be short (a few sentences for truly simple projects), but you MUST present it and get approval.
+Two failure modes, opposite directions:
+
+- **Over-ceremony:** forcing design-and-approval onto a task with no trigger (a one-line helper, a config tweak, a rename). Wasted work, and in autonomous runs it can stall the task entirely. State a one-line intent and implement with discipline.
+- **Under-design:** treating a triggered task as trivial because it *looks* small. If the work spans subsystems, the requirements are ambiguous, or the change is hard to reverse, it is not trivial — present a design and get approval, even if the code is short.
+
+When unsure, start low and let a trigger escalate you: the moment a hidden design question, a second subsystem, or an irreversible step appears, stop and move to design.
 
 ## Checklist
 
