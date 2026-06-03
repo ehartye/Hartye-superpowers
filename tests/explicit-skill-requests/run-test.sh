@@ -73,6 +73,7 @@ timeout 300 env -u CLAUDECODE claude -p "$PROMPT" \
     --permission-mode bypassPermissions \
     --max-turns "$MAX_TURNS" \
     --output-format stream-json \
+    --verbose \
     < /dev/null > "$LOG_FILE" 2>&1 || true
 
 echo ""
