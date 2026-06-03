@@ -7,6 +7,36 @@ hooks, agents, and commands. Skills are loaded via the `Skill` tool which
 reads `SKILL.md` files; sub-files like prompt templates are reference
 material for real usage, not auto-loaded by the Skill tool.
 
+## Design direction
+
+This fork is becoming a **broad-spectrum sampler and melder** of dev-process
+concepts from across the Claude Code ecosystem — not a faithful clone of
+upstream. Divergence from obra/superpowers is acceptable and sometimes the
+point (see `docs/research/claude-code-harness-landscape-2026-06-03.md`).
+
+The spine that keeps breadth from becoming a junk drawer: **h-superpowers is
+"the harness that validates"** — won't promote a lesson without a failing
+baseline, won't claim done without evidence, won't let code drift from spec
+without a diff, reasons from multiple perspectives before committing. Every
+new skill/hook/agent should ladder to that spine.
+
+The governing rule for *what to build* — **legibility and generality for a
+stranger, minus the competition pressure.** Before adding anything, check:
+
+- **Usable by someone who isn't the author?** A developer with different
+  domains and habits must be able to pick it up without the author in the
+  room. Don't bake in assumptions only this user would hold; keep
+  user/project-specific content (e.g. captured "lessons") project-local,
+  never hard-coded into the shipped plugin.
+- **Generally useful, not niche to this user's skillset or focus areas.**
+- **Concept-count is a cost.** Every added skill/hook/file is something a
+  stranger must learn. Favor fewer, legible concepts; reuse existing
+  surfaces (CLAUDE.md/MEMORY.md) and compose with installed sibling plugins
+  rather than reinventing.
+- **NOT** justified by competition: "to look current next to X", "a niche
+  nobody else fills", or feature-parity for its own sake are not reasons.
+  This is not a popularity contest. Utility and legibility are the tests.
+
 ## Upstream
 
 This repo is a fork of [obra/superpowers](https://github.com/obra/superpowers).
