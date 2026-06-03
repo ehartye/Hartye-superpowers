@@ -174,6 +174,19 @@ BMAD's 7-persona ceremony is the most-*marketed*, most-*complained-about* idea (
 
 ### Open Question 1 — Is this the user's personal harness or a public star-competing framework?
 
+> **RESOLVED (2026-06-03):** Neither pole. The binary bundled four separate
+> questions; the user's answer takes the *generality + legibility* axis
+> ("usable by others, not niche to my skillset") and drops the
+> *competition/mindshare* axis ("not a popularity contest"). The governing
+> rule is now recorded in `CLAUDE.md` → **Design direction**: *legibility and
+> generality for a stranger, minus the competition pressure.* This re-weights
+> the table below — `harvesting-lessons` comes back UP (its down-weight was a
+> competition argument), standards/security/niche items are kept only where
+> *generally useful* (not as "table-stakes"), and onboarding/concept-count
+> simplicity becomes the sharpest constraint. It also tips Open Question 2
+> toward the git-tracked file on pure usability/fit grounds (the
+> platform-absorption counter-argument was partly competition-driven).
+
 Raised by Business as the question that "flips the entire calculus." **How the recommendation shifts either way:**
 
 | | If **personal harness** (optimize the user's own workflow, ignore adoption) | If **public framework** (competing for stars/mindshare) |
