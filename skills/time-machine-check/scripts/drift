@@ -42,7 +42,7 @@ cmd_mark() {
   local label="${1:-baseline}"
   local dir; dir="$(state_dir)"
   mkdir -p "$dir"
-  local sha; sha="$(git rev-parse HEAD)"
+  local sha; sha="$(git rev-parse --verify --quiet HEAD)" || { echo "drift: no commits yet; nothing to mark" >&2; exit 2; }
   if [ -n "$(git status --porcelain)" ]; then
     echo "drift: warning — working tree is dirty; baseline '$label' won't cleanly isolate the spike" >&2
   fi

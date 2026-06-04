@@ -59,7 +59,13 @@ assert_eq "$(cat .superpowers/drift/spike)" "$HEAD_SHA" "mark: named label basel
 # mark warns on a dirty tree (warning to stderr; still records)
 printf 'dirty\n' >> a.txt
 warn="$(bash "$DRIFT" mark 2>&1 >/dev/null)"
-assert_eq "$([ -n "$warn" ] && echo yes || echo no)" "yes" "mark: warns on dirty tree"
+assert_eq "$(printf '%s' "$warn" | grep -c 'working tree is dirty')" "1" "mark: warns on dirty tree"
+
+# mark fails loudly in a repo with no commits (no valid HEAD to record)
+NOCOMMIT="$(mktemp -d)"; ( cd "$NOCOMMIT"; git init -q; git config user.email t@t.t; git config user.name t )
+nc_rc=0; ( cd "$NOCOMMIT" && bash "$DRIFT" mark ) >/dev/null 2>&1 || nc_rc=$?
+assert_eq "$([ "$nc_rc" -ne 0 ] && echo nonzero || echo zero)" "nonzero" "mark: fails loudly with no commits"
+rm -rf "$NOCOMMIT"
 
 echo "drift: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]
