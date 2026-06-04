@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# drift — a thin, deterministic git-diff wrapper. No judgment.
+#   drift mark [label]                              record HEAD as a baseline
+#   drift measure <sha> [--files N] [--lines M]     report drift since <sha>
+set -uo pipefail
+
+state_dir() { echo "$(git rev-parse --show-toplevel)/.superpowers/drift"; }
+
+cmd_measure() {
+  local sha="${1:-}"; shift || true
+  [ -n "$sha" ] || { echo "usage: drift measure <sha> [--files N] [--lines M]" >&2; exit 2; }
+  local files_thresh=4 lines_thresh=150
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --files) files_thresh="$2"; shift 2;;
+      --lines) lines_thresh="$2"; shift 2;;
+      *) echo "unknown flag: $1" >&2; exit 2;;
+    esac
+  done
+  local stat tfiles ins del ufiles ulines files lines crossed
+  # Tracked changes (working tree vs the baseline commit).
+  stat="$(git diff --shortstat "$sha" -- 2>/dev/null)"
+  tfiles="$(echo "$stat" | grep -oE '[0-9]+ file' | grep -oE '^[0-9]+')"; tfiles="${tfiles:-0}"
+  ins="$(echo "$stat" | grep -oE '[0-9]+ insertion' | grep -oE '^[0-9]+')"; ins="${ins:-0}"
+  del="$(echo "$stat" | grep -oE '[0-9]+ deletion' | grep -oE '^[0-9]+')"; del="${del:-0}"
+  # New untracked files: a spike creates files git diff won't count. Count them
+  # explicitly (-r so cat is never run on empty input, which would hang).
+  ufiles="$(git ls-files --others --exclude-standard | grep -c . )"; ufiles="${ufiles:-0}"
+  ulines="$(git ls-files --others --exclude-standard -z | xargs -0 -r cat 2>/dev/null | wc -l | tr -d ' ')"; ulines="${ulines:-0}"
+  files=$((tfiles + ufiles))
+  lines=$((ins + del + ulines))
+  if [ "$files" -ge "$files_thresh" ] || [ "$lines" -ge "$lines_thresh" ]; then crossed=true; else crossed=false; fi
+  echo "files=$files lines=$lines crossed=$crossed (since ${sha:0:7}; thresholds files>=$files_thresh lines>=$lines_thresh)"
+}
+
+case "${1:-}" in
+  measure) shift; cmd_measure "$@";;
+  mark)    shift; cmd_mark "$@";;
+  *) echo "usage: drift {mark|measure} ..." >&2; exit 2;;
+esac
