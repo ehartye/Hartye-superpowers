@@ -12,12 +12,17 @@ Help turn ideas into fully formed designs and specs through natural collaborativ
 Start by understanding the current project context, then ask questions one at a time to refine the idea. Once you understand what you're building, present the design and get user approval.
 
 <HARD-GATE>
-Do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until you have presented a design and the user has approved it. This applies to EVERY project regardless of perceived simplicity.
+Escalate to a design-and-approval cycle before implementing when the work is **irreversible or destructive** — its harm escapes a `git` rollback (data / schema migrations, deleting or overwriting data or history, a published / public contract, external side effects like payments or emails, security / auth / secrets) — OR it is **obviously large / multi-subsystem**, OR the **user asked to design** (see using-superpowers → Right-Sizing Process). When escalating, do NOT invoke any implementation skill, write code, scaffold, or take implementation action until you have presented a design and the user has approved it.
+
+Otherwise — reversible, not-obviously-large work — do NOT gate: state a one-line intent, implement directly under the discipline (test-driven-development, systematic-debugging, verification-before-completion), and arm the spike-checkpoint so a mis-size is recoverable. In autonomous/headless runs with no user to approve, never stall.
 </HARD-GATE>
 
-## Anti-Pattern: "This Is Too Simple To Need A Design"
+## Anti-Pattern: Mis-Sizing The Ceremony
 
-Every project goes through this process. A todo list, a single-function utility, a config change — all of them. "Simple" projects are where unexamined assumptions cause the most wasted work. The design can be short (a few sentences for truly simple projects), but you MUST present it and get approval.
+Size by reversibility and blast radius, not line count. Two failure modes:
+
+- **Over-ceremony:** gating reversible work you could've just done — a one-line helper, a rename, a self-contained function. If a wrong call is recoverable (the spike-checkpoint has your back), don't pay for a design-and-approval cycle up front.
+- **Under-protection:** treating an *irreversible* action as routine because the code looks small. A three-line schema migration is not "Quick" — you can't un-migrate. If the harm escapes a `git` rollback, design first, however short the diff.
 
 ## Checklist
 

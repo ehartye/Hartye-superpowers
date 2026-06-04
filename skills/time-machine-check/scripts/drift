@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# drift — a thin, deterministic git-diff wrapper. No judgment.
+#   drift mark [label]                              record HEAD as a baseline
+#   drift measure <sha> [--files N] [--lines M]     report drift since <sha>
+set -uo pipefail
+
+state_dir() { echo "$(git rev-parse --show-toplevel)/.superpowers/drift"; }
+
+cmd_measure() {
+  local sha="${1:-}"; shift || true
+  [ -n "$sha" ] || { echo "usage: drift measure <sha> [--files N] [--lines M]" >&2; exit 2; }
+  # Validate the baseline up front: a bad/nonexistent sha must fail loudly, not
+  # produce a false "files=0 ... crossed=false" on-track reading.
+  git rev-parse --verify --quiet "$sha^{commit}" >/dev/null 2>&1 || { echo "drift: not a valid commit: $sha" >&2; exit 2; }
+  local files_thresh=4 lines_thresh=150
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --files) files_thresh="${2:?--files needs a value}"; shift 2;;
+      --lines) lines_thresh="${2:?--lines needs a value}"; shift 2;;
+      *) echo "unknown flag: $1" >&2; exit 2;;
+    esac
+  done
+  local stat tfiles ins del ufiles ulines files lines crossed
+  # Tracked changes (working tree vs the baseline commit).
+  stat="$(git diff --shortstat "$sha" -- 2>/dev/null)"
+  tfiles="$(echo "$stat" | grep -oE '[0-9]+ file' | grep -oE '^[0-9]+')"; tfiles="${tfiles:-0}"
+  ins="$(echo "$stat" | grep -oE '[0-9]+ insertion' | grep -oE '^[0-9]+')"; ins="${ins:-0}"
+  del="$(echo "$stat" | grep -oE '[0-9]+ deletion' | grep -oE '^[0-9]+')"; del="${del:-0}"
+  # New untracked files: a spike creates files git diff won't count. Count them
+  # explicitly (-r so cat is never run on empty input, which would hang).
+  ufiles="$(git ls-files --others --exclude-standard | grep -c . )"; ufiles="${ufiles:-0}"
+  # Newline-based approximation: a file with no trailing newline undercounts by
+  # one, and binary files are counted by incidental newlines — fine for a heuristic.
+  ulines="$(git ls-files --others --exclude-standard -z | xargs -0 -r cat 2>/dev/null | wc -l | tr -d ' ')"; ulines="${ulines:-0}"
+  files=$((tfiles + ufiles))
+  lines=$((ins + del + ulines))
+  if [ "$files" -ge "$files_thresh" ] || [ "$lines" -ge "$lines_thresh" ]; then crossed=true; else crossed=false; fi
+  echo "files=$files lines=$lines crossed=$crossed (since ${sha:0:7}; thresholds files>=$files_thresh lines>=$lines_thresh)"
+}
+
+cmd_mark() {
+  local label="${1:-baseline}"
+  local dir; dir="$(state_dir)"
+  mkdir -p "$dir"
+  local sha; sha="$(git rev-parse --verify --quiet HEAD)" || { echo "drift: no commits yet; nothing to mark" >&2; exit 2; }
+  if [ -n "$(git status --porcelain)" ]; then
+    echo "drift: warning — working tree is dirty; baseline '$label' won't cleanly isolate the spike" >&2
+  fi
+  printf '%s\n' "$sha" > "$dir/$label"
+  echo "$sha"
+}
+
+case "${1:-}" in
+  measure) shift; cmd_measure "$@";;
+  mark)    shift; cmd_mark "$@";;
+  *) echo "usage: drift {mark|measure} ..." >&2; exit 2;;
+esac

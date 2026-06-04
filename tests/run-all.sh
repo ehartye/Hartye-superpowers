@@ -84,6 +84,9 @@ echo "Repository: $REPO_ROOT"
 echo "Date: $(date)"
 echo ""
 
+# --- Suite: Unit tests (deterministic, no tokens, no external CLIs) ---
+run_suite "Unit tests (deterministic)" "$SCRIPT_DIR/unit/run.sh"
+
 # --- Suite: Claude Code tests ---
 if command -v claude &>/dev/null; then
     if $RUN_INTEGRATION; then

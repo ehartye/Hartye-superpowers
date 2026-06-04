@@ -87,6 +87,53 @@ When multiple skills could apply, use this order:
 "Review this design" → perspective-review.
 "Should we use X or Y?" → perspective-research.
 
+## Right-Sizing Process (default to action; gate only what you can't take back)
+
+Before applying process, ask one question: **if this goes wrong, can a `git` rollback fully undo it?**
+
+- **Reversible (yes)** → **act now.** State a one-line intent ("Adding X to do Y"), implement directly under the discipline below, and arm the spike-checkpoint. A wrong call is recoverable — the checkpoint catches drift and you redesign from the spike. Don't pre-design reversible work just because it's unclear or has a few moving parts; that's what the checkpoint is for.
+- **Irreversible / destructive (no)** → **design upfront, always.** The time machine can't save you here — the harm escapes a `git` rollback:
+  - persisted-data changes / schema migrations
+  - deleting or overwriting data, files, or history git can't restore (force-push, history rewrite, data drops)
+  - changing a published or public contract others already depend on (public API, released package)
+  - external side effects (payments, emails / notifications, third-party API calls)
+  - security, auth, secrets, or crypto
+- **Obviously large / multi-subsystem** → **design upfront** too — not because it's irreversible, but because spiking a known-big effort wastes the spike (you'd trip the drift checkpoint almost immediately and roll back a lot). Design the elephant; don't spike it.
+
+Two entrances, same discipline: if the user explicitly asks to design (e.g. invokes brainstorming directly), honor it and design, scaled to complexity. Right-sizing decides ceremony when *you* detect creative work — not when the user already asked for design.
+
+**Discipline — never skipped, at any size:**
+
+- **test-driven-development** — a failing test before the code that passes it.
+- **systematic-debugging** — root cause before fix.
+- **verification-before-completion** — evidence before any "done" / "fixed" / "passing" claim.
+
+**Autonomous / headless runs:** with no user to approve, never stall waiting for an approval that cannot come. For an irreversible/destructive action you cannot safely take alone, state the open question and the most reasonable assumption explicitly before proceeding; for reversible work, act and let the checkpoint catch a mis-size.
+
+### Spike-checkpoint (when you skip design)
+
+Right-sizing is safe to be *wrong* because mis-sizing is recoverable. When you
+consciously take the no-design path:
+
+1. **Mark a baseline:** use the **time-machine-check** skill's `drift mark` to record
+   the clean SHA (it warns if the tree is dirty). Note the printed SHA — it's the
+   baseline you pass in step 3.
+2. **Build directly** under the discipline above.
+3. **At natural beats** (finished a chunk · hit friction · about to call it done),
+   run the **time-machine-check** skill with `sha=<that baseline>` and the spike
+   narrative ("would a time machine make me design this first?").
+4. **If the verdict is `diverged`,** retreat — and treat the work as a spike, not
+   waste:
+   - **Capture lessons first** (before touching the tree): what made it bigger,
+     the real shape, the trigger to catch next time.
+   - **Stash, don't delete:** `git stash push -u -m "spike: <task> @ <sha7>"`.
+   - **Full or surgical** (read `git diff <baseline> --stat`): clean tree and
+     redesign, or restore baseline and cherry-pick the genuinely-clean keepers
+     out of the stash.
+   - **Reimplement under TDD regardless** — the stash is reference only; the
+     shipped code is test-first.
+5. **If `on-track`,** keep going.
+
 ## Skill Types
 
 **Rigid** (TDD, debugging): Follow exactly. Don't adapt away the discipline — the discipline is the point.
