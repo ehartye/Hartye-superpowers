@@ -45,5 +45,21 @@ assert_eq "$(field "$out" crossed)" "true" "measure: 200 lines crosses --lines 1
 out_rc=0; bash "$DRIFT" measure deadbeefdeadbeef >/dev/null 2>&1 || out_rc=$?
 assert_eq "$([ "$out_rc" -ne 0 ] && echo nonzero || echo zero)" "nonzero" "measure: bad sha fails loudly"
 
-echo "drift measure: $PASS passed, $FAIL failed"
+# Clean the working tree from the measure tests above (revert tracked, drop untracked).
+git checkout -q -- . ; rm -f b.txt c.txt d.txt e.txt big.txt
+HEAD_SHA="$(git rev-parse HEAD)"
+mark_out="$(bash "$DRIFT" mark 2>/dev/null)"
+assert_eq "$mark_out" "$HEAD_SHA" "mark: prints HEAD sha"
+assert_eq "$(cat .superpowers/drift/baseline)" "$HEAD_SHA" "mark: writes baseline file"
+
+# mark <label>: writes to a named baseline
+bash "$DRIFT" mark spike >/dev/null
+assert_eq "$(cat .superpowers/drift/spike)" "$HEAD_SHA" "mark: named label baseline"
+
+# mark warns on a dirty tree (warning to stderr; still records)
+printf 'dirty\n' >> a.txt
+warn="$(bash "$DRIFT" mark 2>&1 >/dev/null)"
+assert_eq "$([ -n "$warn" ] && echo yes || echo no)" "yes" "mark: warns on dirty tree"
+
+echo "drift: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]
