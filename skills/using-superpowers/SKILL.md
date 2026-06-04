@@ -115,8 +115,9 @@ No trigger? You're already right-sized — build it. If a trigger surfaces mid-t
 Right-sizing is safe to be *wrong* because mis-sizing is recoverable. When you
 consciously take the no-design path:
 
-1. **Mark a baseline:** `bash skills/time-machine-check/scripts/drift mark`
-   (records the clean SHA; warns if the tree is dirty).
+1. **Mark a baseline:** use the **time-machine-check** skill's `drift mark` to record
+   the clean SHA (it warns if the tree is dirty). Note the printed SHA — it's the
+   baseline you pass in step 3.
 2. **Build directly** under the discipline above.
 3. **At natural beats** (finished a chunk · hit friction · about to call it done),
    run the **time-machine-check** skill with `sha=<that baseline>` and the spike

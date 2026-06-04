@@ -12,8 +12,8 @@ caller does.**
 
 ## Inputs
 
-- **sha** (required) — the baseline commit to measure drift from (e.g. recorded
-  earlier with `drift mark`).
+- **sha** (required) — the baseline commit to measure drift from
+  (record one with `bash scripts/drift mark`, run from this skill's directory).
 - **narrative** (optional; defaults to the time-machine framing below) — the evaluation frame for this context. Default:
   *"Is this going how we thought? If you had a time machine, would you go back
   and design it first?"* Callers pass their own (e.g. executing-plans:
@@ -23,7 +23,7 @@ caller does.**
 ## Procedure
 
 1. Run the drift reading:
-   `bash skills/time-machine-check/scripts/drift measure <sha> [--files N] [--lines M]`
+   `bash scripts/drift measure <sha> [--files N] [--lines M]`   (run from this skill's directory)
    It prints `files=… lines=… crossed=…`.
 2. Read the `crossed` flag and the raw numbers **together with the narrative**.
    The number is a prompt to think, not a verdict — a low number with a clear
