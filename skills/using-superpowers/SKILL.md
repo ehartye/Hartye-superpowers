@@ -110,6 +110,29 @@ No trigger? You're already right-sized — build it. If a trigger surfaces mid-t
 
 **Autonomous / headless runs:** with no user to approve, never stall waiting for an approval that cannot come. If a trigger fires, state the open question and make the most reasonable assumption explicit; then implement and verify.
 
+### Spike-checkpoint (when you skip design)
+
+Right-sizing is safe to be *wrong* because mis-sizing is recoverable. When you
+consciously take the no-design path:
+
+1. **Mark a baseline:** `bash skills/time-machine-check/scripts/drift mark`
+   (records the clean SHA; warns if the tree is dirty).
+2. **Build directly** under the discipline above.
+3. **At natural beats** (finished a chunk · hit friction · about to call it done),
+   run the **time-machine-check** skill with `sha=<that baseline>` and the spike
+   narrative ("would a time machine make me design this first?").
+4. **If the verdict is `diverged`,** retreat — and treat the work as a spike, not
+   waste:
+   - **Capture lessons first** (before touching the tree): what made it bigger,
+     the real shape, the trigger to catch next time.
+   - **Stash, don't delete:** `git stash push -u -m "spike: <task> @ <sha7>"`.
+   - **Full or surgical** (read `git diff <baseline> --stat`): clean tree and
+     redesign, or restore baseline and cherry-pick the genuinely-clean keepers
+     out of the stash.
+   - **Reimplement under TDD regardless** — the stash is reference only; the
+     shipped code is test-first.
+5. **If `on-track`,** keep going.
+
 ## Skill Types
 
 **Rigid** (TDD, debugging): Follow exactly. Don't adapt away the discipline — the discipline is the point.
