@@ -41,5 +41,9 @@ printf '%s\n' $(seq 1 200) > big.txt
 out="$(bash "$DRIFT" measure "$BASE" --files 999 --lines 150)"
 assert_eq "$(field "$out" crossed)" "true" "measure: 200 lines crosses --lines 150"
 
+# Bad/nonexistent baseline must fail loudly, not report a false on-track reading
+out_rc=0; bash "$DRIFT" measure deadbeefdeadbeef >/dev/null 2>&1 || out_rc=$?
+assert_eq "$([ "$out_rc" -ne 0 ] && echo nonzero || echo zero)" "nonzero" "measure: bad sha fails loudly"
+
 echo "drift measure: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]

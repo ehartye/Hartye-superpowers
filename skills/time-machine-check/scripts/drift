@@ -9,11 +9,14 @@ state_dir() { echo "$(git rev-parse --show-toplevel)/.superpowers/drift"; }
 cmd_measure() {
   local sha="${1:-}"; shift || true
   [ -n "$sha" ] || { echo "usage: drift measure <sha> [--files N] [--lines M]" >&2; exit 2; }
+  # Validate the baseline up front: a bad/nonexistent sha must fail loudly, not
+  # produce a false "files=0 ... crossed=false" on-track reading.
+  git rev-parse --verify --quiet "$sha^{commit}" >/dev/null 2>&1 || { echo "drift: not a valid commit: $sha" >&2; exit 2; }
   local files_thresh=4 lines_thresh=150
   while [ $# -gt 0 ]; do
     case "$1" in
-      --files) files_thresh="$2"; shift 2;;
-      --lines) lines_thresh="$2"; shift 2;;
+      --files) files_thresh="${2:?--files needs a value}"; shift 2;;
+      --lines) lines_thresh="${2:?--lines needs a value}"; shift 2;;
       *) echo "unknown flag: $1" >&2; exit 2;;
     esac
   done
@@ -26,6 +29,8 @@ cmd_measure() {
   # New untracked files: a spike creates files git diff won't count. Count them
   # explicitly (-r so cat is never run on empty input, which would hang).
   ufiles="$(git ls-files --others --exclude-standard | grep -c . )"; ufiles="${ufiles:-0}"
+  # Newline-based approximation: a file with no trailing newline undercounts by
+  # one, and binary files are counted by incidental newlines — fine for a heuristic.
   ulines="$(git ls-files --others --exclude-standard -z | xargs -0 -r cat 2>/dev/null | wc -l | tr -d ' ')"; ulines="${ulines:-0}"
   files=$((tfiles + ufiles))
   lines=$((ins + del + ulines))
