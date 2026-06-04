@@ -11,6 +11,6 @@ has "drift measure"          # references the executable
 has "on-track"               # documents the verdict vocabulary
 has "diverged"
 has "narrative"              # documents the reusable narrative input
-has "caller"                 # documents that the caller owns the response
+has "Do not bake"          # the boundary: caller owns the response, no action baked in
 echo "skill lint: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]

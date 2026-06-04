@@ -14,7 +14,7 @@ caller does.**
 
 - **sha** (required) — the baseline commit to measure drift from (e.g. recorded
   earlier with `drift mark`).
-- **narrative** (required) — the evaluation frame for this context. Default:
+- **narrative** (optional; defaults to the time-machine framing below) — the evaluation frame for this context. Default:
   *"Is this going how we thought? If you had a time machine, would you go back
   and design it first?"* Callers pass their own (e.g. executing-plans:
   *"Does the work so far still match the approved plan?"*).
