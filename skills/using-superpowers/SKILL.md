@@ -87,20 +87,20 @@ When multiple skills could apply, use this order:
 "Review this design" → perspective-review.
 "Should we use X or Y?" → perspective-research.
 
-## Right-Sizing Process (default to action; escalate on triggers)
+## Right-Sizing Process (default to action; gate only what you can't take back)
 
-Don't classify every task into a tier first — that deliberation is itself overhead. **Default to disciplined implementation**, and escalate to design ceremony only when a concrete trigger is present.
+Before applying process, ask one question: **if this goes wrong, can a `git` rollback fully undo it?**
 
-**Default path (most tasks):** state a one-line intent ("Adding X to do Y"), then implement directly under the discipline below. No design doc, no approval gate.
+- **Reversible (yes)** → **act now.** State a one-line intent ("Adding X to do Y"), implement directly under the discipline below, and arm the spike-checkpoint. A wrong call is recoverable — the checkpoint catches drift and you redesign from the spike. Don't pre-design reversible work just because it's unclear or has a few moving parts; that's what the checkpoint is for.
+- **Irreversible / destructive (no)** → **design upfront, always.** The time machine can't save you here — the harm escapes a `git` rollback:
+  - persisted-data changes / schema migrations
+  - deleting or overwriting data, files, or history git can't restore (force-push, history rewrite, data drops)
+  - changing a published or public contract others already depend on (public API, released package)
+  - external side effects (payments, emails / notifications, third-party API calls)
+  - security, auth, secrets, or crypto
+- **Obviously large / multi-subsystem** → **design upfront** too — not because it's irreversible, but because spiking a known-big effort wastes the spike (you'd trip the drift checkpoint almost immediately and roll back a lot). Design the elephant; don't spike it.
 
-**Escalate to brainstorming (design + approval) only if a trigger fires:**
-
-- the work spans multiple independent components or subsystems, **or**
-- requirements are ambiguous or underspecified — you'd be guessing at intent, **or**
-- the change is hard to reverse or destructive — data loss, migrations, a public API, **or**
-- the user explicitly asks to design or discuss before building.
-
-No trigger? You're already right-sized — build it. If a trigger surfaces mid-task (a "simple" change reveals a hidden design question), stop and escalate then.
+Two entrances, same discipline: if the user explicitly asks to design (e.g. invokes brainstorming directly), honor it and design, scaled to complexity. Right-sizing decides ceremony when *you* detect creative work — not when the user already asked for design.
 
 **Discipline — never skipped, at any size:**
 
@@ -108,7 +108,7 @@ No trigger? You're already right-sized — build it. If a trigger surfaces mid-t
 - **systematic-debugging** — root cause before fix.
 - **verification-before-completion** — evidence before any "done" / "fixed" / "passing" claim.
 
-**Autonomous / headless runs:** with no user to approve, never stall waiting for an approval that cannot come. If a trigger fires, state the open question and make the most reasonable assumption explicit; then implement and verify.
+**Autonomous / headless runs:** with no user to approve, never stall waiting for an approval that cannot come. For an irreversible/destructive action you cannot safely take alone, state the open question and the most reasonable assumption explicitly before proceeding; for reversible work, act and let the checkpoint catch a mis-size.
 
 ### Spike-checkpoint (when you skip design)
 
