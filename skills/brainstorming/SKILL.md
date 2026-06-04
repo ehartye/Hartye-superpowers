@@ -12,19 +12,17 @@ Help turn ideas into fully formed designs and specs through natural collaborativ
 Start by understanding the current project context, then ask questions one at a time to refine the idea. Once you understand what you're building, present the design and get user approval.
 
 <HARD-GATE>
-Escalate to a design-and-approval cycle before implementing ONLY when a trigger is present (see using-superpowers → Right-Sizing Process): the work spans multiple subsystems, requirements are ambiguous, the change is hard to reverse or destructive, or the user asks to design first. When a trigger fires, do NOT invoke any implementation skill, write code, scaffold, or take implementation action until you have presented a design and the user has approved it.
+Escalate to a design-and-approval cycle before implementing when the work is **irreversible or destructive** — its harm escapes a `git` rollback (data / schema migrations, deleting or overwriting data or history, a published / public contract, external side effects like payments or emails, security / auth / secrets) — OR it is **obviously large / multi-subsystem**, OR the **user asked to design** (see using-superpowers → Right-Sizing Process). When escalating, do NOT invoke any implementation skill, write code, scaffold, or take implementation action until you have presented a design and the user has approved it.
 
-Absent any trigger, do NOT gate: state a one-line intent and implement directly under the discipline (test-driven-development, systematic-debugging, verification-before-completion). In autonomous/headless runs with no user to approve, never stall — state your assumptions and proceed.
+Otherwise — reversible, not-obviously-large work — do NOT gate: state a one-line intent, implement directly under the discipline (test-driven-development, systematic-debugging, verification-before-completion), and arm the spike-checkpoint so a mis-size is recoverable. In autonomous/headless runs with no user to approve, never stall.
 </HARD-GATE>
 
 ## Anti-Pattern: Mis-Sizing The Ceremony
 
-Two failure modes, opposite directions:
+Size by reversibility and blast radius, not line count. Two failure modes:
 
-- **Over-ceremony:** forcing design-and-approval onto a task with no trigger (a one-line helper, a config tweak, a rename). Wasted work, and in autonomous runs it can stall the task entirely. State a one-line intent and implement with discipline.
-- **Under-design:** treating a triggered task as trivial because it *looks* small. If the work spans subsystems, the requirements are ambiguous, or the change is hard to reverse, it is not trivial — present a design and get approval, even if the code is short.
-
-When unsure, start low and let a trigger escalate you: the moment a hidden design question, a second subsystem, or an irreversible step appears, stop and move to design.
+- **Over-ceremony:** gating reversible work you could've just done — a one-line helper, a rename, a self-contained function. If a wrong call is recoverable (the spike-checkpoint has your back), don't pay for a design-and-approval cycle up front.
+- **Under-protection:** treating an *irreversible* action as routine because the code looks small. A three-line schema migration is not "Quick" — you can't un-migrate. If the harm escapes a `git` rollback, design first, however short the diff.
 
 ## Checklist
 

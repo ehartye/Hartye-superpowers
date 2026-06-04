@@ -15,5 +15,14 @@ has   "$US" "Obviously large"                 # the obvious-size override
 has   "$US" "test-driven-development"          # discipline spine retained
 hasnt "$US" "requirements are ambiguous or underspecified"  # v2 ambiguity-trigger removed
 
+# brainstorming: gate + anti-pattern
+BR="$REPO_ROOT/skills/brainstorming/SKILL.md"
+has   "$BR" "irreversible or destructive"     # gate keys on reversibility
+has   "$BR" "obviously large"                 # obvious-size override
+has   "$BR" "rollback"                         # references the git-rollback test
+has   "$BR" "un-migrate"                        # anti-pattern's irreversible example
+has   "$BR" "blast radius"                       # anti-pattern framing
+hasnt "$BR" "Under-design:"                     # old anti-pattern bullet replaced
+
 echo "right-sizing gate lint: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]
