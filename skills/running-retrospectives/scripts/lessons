@@ -46,7 +46,26 @@ cmd_capture() {
   echo "$h"
 }
 
+cmd_cluster() {
+  local threshold=2
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --threshold) threshold="${2:?--threshold needs a value}"; shift 2;;
+      *) echo "unknown flag: $1" >&2; exit 2;;
+    esac
+  done
+  local file; file="$(cand_file)"
+  [ -f "$file" ] || return 0   # no candidates → no clusters → empty output
+  # Group by hash; count DISTINCT sessions per hash (not raw captures); emit
+  # eligible clusters as: hash <tab> distinct_sessions <tab> total <tab> text
+  awk -F'\t' -v n="$threshold" '
+    { total[$1]++; if (!(($1 SUBSEP $4) in seen)) { seen[$1 SUBSEP $4]=1; sess[$1]++ }; txt[$1]=$6 }
+    END { for (h in total) if (sess[h] >= n) printf "%s\t%s\t%s\t%s\n", h, sess[h], total[h], txt[h] }
+  ' "$file" | sort -t$'\t' -k2,2nr
+}
+
 case "${1:-}" in
   capture) shift; cmd_capture "$@";;
+  cluster) shift; cmd_cluster "$@";;
   *) echo "usage: lessons {capture|cluster|decide|prune} ..." >&2; exit 2;;
 esac
