@@ -1,7 +1,14 @@
 # Two-Tier Git-Native Lesson Store with Pull-on-Demand Retrieval
 
 ## Status
-Proposed
+Proposed. **Partially superseded (2026-06-05):** the design spec
+`docs/superpowers/specs/2026-06-05-running-retrospectives-design.md` found this
+ADR conflated "reuse the existing `memory/` convention" with "git-diffable
+promotion" — no repo-local `memory/` exists. v1 promotes into the agent's
+project-scoped auto-memory (not git-tracked), with the RED→GREEN validation gate +
+interactive approval as the correctness guarantee in place of git review. The
+two-tier model, pull-on-demand-vs-inject reasoning, and ~15-lesson budget below
+still stand.
 
 > Decision record for `harvesting-lessons` (Rec 2 of
 > `docs/research/claude-code-harness-landscape-2026-06-03.md`) storage + retrieval.

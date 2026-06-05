@@ -3,9 +3,17 @@
 ## Status
 Approved (brainstormed 2026-06-05). Implements Rec 2 of
 `docs/research/claude-code-harness-landscape-2026-06-03.md` (formerly
-"harvesting-lessons"). Storage/retrieval settled separately in
-`docs/decisions/2026-06-05-harvesting-lessons-storage.md` — this design depends
-on it and does not re-litigate it.
+"harvesting-lessons"). Storage/retrieval explored in
+`docs/decisions/2026-06-05-harvesting-lessons-storage.md`.
+
+**Planning resolution (2026-06-05):** the ADR conflated "reuse the existing
+`memory/` convention" with "git-diffable promotion" — but no repo-local `memory/`
+exists; the only `memory/` is the agent's project-scoped auto-memory (auto-injected
+each session, outside the repo, not git-tracked). v1 promotes there (Option A): the
+RED→GREEN validation gate + interactive approval are the correctness guarantee that
+the git-review property would otherwise have provided. v1 also narrows scope to
+**project-specific lessons only**. Both decisions are reflected below and supersede
+the ADR where they differ.
 
 ## Problem
 
@@ -35,7 +43,7 @@ candidate lesson with a RED→GREEN check, and banks survivors in `memory/`. It
 |------|------|------|
 | **agent-stalker** | SENSE | what happened — records tool use, inter-agent messages, tasks, errors to SQLite; already clusters |
 | **crucible** | PROVE | does the lesson change behavior, statistically — A/B trials, accuracy + token verdict |
-| **h-superpowers** | DECIDE & ENCODE | what's worth learning, the gate contract, where lessons live (`memory/`), how they're recalled — and conducts the other two |
+| **h-superpowers** | DECIDE & ENCODE | what's worth learning, the gate contract, where lessons live (the project auto-memory), how they're recalled — and conducts the other two |
 
 The siblings are **detected, never required.** `running-retrospectives` lights up
 tiers based on what's installed and degrades gracefully. A stranger who installs
@@ -64,7 +72,8 @@ contract itself does not change between tiers.
 
 1. **Capture** (in-session behavior) — when the user corrects the agent on
    something generalizable, the agent appends a candidate to a project-local
-   `.superpowers/lessons-candidates.ndjson`, each entry stamped with
+   append-only line file `.superpowers/lessons-candidates.tsv` (tab-separated, for
+   pure-bash/awk parsing — no JSON-in-bash), each entry stamped with
    **content-hash (of CRLF-normalized text), session id, timestamp, source,
    confidence**. Persistent across sessions — that persistence is what makes
    recurrence countable.
@@ -73,16 +82,19 @@ contract itself does not change between tiers.
    distinct sessions.
 3. **Validate** (retrospective) — run the RED→GREEN contract on each eligible
    cluster. The user sees the distilled scenario and the RED/GREEN verdicts.
-4. **Promote** — **move** (not copy) the survivor into a `memory/` entry
-   (`type: feedback`) plus a one-line `MEMORY.md` index entry. One reviewable git
-   diff. The candidate entries for that cluster are pruned (the fact now lives in
-   `memory/` as the single source of truth).
-5. **Recall** — one additional question on the existing `using-superpowers`
-   pull-gate ("does a prior lesson apply before I act?"), v1 answered by
-   grep/ripgrep over `memory/`. SessionStart stays `using-superpowers`-only
-   (`exit 0`); nothing is auto-injected. The ~15-promoted-lesson crossover rule
-   from the storage ADR governs when always-in-context MEMORY.md gives way to the
-   deferred pull-only index.
+4. **Promote** — **move** (not copy) the survivor into the agent's **project-scoped
+   auto-memory** as a `type: feedback` memory file plus its one-line `MEMORY.md`
+   index entry (the memory directory the agent is already told to use each session;
+   e.g. `~/.claude/projects/<this-project>/memory/`). This is project-local — it
+   only applies to this project and is never baked into the shipped plugin (per the
+   design-direction rule). The candidate entries for that cluster are then pruned
+   (the fact now lives in the auto-memory as the single source of truth).
+5. **Recall** — **automatic, no new mechanism.** The project auto-memory `MEMORY.md`
+   is already injected into every session by the agent's memory system, so a promoted
+   lesson is recalled for free. v1 adds **no `using-superpowers` edit** and leaves
+   SessionStart untouched. The ~15-promoted-lesson crossover rule from the storage
+   ADR still applies — it bounds how much promoted memory is injected; above it,
+   pull-on-demand retrieval is a deferred concern, not a v1 problem.
 
 ## Scope — phased
 
@@ -93,11 +105,18 @@ contract itself does not change between tiers.
   scenario, spawns subagents for RED then GREEN (k=3 each), judges compliance with
   a simple rubric (deterministic check where the behavior is observable, e.g. "did
   it run the test command"; LLM-judge otherwise), applies the margin.
-- **Promote / recall:** as above — `memory/` + pull-gate grep.
+- **Scope:** **project-specific lessons only** — "how to work well in *this*
+  project." Two other lesson kinds are explicitly out of v1: improving h-sup the
+  plugin (that's a `writing-skills` skill-edit pipeline, and the design rule forbids
+  baking lessons into the shipped plugin) and cross-project general-behavior lessons
+  (deferred — wider blast radius raises the validation bar).
+- **Promote / recall:** as above — write a `type: feedback` file into the project
+  auto-memory; recall is automatic via the already-injected `MEMORY.md`.
 - **Seams named but not wired:** the agent-stalker SENSE feed and the crucible
   PROVE engine are referenced in prose with their contracts, not built.
-- Net-new concepts for a stranger: ~1–2 (the candidate file; the retrospective
-  skill — recall rides the existing gate, storage rides the existing `memory/`).
+- Net-new concepts for a stranger: ~1 (the candidate file + the retrospective skill;
+  recall and storage both ride the existing auto-memory the agent already maintains —
+  no new always-loaded surface, no `using-superpowers` edit).
 
 ### Phase 2 — agent-stalker as SENSE (later; may need companion work)
 Widen capture to the agent-to-agent lane (lead→teammate, peer↔peer) by reading
@@ -120,8 +139,10 @@ companion changes in crucible — tracked as its own spec.
 - Capture = in-session behavior; **validate+promote = deliberately invoked** (no
   mid-work interrupts — consistent with the time-machine-check "it's just a
   check-in" ethos).
-- Promotion is **interactive** — the user approves what lands in `memory/`.
+- Promotion is **interactive** — the user approves what lands in the auto-memory.
 - Content-hash is computed over **CRLF-normalized** text (Windows + bash parity).
+- Promoted lesson type = **`feedback`** ("guidance the user has given on how you
+  should work" — the exact category match for a captured correction).
 
 ## Testing
 - The skill itself is built under `writing-skills` (it IS TDD for process docs):
@@ -134,9 +155,11 @@ companion changes in crucible — tracked as its own spec.
   pressure tests, not by asserting exact LLM output (brittle).
 
 ## Non-goals
-- No new durable principles file — promoted lessons reuse `memory/`.
-- No SessionStart injection of candidates, ever; promoted-lesson injection only
-  under the ~15-lesson budget (storage ADR).
+- No new durable store — promoted lessons reuse the agent's project auto-memory.
+- No `using-superpowers` / SessionStart edit in v1; candidates are never injected;
+  promoted-lesson injection is bounded by the ~15-lesson budget (storage ADR).
+- Not for improving h-sup the plugin (category 1 — that's a `writing-skills`
+  pipeline) and not for cross-project general-behavior lessons (deferred).
 - No hard dependency on agent-stalker or crucible; no daemon, no external DB.
 - Not building Phases 2–3 here — they are documented as a roadmap with contracts.
 
