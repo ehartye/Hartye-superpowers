@@ -64,8 +64,38 @@ cmd_cluster() {
   ' "$file" | sort -t$'\t' -k2,2nr
 }
 
+cmd_decide() {
+  local k="" rf="" gp=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --k) k="${2:?--k needs a value}"; shift 2;;
+      --red-fail) rf="${2:?--red-fail needs a value}"; shift 2;;
+      --green-pass) gp="${2:?--green-pass needs a value}"; shift 2;;
+      *) echo "unknown flag: $1" >&2; exit 2;;
+    esac
+  done
+  [ -n "$k" ] && [ -n "$rf" ] && [ -n "$gp" ] || { echo "usage: lessons decide --k K --red-fail RF --green-pass GP" >&2; exit 2; }
+  local majority=$(( k / 2 + 1 ))   # k=3 → 2
+  if [ "$rf" -ge "$majority" ] && [ "$gp" -ge "$majority" ]; then
+    echo "promote"; return 0
+  fi
+  local reason="baseline failed $rf/$k, with-lesson passed $gp/$k; need >=$majority each"
+  echo "reject: $reason"; return 1
+}
+
+cmd_prune() {
+  local h="${1:-}"
+  [ -n "$h" ] || { echo "usage: lessons prune <hash>" >&2; exit 2; }
+  local file; file="$(cand_file)"
+  [ -f "$file" ] || return 0
+  local tmp; tmp="$(mktemp)"
+  awk -F'\t' -v h="$h" '$1!=h' "$file" > "$tmp" && mv "$tmp" "$file"
+}
+
 case "${1:-}" in
   capture) shift; cmd_capture "$@";;
   cluster) shift; cmd_cluster "$@";;
+  decide) shift; cmd_decide "$@";;
+  prune)  shift; cmd_prune "$@";;
   *) echo "usage: lessons {capture|cluster|decide|prune} ..." >&2; exit 2;;
 esac
