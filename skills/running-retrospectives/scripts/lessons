@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# lessons — deterministic mechanics for running-retrospectives. No judgment, no LLM.
+#   lessons capture <text> [--source S] [--confidence C] [--session ID]
+#   lessons cluster [--threshold N]
+#   lessons decide --k K --red-fail RF --green-pass GP
+#   lessons prune <hash>
+set -uo pipefail
+
+home_dir() { echo "${LESSONS_HOME:-$(git rev-parse --show-toplevel)/.superpowers}"; }
+cand_file() { echo "$(home_dir)/lessons-candidates.tsv"; }
+
+# Normalize for hashing: strip CR, collapse whitespace runs to one space, trim ends.
+normalize() { printf '%s' "$1" | tr -d '\r' | tr '\t' ' ' | tr -s ' ' | sed 's/^ *//; s/ *$//'; }
+
+hash_text() {
+  local norm; norm="$(normalize "$1")"
+  if command -v sha256sum >/dev/null 2>&1; then
+    printf '%s' "$norm" | sha256sum | cut -c1-16
+  else
+    printf '%s' "$norm" | shasum -a 256 | cut -c1-16
+  fi
+}
+
+cmd_capture() {
+  local text="${1:-}"; shift || true
+  [ -n "$text" ] || { echo "usage: lessons capture <text> [--source S] [--confidence C] [--session ID]" >&2; exit 2; }
+  local source="user" confidence="high" session="${LESSONS_SESSION:-${CLAUDE_CODE_SESSION_ID:-unknown}}"
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --source) source="${2:?--source needs a value}"; shift 2;;
+      --confidence) confidence="${2:?--confidence needs a value}"; shift 2;;
+      --session) session="${2:?--session needs a value}"; shift 2;;
+      *) echo "unknown flag: $1" >&2; exit 2;;
+    esac
+  done
+  local dir; dir="$(home_dir)"; mkdir -p "$dir"
+  local file; file="$(cand_file)"
+  local h; h="$(hash_text "$text")"
+  # Per-session dedup: same correction already captured this session → no-op.
+  if [ -f "$file" ] && awk -F'\t' -v h="$h" -v s="$session" '$1==h && $4==s {found=1} END{exit !found}' "$file"; then
+    echo "$h"; return 0
+  fi
+  # Sanitize text for single-line TSV storage (no tabs/newlines in the field).
+  local safe; safe="$(printf '%s' "$text" | tr -d '\r' | tr '\t\n' '  ')"
+  printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$h" "$(date +%s)" "$confidence" "$session" "$source" "$safe" >> "$file"
+  echo "$h"
+}
+
+case "${1:-}" in
+  capture) shift; cmd_capture "$@";;
+  *) echo "usage: lessons {capture|cluster|decide|prune} ..." >&2; exit 2;;
+esac
