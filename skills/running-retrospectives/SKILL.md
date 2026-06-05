@@ -1,6 +1,6 @@
 ---
 name: running-retrospectives
-description: Use at a deliberate reflective moment (end of a working session, or when you notice you keep getting corrected on the same thing) to turn recurring project-specific corrections into validated, durable memory. Captures corrections, proves each lesson with a RED->GREEN check, and promotes only survivors into project memory.
+description: Use when the same correction keeps recurring across multiple work sessions, or at the end of a session to harvest recurring project-specific user feedback into durable memory. Not for one-off corrections — a correction seen in only one session is not yet eligible.
 ---
 
 # Running Retrospectives
@@ -37,9 +37,13 @@ not substitutes for watching the failure happen.
 
 1. **Capture** (run during/after a session, once per generalizable correction the
    user gave you):
-   `bash scripts/lessons capture "<the correction, imperative form>" --source user`
+   `bash scripts/lessons capture "<the correction, imperative form>"`
    The script stamps a CRLF-normalized content hash + the current session id
-   (`$CLAUDE_CODE_SESSION_ID`) + timestamp, and dedups within a session.
+   (`$CLAUDE_CODE_SESSION_ID`) + timestamp, and dedups within a session. (Source
+   defaults to `user`; pass `--source` only for non-user corrections, which
+   Phase 2 introduces.) If this is the first time you have seen this
+   correction, capturing is all you do — it is not eligible for the retrospective
+   until it recurs in another session.
 2. **Cluster:** `bash scripts/lessons cluster` → eligible clusters (recurred across
    **>=2 distinct sessions**) as `hash <tab> distinct_sessions <tab> total <tab> text`.
    A correction seen in only one session is **not eligible** — leave it as a
@@ -60,9 +64,9 @@ not substitutes for watching the failure happen.
 4. **Promote (interactive)** — only on a `promote` verdict, and only after the user
    approves the wording:
    - Write the lesson as a **`type: feedback`** memory file in **your project
-     memory directory** (the one your memory instructions name for this project),
-     with a one-line pointer added to that `MEMORY.md`. Include the **why** and
-     **how to apply it**.
+     memory directory** — the directory where your project `MEMORY.md` lives; your
+     memory instructions name its exact path each session — with a one-line pointer
+     added to that `MEMORY.md`. Include the **why** and **how to apply it**.
    - This is **project-local** — it only applies to this project. NEVER write the
      lesson into this plugin's shipped files (`skills/`, `CLAUDE.md`). Improving
      the plugin itself is a different pipeline (h-superpowers:writing-skills).
@@ -87,7 +91,9 @@ not substitutes for watching the failure happen.
 - **crucible = PROVE (Phase 3):** if installed, replace the inline runner with a
   crucible A/B experiment (baseline vs. the lesson commit) for statistical rigor.
 
-Both are detected, never required. The RED->GREEN contract is identical across tiers.
+Both are detected, never required. Do not attempt to invoke these integrations
+until those sibling skills are installed and loaded. The RED->GREEN contract is
+identical across tiers.
 
 ## Common rationalizations, answered
 
