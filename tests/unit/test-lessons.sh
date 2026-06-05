@@ -25,7 +25,7 @@ bash "$LESSONS" capture "Always run the suite before saying done" --session s1 >
 ok "same hash+session is idempotent (still 2 lines)" "$(wc -l < "$FILE" | tr -d ' ')" "2"
 
 # cluster: a correction in 1 session is NOT eligible; in 2 distinct sessions IS.
-TMP2="$(mktemp -d)"; export LESSONS_HOME="$TMP2/.superpowers"
+TMP2="$(mktemp -d)"; trap 'rm -rf "$TMP" "$TMP2"' EXIT; export LESSONS_HOME="$TMP2/.superpowers"
 bash "$LESSONS" capture "Use absolute paths in the Bash tool" --session sA >/dev/null
 bash "$LESSONS" capture "Use absolute paths in the Bash tool" --session sA >/dev/null   # same session, dedup
 ok "single-session correction is not eligible" "$(bash "$LESSONS" cluster | grep -c .)" "0"
