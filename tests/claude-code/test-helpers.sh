@@ -21,7 +21,19 @@ run_claude() {
     # --plugin-dir is needed for unit tests: headless -p mode from tests/claude-code/
     # doesn't reliably walk up to find .claude-plugin/ at the repo root.
     # No --max-turns: the timeout is the safety net (upstream approach).
-    local -a cmd_args=(-p "$prompt" --plugin-dir "$PLUGIN_DIR")
+    #
+    # --settings disables the globally-INSTALLED registry plugin. Headless `claude -p`
+    # auto-loads globally-enabled plugins, so without this the installed
+    # h-superpowers loads ALONGSIDE the --plugin-dir dev tree and every skill is
+    # registered twice (nondeterministic, flaky). The disable removes the registry
+    # copy; --plugin-dir is session-scoped and bypasses enabledPlugins, so the dev
+    # tree still loads — leaving exactly one (dev) copy. The key must match the
+    # installed marketplace entry exactly: "h-superpowers@hartye-plugins".
+    local -a cmd_args=(
+        -p "$prompt"
+        --plugin-dir "$PLUGIN_DIR"
+        --settings '{"enabledPlugins":{"h-superpowers@hartye-plugins":false}}'
+    )
     if [ -n "$allowed_tools" ]; then
         cmd_args+=(--allowed-tools="$allowed_tools")
     fi
@@ -173,7 +185,7 @@ create_test_project() {
     cat > "$test_dir/.claude/settings.local.json" <<'SETTINGS'
 {
   "enabledPlugins": {
-    "hartye-superpowers@hartye-plugins": false
+    "h-superpowers@hartye-plugins": false
   }
 }
 SETTINGS
