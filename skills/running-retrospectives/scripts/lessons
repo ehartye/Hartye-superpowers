@@ -93,6 +93,7 @@ cmd_prune() {
 }
 
 cmd_detect_engine() {
+  [ $# -eq 0 ] || { echo "usage: lessons detect-engine" >&2; exit 2; }
   local bin="${LESSONS_CRUCIBLE_BIN:-crucible}"
   local expected="${CRUCIBLE_EXPECTED:-0.4}"   # pinned major.minor; bump when crucible's contract moves
   local out ver

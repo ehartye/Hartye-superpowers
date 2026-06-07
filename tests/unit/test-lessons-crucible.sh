@@ -27,6 +27,9 @@ ok "matching version selects crucible" \
 ok "absent crucible selects floor" \
   "$(LESSONS_CRUCIBLE_BIN="$TMP/bin/nope" bash "$LESSONS" detect-engine)" "floor"
 
+ok "CRUCIBLE_EXPECTED override is honored" \
+  "$(LESSONS_CRUCIBLE_BIN="$STUB/crucible" CRUCIBLE_EXPECTED="0.3" bash "$LESSONS" detect-engine)" "floor"
+
 # A stub reporting an older version → mismatch → floor.
 cat > "$STUB/crucible-old" <<'SH'
 #!/usr/bin/env bash
