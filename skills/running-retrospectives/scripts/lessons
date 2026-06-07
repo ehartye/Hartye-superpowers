@@ -92,10 +92,22 @@ cmd_prune() {
   awk -F'\t' -v h="$h" '$1!=h' "$file" > "$tmp" && mv "$tmp" "$file"
 }
 
+cmd_detect_engine() {
+  local bin="${LESSONS_CRUCIBLE_BIN:-crucible}"
+  local expected="${CRUCIBLE_EXPECTED:-0.4}"   # pinned major.minor; bump when crucible's contract moves
+  local out ver
+  if out="$("$bin" --version 2>/dev/null)"; then
+    ver="$(printf '%s' "$out" | grep -oE '[0-9]+\.[0-9]+' | head -1)"
+    if [ "$ver" = "$expected" ]; then echo "crucible"; return 0; fi
+  fi
+  echo "floor"
+}
+
 case "${1:-}" in
   capture) shift; cmd_capture "$@";;
   cluster) shift; cmd_cluster "$@";;
   decide) shift; cmd_decide "$@";;
   prune)  shift; cmd_prune "$@";;
-  *) echo "usage: lessons {capture|cluster|decide|prune} ..." >&2; exit 2;;
+  detect-engine) shift; cmd_detect_engine "$@";;
+  *) echo "usage: lessons {capture|cluster|decide|prune|detect-engine} ..." >&2; exit 2;;
 esac
