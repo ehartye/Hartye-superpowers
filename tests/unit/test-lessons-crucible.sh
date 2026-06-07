@@ -40,5 +40,19 @@ chmod +x "$STUB/crucible-old"
 ok "version mismatch selects floor" \
   "$(LESSONS_CRUCIBLE_BIN="$STUB/crucible-old" bash "$LESSONS" detect-engine)" "floor"
 
+# --- Task 2: scratch-harness ----------------------------------------------
+HARNESS="$TMP/harness"
+LESSON="Always run the test suite before claiming the work is done."
+bash "$LESSONS" scratch-harness "$HARNESS" "$LESSON"
+
+ok "baseline ref exists" "$(git -C "$HARNESS" rev-parse --verify -q baseline >/dev/null; echo $?)" "0"
+ok "green ref exists"    "$(git -C "$HARNESS" rev-parse --verify -q green    >/dev/null; echo $?)" "0"
+ok "only CLAUDE.md differs between refs" \
+  "$(git -C "$HARNESS" diff baseline green --name-only)" "CLAUDE.md"
+ok "baseline has no lesson" \
+  "$(git -C "$HARNESS" show baseline:CLAUDE.md | grep -c "$LESSON")" "0"
+ok "green carries the lesson" \
+  "$(git -C "$HARNESS" show green:CLAUDE.md | grep -c "$LESSON")" "1"
+
 echo "lessons-crucible: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]

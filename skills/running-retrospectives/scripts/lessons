@@ -104,11 +104,32 @@ cmd_detect_engine() {
   echo "floor"
 }
 
+cmd_scratch_harness() {
+  local dir="${1:-}" lesson="${2:-}"
+  [ -n "$dir" ] && [ -n "$lesson" ] || { echo "usage: lessons scratch-harness <dir> <lesson-text>" >&2; exit 2; }
+  mkdir -p "$dir"
+  git -C "$dir" init -q
+  git -C "$dir" config user.email "rr@local"
+  git -C "$dir" config user.name "running-retrospectives"
+  git -C "$dir" config commit.gpgsign false
+  # baseline: CLAUDE.md WITHOUT the lesson (stable marker so the file exists in both refs).
+  printf '# Project guidance\n' > "$dir/CLAUDE.md"
+  git -C "$dir" add CLAUDE.md
+  git -C "$dir" commit -qm baseline
+  git -C "$dir" tag baseline
+  # green: same file WITH the lesson appended.
+  printf '# Project guidance\n\n%s\n' "$lesson" > "$dir/CLAUDE.md"
+  git -C "$dir" add CLAUDE.md
+  git -C "$dir" commit -qm green
+  git -C "$dir" tag green
+}
+
 case "${1:-}" in
   capture) shift; cmd_capture "$@";;
   cluster) shift; cmd_cluster "$@";;
   decide) shift; cmd_decide "$@";;
   prune)  shift; cmd_prune "$@";;
   detect-engine) shift; cmd_detect_engine "$@";;
-  *) echo "usage: lessons {capture|cluster|decide|prune|detect-engine} ..." >&2; exit 2;;
+  scratch-harness) shift; cmd_scratch_harness "$@";;
+  *) echo "usage: lessons {capture|cluster|decide|prune|detect-engine|scratch-harness} ..." >&2; exit 2;;
 esac
