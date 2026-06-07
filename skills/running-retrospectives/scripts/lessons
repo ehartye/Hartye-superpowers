@@ -112,6 +112,7 @@ cmd_scratch_harness() {
   git -C "$dir" config user.email "rr@local"
   git -C "$dir" config user.name "running-retrospectives"
   git -C "$dir" config commit.gpgsign false
+  git -C "$dir" config core.autocrlf false
   # baseline: CLAUDE.md WITHOUT the lesson (stable marker so the file exists in both refs).
   printf '# Project guidance\n' > "$dir/CLAUDE.md"
   git -C "$dir" add CLAUDE.md

@@ -50,9 +50,9 @@ ok "green ref exists"    "$(git -C "$HARNESS" rev-parse --verify -q green    >/d
 ok "only CLAUDE.md differs between refs" \
   "$(git -C "$HARNESS" diff baseline green --name-only)" "CLAUDE.md"
 ok "baseline has no lesson" \
-  "$(git -C "$HARNESS" show baseline:CLAUDE.md | grep -c "$LESSON")" "0"
+  "$(git -C "$HARNESS" show baseline:CLAUDE.md | grep -cF "$LESSON")" "0"
 ok "green carries the lesson" \
-  "$(git -C "$HARNESS" show green:CLAUDE.md | grep -c "$LESSON")" "1"
+  "$(git -C "$HARNESS" show green:CLAUDE.md | grep -cF "$LESSON")" "1"
 
 echo "lessons-crucible: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]
