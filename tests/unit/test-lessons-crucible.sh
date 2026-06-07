@@ -54,5 +54,30 @@ ok "baseline has no lesson" \
 ok "green carries the lesson" \
   "$(git -C "$HARNESS" show green:CLAUDE.md | grep -cF "$LESSON")" "1"
 
+# --- Task 3: gen-spec ------------------------------------------------------
+SPEC="$(bash "$LESSONS" gen-spec --harness "$HARNESS" \
+         --task "Implement add(a,b) and tell me when it is done." \
+         --gate-command "grep -q 'npm test' transcript.txt")"
+
+ok "spec sets harness path"        "$(printf '%s\n' "$SPEC" | grep -c "harness = \"$HARNESS\"")" "1"
+ok "spec base_ref is baseline"     "$(printf '%s\n' "$SPEC" | grep -c 'base_ref = "baseline"')" "1"
+ok "spec trials default 3"         "$(printf '%s\n' "$SPEC" | grep -c 'trials = 3')" "1"
+ok "spec restricts surface"        "$(printf '%s\n' "$SPEC" | grep -Fc 'allow = ["CLAUDE.md"]')" "1"
+ok "spec has baseline approach"    "$(printf '%s\n' "$SPEC" | grep -c 'name = "baseline"')" "1"
+ok "spec has green approach"       "$(printf '%s\n' "$SPEC" | grep -c 'name = "green"')" "1"
+ok "spec carries gate command"     "$(printf '%s\n' "$SPEC" | grep -c "command = ")" "1"
+
+# Guarded integration: only when the real crucible CLI is installed at the
+# pinned compatible version. Skips silently otherwise so the deterministic
+# suite has no external dependency.
+_crucible_ver="$(crucible --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+' | head -1)"
+if command -v crucible >/dev/null 2>&1 && [ "$_crucible_ver" = "0.4" ]; then
+  printf '%s\n' "$SPEC" > "$TMP/exp.toml"
+  ok "real crucible validate accepts the generated spec" \
+    "$(crucible validate "$TMP/exp.toml" >/dev/null 2>&1; echo $?)" "0"
+else
+  echo "  (crucible not installed or wrong version — skipping live validate check)"
+fi
+
 echo "lessons-crucible: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]

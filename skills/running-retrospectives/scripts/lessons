@@ -125,6 +125,52 @@ cmd_scratch_harness() {
   git -C "$dir" tag green
 }
 
+cmd_gen_spec() {
+  local harness="" task="" gate_cmd="" judge_model="claude-haiku-4-5-20251001" trials=3
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --harness) harness="${2:?--harness needs a value}"; shift 2;;
+      --task) task="${2:?--task needs a value}"; shift 2;;
+      --gate-command) gate_cmd="${2:?--gate-command needs a value}"; shift 2;;
+      --judge-model) judge_model="${2:?--judge-model needs a value}"; shift 2;;
+      --trials) trials="${2:?--trials needs a value}"; shift 2;;
+      *) echo "unknown flag: $1" >&2; exit 2;;
+    esac
+  done
+  [ -n "$harness" ] && [ -n "$task" ] || { echo "usage: lessons gen-spec --harness DIR --task TEXT [--gate-command CMD] [--judge-model M] [--trials N]" >&2; exit 2; }
+  cat <<EOF
+[experiment]
+name = "rr-lesson-validation"
+harness = "$harness"
+base_ref = "baseline"
+trials = $trials
+
+[test_project]
+task = "$task"
+
+[editable_surface]
+allow = ["CLAUDE.md"]
+EOF
+  if [ -n "$gate_cmd" ]; then
+    printf '\n[gate]\ncommand = "%s"\n' "$gate_cmd"
+  fi
+  cat <<EOF
+
+[judge]
+model = "$judge_model"
+
+[[approach]]
+name = "baseline"
+ref = "baseline"
+model = "$judge_model"
+
+[[approach]]
+name = "green"
+ref = "green"
+model = "$judge_model"
+EOF
+}
+
 case "${1:-}" in
   capture) shift; cmd_capture "$@";;
   cluster) shift; cmd_cluster "$@";;
@@ -132,5 +178,6 @@ case "${1:-}" in
   prune)  shift; cmd_prune "$@";;
   detect-engine) shift; cmd_detect_engine "$@";;
   scratch-harness) shift; cmd_scratch_harness "$@";;
-  *) echo "usage: lessons {capture|cluster|decide|prune|detect-engine|scratch-harness} ..." >&2; exit 2;;
+  gen-spec) shift; cmd_gen_spec "$@";;
+  *) echo "usage: lessons {capture|cluster|decide|prune|detect-engine|scratch-harness|gen-spec} ..." >&2; exit 2;;
 esac
