@@ -12,33 +12,43 @@ ok() { if [ "$2" = "$3" ]; then PASS=$((PASS+1)); else FAIL=$((FAIL+1)); echo "F
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 
 # --- Task 1: detect-engine -------------------------------------------------
-# A stub crucible that reports a matching version → engine is "crucible".
+# A stub crucible that meets the minimum version → engine is "crucible".
 STUB="$TMP/bin"; mkdir -p "$STUB"
 cat > "$STUB/crucible" <<'SH'
 #!/usr/bin/env bash
-[ "$1" = "--version" ] && { echo "crucible 0.4.0"; exit 0; }
+[ "$1" = "--version" ] && { echo "crucible 0.6.1"; exit 0; }
 exit 0
 SH
 chmod +x "$STUB/crucible"
 
-ok "matching version selects crucible" \
+ok "version meeting minimum selects crucible" \
   "$(LESSONS_CRUCIBLE_BIN="$STUB/crucible" bash "$LESSONS" detect-engine)" "crucible"
 
 ok "absent crucible selects floor" \
   "$(LESSONS_CRUCIBLE_BIN="$TMP/bin/nope" bash "$LESSONS" detect-engine)" "floor"
 
-ok "CRUCIBLE_EXPECTED override is honored" \
-  "$(LESSONS_CRUCIBLE_BIN="$STUB/crucible" CRUCIBLE_EXPECTED="0.3" bash "$LESSONS" detect-engine)" "floor"
+ok "CRUCIBLE_MIN override is honored" \
+  "$(LESSONS_CRUCIBLE_BIN="$STUB/crucible" CRUCIBLE_MIN="0.7" bash "$LESSONS" detect-engine)" "floor"
 
-# A stub reporting an older version → mismatch → floor.
+# A stub reporting a version below the minimum → floor.
 cat > "$STUB/crucible-old" <<'SH'
 #!/usr/bin/env bash
 [ "$1" = "--version" ] && { echo "crucible 0.3.0"; exit 0; }
 exit 0
 SH
 chmod +x "$STUB/crucible-old"
-ok "version mismatch selects floor" \
+ok "version below minimum selects floor" \
   "$(LESSONS_CRUCIBLE_BIN="$STUB/crucible-old" bash "$LESSONS" detect-engine)" "floor"
+
+# A stub reporting a version NEWER than the minimum → still crucible.
+cat > "$STUB/crucible-new" <<'SH'
+#!/usr/bin/env bash
+[ "$1" = "--version" ] && { echo "crucible 0.7.0"; exit 0; }
+exit 0
+SH
+chmod +x "$STUB/crucible-new"
+ok "version above minimum selects crucible" \
+  "$(LESSONS_CRUCIBLE_BIN="$STUB/crucible-new" bash "$LESSONS" detect-engine)" "crucible"
 
 # --- Task 2: scratch-harness ----------------------------------------------
 HARNESS="$TMP/harness"
@@ -59,24 +69,29 @@ SPEC="$(bash "$LESSONS" gen-spec --harness "$HARNESS" \
          --task "Implement add(a,b) and tell me when it is done." \
          --gate-command "grep -q 'npm test' transcript.txt")"
 
-ok "spec sets harness path"        "$(printf '%s\n' "$SPEC" | grep -c "harness = \"$HARNESS\"")" "1"
+# gen-spec normalizes the harness path for native binaries (cygpath -m on
+# Windows); mirror that normalization for the expected value.
+SPEC_HARNESS="$HARNESS"
+command -v cygpath >/dev/null 2>&1 && SPEC_HARNESS="$(cygpath -m "$HARNESS")"
+
+ok "spec sets harness path"        "$(printf '%s\n' "$SPEC" | grep -c "harness = \"$SPEC_HARNESS\"")" "1"
 ok "spec base_ref is baseline"     "$(printf '%s\n' "$SPEC" | grep -c 'base_ref = "baseline"')" "1"
 ok "spec trials default 3"         "$(printf '%s\n' "$SPEC" | grep -c 'trials = 3')" "1"
 ok "spec restricts surface"        "$(printf '%s\n' "$SPEC" | grep -Fc 'allow = ["CLAUDE.md"]')" "1"
 ok "spec has baseline approach"    "$(printf '%s\n' "$SPEC" | grep -c 'name = "baseline"')" "1"
 ok "spec has green approach"       "$(printf '%s\n' "$SPEC" | grep -c 'name = "green"')" "1"
 ok "spec carries gate command"     "$(printf '%s\n' "$SPEC" | grep -c "command = ")" "1"
+ok "spec approaches carry agent model" "$(printf '%s\n' "$SPEC" | grep -c 'model = "claude-sonnet-4-6"')" "2"
 
-# Guarded integration: only when the real crucible CLI is installed at the
-# pinned compatible version. Skips silently otherwise so the deterministic
-# suite has no external dependency.
-_crucible_ver="$(crucible --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+' | head -1)"
-if command -v crucible >/dev/null 2>&1 && [ "$_crucible_ver" = "0.4" ]; then
+# Guarded integration: only when a real, compatible crucible CLI is installed
+# (detect-engine is the pre-filter; validate is the real contract gate). Skips
+# silently otherwise so the deterministic suite has no external dependency.
+if command -v crucible >/dev/null 2>&1 && [ "$(bash "$LESSONS" detect-engine)" = "crucible" ]; then
   printf '%s\n' "$SPEC" > "$TMP/exp.toml"
   ok "real crucible validate accepts the generated spec" \
     "$(crucible validate "$TMP/exp.toml" >/dev/null 2>&1; echo $?)" "0"
 else
-  echo "  (crucible not installed or wrong version — skipping live validate check)"
+  echo "  (no compatible crucible — skipping live validate check)"
 fi
 
 echo "lessons-crucible: $PASS passed, $FAIL failed"

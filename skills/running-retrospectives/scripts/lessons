@@ -95,11 +95,16 @@ cmd_prune() {
 cmd_detect_engine() {
   [ $# -eq 0 ] || { echo "usage: lessons detect-engine" >&2; exit 2; }
   local bin="${LESSONS_CRUCIBLE_BIN:-crucible}"
-  local expected="${CRUCIBLE_EXPECTED:-0.4}"   # pinned major.minor; bump when crucible's contract moves
+  local min="${CRUCIBLE_MIN:-0.6}"   # minimum supported major.minor; validate is the real contract gate
   local out ver
   if out="$("$bin" --version 2>/dev/null)"; then
     ver="$(printf '%s' "$out" | grep -oE '[0-9]+\.[0-9]+' | head -1)"
-    if [ "$ver" = "$expected" ]; then echo "crucible"; return 0; fi
+    if [ -n "$ver" ]; then
+      local vmaj="${ver%%.*}" vmin="${ver#*.}" mmaj="${min%%.*}" mmin="${min#*.}"
+      if [ "$vmaj" -gt "$mmaj" ] || { [ "$vmaj" -eq "$mmaj" ] && [ "$vmin" -ge "$mmin" ]; }; then
+        echo "crucible"; return 0
+      fi
+    fi
   fi
   echo "floor"
 }
@@ -126,18 +131,21 @@ cmd_scratch_harness() {
 }
 
 cmd_gen_spec() {
-  local harness="" task="" gate_cmd="" judge_model="claude-haiku-4-5-20251001" trials=3
+  local harness="" task="" gate_cmd="" model="claude-sonnet-4-6" judge_model="claude-haiku-4-5-20251001" trials=3
   while [ $# -gt 0 ]; do
     case "$1" in
       --harness) harness="${2:?--harness needs a value}"; shift 2;;
       --task) task="${2:?--task needs a value}"; shift 2;;
       --gate-command) gate_cmd="${2:?--gate-command needs a value}"; shift 2;;
+      --model) model="${2:?--model needs a value}"; shift 2;;
       --judge-model) judge_model="${2:?--judge-model needs a value}"; shift 2;;
       --trials) trials="${2:?--trials needs a value}"; shift 2;;
       *) echo "unknown flag: $1" >&2; exit 2;;
     esac
   done
-  [ -n "$harness" ] && [ -n "$task" ] || { echo "usage: lessons gen-spec --harness DIR --task TEXT [--gate-command CMD] [--judge-model M] [--trials N]" >&2; exit 2; }
+  [ -n "$harness" ] && [ -n "$task" ] || { echo "usage: lessons gen-spec --harness DIR --task TEXT [--gate-command CMD] [--model M] [--judge-model M] [--trials N]" >&2; exit 2; }
+  # Normalize MSYS-style paths for native binaries (e.g. /tmp/... → C:/...).
+  command -v cygpath >/dev/null 2>&1 && harness="$(cygpath -m "$harness")"
   cat <<EOF
 [experiment]
 name = "rr-lesson-validation"
@@ -162,12 +170,12 @@ model = "$judge_model"
 [[approach]]
 name = "baseline"
 ref = "baseline"
-model = "$judge_model"
+model = "$model"
 
 [[approach]]
 name = "green"
 ref = "green"
-model = "$judge_model"
+model = "$model"
 EOF
 }
 
