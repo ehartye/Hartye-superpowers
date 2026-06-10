@@ -83,6 +83,16 @@ ok "spec has green approach"       "$(printf '%s\n' "$SPEC" | grep -c 'name = "g
 ok "spec carries gate command"     "$(printf '%s\n' "$SPEC" | grep -c "command = ")" "1"
 ok "spec approaches carry agent model" "$(printf '%s\n' "$SPEC" | grep -c 'model = "claude-sonnet-4-6"')" "2"
 
+QSPEC="$(bash "$LESSONS" gen-spec --harness "$HARNESS" --task 'Add a "hello" feature')"
+ok "double quotes in task are TOML-escaped" \
+  "$(printf '%s\n' "$QSPEC" | grep -cF 'task = "Add a \"hello\" feature"')" "1"
+
+NOGATE="$(bash "$LESSONS" gen-spec --harness "$HARNESS" --task "Implement add(a,b).")"
+ok "omitting --gate-command emits no [gate] section" \
+  "$(printf '%s\n' "$NOGATE" | grep -c '^\[gate\]')" "0"
+ok "no-gate spec still has judge section" \
+  "$(printf '%s\n' "$NOGATE" | grep -c '^\[judge\]')" "1"
+
 # Guarded integration: only when a real, compatible crucible CLI is installed
 # (detect-engine is the pre-filter; validate is the real contract gate). Skips
 # silently otherwise so the deterministic suite has no external dependency.

@@ -146,6 +146,9 @@ cmd_gen_spec() {
   [ -n "$harness" ] && [ -n "$task" ] || { echo "usage: lessons gen-spec --harness DIR --task TEXT [--gate-command CMD] [--model M] [--judge-model M] [--trials N]" >&2; exit 2; }
   # Normalize MSYS-style paths for native binaries (e.g. /tmp/... → C:/...).
   command -v cygpath >/dev/null 2>&1 && harness="$(cygpath -m "$harness")"
+  # TOML basic strings: escape backslashes then double quotes.
+  task="$(printf '%s' "$task" | sed 's/\\/\\\\/g; s/"/\\"/g')"
+  gate_cmd="$(printf '%s' "$gate_cmd" | sed 's/\\/\\\\/g; s/"/\\"/g')"
   cat <<EOF
 [experiment]
 name = "rr-lesson-validation"
