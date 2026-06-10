@@ -3,6 +3,7 @@
 #   lessons capture <text> [--source S] [--confidence C] [--session ID]
 #   lessons cluster [--threshold N]
 #   lessons decide --k K --red-fail RF --green-pass GP
+#   lessons crucible-decide [--k K]   (reads crucible query output on stdin)
 #   lessons prune <hash>
 set -uo pipefail
 
@@ -83,6 +84,32 @@ cmd_decide() {
   echo "reject: $reason"; return 1
 }
 
+cmd_crucible_decide() {
+  local k=3
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --k) k="${2:?--k needs a value}"; shift 2;;
+      *) echo "unknown flag: $1" >&2; exit 2;;
+    esac
+  done
+  local input base green
+  input="$(cat)"
+  # Extract "baseline:PASSES/TOTAL" and "green:PASSES/TOTAL" regardless of any
+  # surrounding dict/quote wrapper that `crucible query` prints. Assumes the
+  # approaches are named exactly "baseline" and "green" (gen-spec guarantees
+  # this) and a fresh per-run results DB (one experiment in the trials table).
+  # NOTE: --k must equal the gen-spec --trials value or the reject message
+  # denominator will be wrong (the decision itself uses real counts).
+  base="$(printf '%s' "$input" | grep -oE 'baseline:[0-9]+/[0-9]+' | head -1)"
+  green="$(printf '%s' "$input" | grep -oE 'green:[0-9]+/[0-9]+' | head -1)"
+  [ -n "$base" ] && [ -n "$green" ] || { echo "reject: could not parse crucible results (baseline='$base' green='$green')" >&2; return 1; }
+  local bp bt gp
+  bp="${base#baseline:}"; bt="${bp#*/}"; bp="${bp%/*}"   # baseline passes, total
+  gp="${green#green:}";   gp="${gp%/*}"                  # green passes
+  local rf=$(( bt - bp ))                                # RED-fail = baseline failures
+  cmd_decide --k "$k" --red-fail "$rf" --green-pass "$gp"
+}
+
 cmd_prune() {
   local h="${1:-}"
   [ -n "$h" ] || { echo "usage: lessons prune <hash>" >&2; exit 2; }
@@ -92,10 +119,104 @@ cmd_prune() {
   awk -F'\t' -v h="$h" '$1!=h' "$file" > "$tmp" && mv "$tmp" "$file"
 }
 
+cmd_detect_engine() {
+  [ $# -eq 0 ] || { echo "usage: lessons detect-engine" >&2; exit 2; }
+  local bin="${LESSONS_CRUCIBLE_BIN:-crucible}"
+  local min="${CRUCIBLE_MIN:-0.6}"   # minimum supported major.minor; validate is the real contract gate
+  local out ver
+  if out="$("$bin" --version 2>/dev/null)"; then
+    ver="$(printf '%s' "$out" | grep -oE '[0-9]+\.[0-9]+' | head -1)"
+    if [ -n "$ver" ]; then
+      local vmaj="${ver%%.*}" vmin="${ver#*.}" mmaj="${min%%.*}" mmin="${min#*.}"
+      if [ "$vmaj" -gt "$mmaj" ] || { [ "$vmaj" -eq "$mmaj" ] && [ "$vmin" -ge "$mmin" ]; }; then
+        echo "crucible"; return 0
+      fi
+    fi
+  fi
+  echo "floor"
+}
+
+cmd_scratch_harness() {
+  local dir="${1:-}" lesson="${2:-}"
+  [ -n "$dir" ] && [ -n "$lesson" ] || { echo "usage: lessons scratch-harness <dir> <lesson-text>" >&2; exit 2; }
+  mkdir -p "$dir"
+  git -C "$dir" init -q
+  git -C "$dir" config user.email "rr@local"
+  git -C "$dir" config user.name "running-retrospectives"
+  git -C "$dir" config commit.gpgsign false
+  git -C "$dir" config core.autocrlf false
+  # baseline: CLAUDE.md WITHOUT the lesson (stable marker so the file exists in both refs).
+  printf '# Project guidance\n' > "$dir/CLAUDE.md"
+  git -C "$dir" add CLAUDE.md
+  git -C "$dir" commit -qm baseline
+  git -C "$dir" tag baseline
+  # green: same file WITH the lesson appended.
+  printf '# Project guidance\n\n%s\n' "$lesson" > "$dir/CLAUDE.md"
+  git -C "$dir" add CLAUDE.md
+  git -C "$dir" commit -qm green
+  git -C "$dir" tag green
+}
+
+cmd_gen_spec() {
+  local harness="" task="" gate_cmd="" model="claude-sonnet-4-6" judge_model="claude-haiku-4-5-20251001" trials=3
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --harness) harness="${2:?--harness needs a value}"; shift 2;;
+      --task) task="${2:?--task needs a value}"; shift 2;;
+      --gate-command) gate_cmd="${2:?--gate-command needs a value}"; shift 2;;
+      --model) model="${2:?--model needs a value}"; shift 2;;
+      --judge-model) judge_model="${2:?--judge-model needs a value}"; shift 2;;
+      --trials) trials="${2:?--trials needs a value}"; shift 2;;
+      *) echo "unknown flag: $1" >&2; exit 2;;
+    esac
+  done
+  [ -n "$harness" ] && [ -n "$task" ] || { echo "usage: lessons gen-spec --harness DIR --task TEXT [--gate-command CMD] [--model M] [--judge-model M] [--trials N]" >&2; exit 2; }
+  # Normalize MSYS-style paths for native binaries (e.g. /tmp/... → C:/...).
+  command -v cygpath >/dev/null 2>&1 && harness="$(cygpath -m "$harness")"
+  # TOML basic strings: escape backslashes then double quotes.
+  task="$(printf '%s' "$task" | sed 's/\\/\\\\/g; s/"/\\"/g')"
+  gate_cmd="$(printf '%s' "$gate_cmd" | sed 's/\\/\\\\/g; s/"/\\"/g')"
+  cat <<EOF
+[experiment]
+name = "rr-lesson-validation"
+harness = "$harness"
+base_ref = "baseline"
+trials = $trials
+
+[test_project]
+task = "$task"
+
+[editable_surface]
+allow = ["CLAUDE.md"]
+EOF
+  if [ -n "$gate_cmd" ]; then
+    printf '\n[gate]\ncommand = "%s"\n' "$gate_cmd"
+  fi
+  cat <<EOF
+
+[judge]
+model = "$judge_model"
+
+[[approach]]
+name = "baseline"
+ref = "baseline"
+model = "$model"
+
+[[approach]]
+name = "green"
+ref = "green"
+model = "$model"
+EOF
+}
+
 case "${1:-}" in
   capture) shift; cmd_capture "$@";;
   cluster) shift; cmd_cluster "$@";;
   decide) shift; cmd_decide "$@";;
   prune)  shift; cmd_prune "$@";;
-  *) echo "usage: lessons {capture|cluster|decide|prune} ..." >&2; exit 2;;
+  detect-engine) shift; cmd_detect_engine "$@";;
+  scratch-harness) shift; cmd_scratch_harness "$@";;
+  gen-spec) shift; cmd_gen_spec "$@";;
+  crucible-decide) shift; cmd_crucible_decide "$@";;
+  *) echo "usage: lessons {capture|cluster|decide|prune|detect-engine|scratch-harness|gen-spec|crucible-decide} ..." >&2; exit 2;;
 esac
