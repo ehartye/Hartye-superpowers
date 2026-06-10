@@ -24,6 +24,18 @@ crucible to be installed.
 
 crucible **v0.4.0**, as it exists today, fits the contract nearly as-is:
 
+> **Amendment (2026-06-06, during implementation):** crucible moved to v0.6.x
+> while this phase was being built (it releases fast). v0.6 made per-approach
+> `model` required in the spec schema, so `gen-spec` emits it (`--model`,
+> default claude-sonnet-4-6). Detection policy changed from an exact-match pin
+> to a **minimum version** (`CRUCIBLE_MIN`, default 0.6): the version check is
+> only a pre-filter — the real contract gate is `crucible validate`, which
+> checks the actual generated artifact against the actual installed binary for
+> free on every run, with mechanical failure falling back to the inline floor.
+> One platform note: native-Windows crucible cannot resolve MSYS `/tmp/...`
+> paths, so `gen-spec` normalizes the harness path via `cygpath -m` when
+> available.
+
 - **Headless + machine-readable.** `crucible run <spec.toml>` runs the full loop
   non-interactively and exits 0/non-zero; `crucible query "<sql>"` is a
   documented CLI over the results DB; `crucible validate <spec.toml>` checks the
@@ -50,7 +62,7 @@ owning the decision itself (see Decision). crucible's `verdict=` line is ignored
 ```
 running-retrospectives  validate stage
         │
-        ├─ crucible installed & version-matched?  ──► CRUCIBLE TIER (preferred)
+        ├─ crucible installed & >= minimum version?  ──► CRUCIBLE TIER (preferred)
         │         crucible run → crucible query → RR margin rule
         │
         └─ else ─────────────────────────────────► INLINE FLOOR (v1, unchanged)
@@ -62,7 +74,7 @@ running-retrospectives  validate stage
   promote/reject). Only *who runs the trials* changes.
 - **Detection is automatic:** RR shells out to `crucible --version` (mirroring
   crucible's own `preflight` skill) and falls back silently to the inline floor
-  if crucible is absent or version-mismatched. A user can force the floor.
+  if crucible is absent or below the minimum version. A user can force the floor.
 - **Net concept cost to a stranger: ~0.** No new always-loaded surface, no new
   file the user authors — RR generates the crucible spec internally. crucible is
   an optional accelerant, exactly as v1 promised. Siblings are **detected, never
@@ -136,6 +148,12 @@ baseline gate-pass count, green gate-pass count   (out of k=3 each)
    GREEN failure after RED → bounded reword loop (≤2), then reject
 ```
 
+In practice RR runs each experiment against a **fresh throwaway `--db`**, so the
+`trials` table holds exactly one experiment and the per-approach query needs no
+`experiment_id` filter (crucible's `run` does not print the id, and `crucible
+query` takes no bind parameters). The query encodes `approach:passes/total` as a
+scalar so the result is parseable regardless of the dict-repr row wrapper.
+
 crucible's savings-oriented `verdict=` line is **ignored**; RR consumes only the
 raw trial gate results. The margin logic lives in exactly one place (the
 `lessons decide` primitive from v1), so both tiers share it — the crucible tier
@@ -195,9 +213,10 @@ v1 guarantee.
   spec **before** `crucible run` spends tokens, and no-RED-at-baseline = not
   promotable.
 - **crucible contract drift.** RR depends on `crucible run` / `query` /
-  `validate` CLI shape and the `trials.gate_passed` column. Mitigation: version
-  detection gates the tier; a mismatch falls back to the floor rather than
-  consuming an unverified surface.
+  `validate` CLI shape and the `trials.gate_passed` column. Mitigation: a
+  too-old crucible falls back to the floor at detection; schema drift in a newer
+  crucible is caught by the free `crucible validate` pre-check, which also falls
+  back rather than consuming an unverified surface.
 - **Token cost.** The crucible tier spends real tokens (k=3 × 2 approaches).
   Mitigation: deliberately invoked (never mid-work), user approves before the
   run, `crucible validate` pre-check spends none.
