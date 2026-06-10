@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Runs all deterministic unit tests in tests/unit/ (no tokens, no external CLIs).
+# Runs all deterministic unit tests in tests/unit/ (no tokens, no required
+# external CLIs — guarded checks may use an optional CLI when installed).
 # Each test-*.sh is self-contained and exits non-zero on failure.
 set -uo pipefail
 DIR="$(cd "$(dirname "$0")" && pwd)"

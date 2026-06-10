@@ -178,8 +178,9 @@ discipline as v1:
 
 **Behavioral test (the skill itself):** a pressure scenario where crucible is
 "installed" (stubbed) and the skill must drive the crucible tier rather than the
-inline floor — verifying the conducting skill actually delegates. The existing
-v1 floor behavioral test stays green (degradation path intact).
+inline floor — verifying the conducting skill actually delegates. (v1 shipped no
+behavioral test of its own; the floor path is covered by the deterministic unit
+suite plus a git-diff guard that its SKILL.md sub-steps are byte-identical.)
 
 **Degradation is the safety net:** every crucible-tier failure mode (not
 installed, version mismatch, `crucible run` non-zero exit, malformed query
