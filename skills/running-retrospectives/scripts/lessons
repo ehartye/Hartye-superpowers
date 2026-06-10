@@ -3,6 +3,7 @@
 #   lessons capture <text> [--source S] [--confidence C] [--session ID]
 #   lessons cluster [--threshold N]
 #   lessons decide --k K --red-fail RF --green-pass GP
+#   lessons crucible-decide [--k K]   (reads crucible query output on stdin)
 #   lessons prune <hash>
 set -uo pipefail
 
@@ -81,6 +82,28 @@ cmd_decide() {
   fi
   local reason="baseline failed $rf/$k, with-lesson passed $gp/$k; need >=$majority each"
   echo "reject: $reason"; return 1
+}
+
+cmd_crucible_decide() {
+  local k=3
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --k) k="${2:?--k needs a value}"; shift 2;;
+      *) echo "unknown flag: $1" >&2; exit 2;;
+    esac
+  done
+  local input base green
+  input="$(cat)"
+  # Extract "baseline:PASSES/TOTAL" and "green:PASSES/TOTAL" regardless of any
+  # surrounding dict/quote wrapper that `crucible query` prints.
+  base="$(printf '%s' "$input" | grep -oE 'baseline:[0-9]+/[0-9]+' | head -1)"
+  green="$(printf '%s' "$input" | grep -oE 'green:[0-9]+/[0-9]+' | head -1)"
+  [ -n "$base" ] && [ -n "$green" ] || { echo "reject: could not parse crucible results (baseline='$base' green='$green')" >&2; return 1; }
+  local bp bt gp
+  bp="${base#baseline:}"; bt="${bp#*/}"; bp="${bp%/*}"   # baseline passes, total
+  gp="${green#green:}";   gp="${gp%/*}"                  # green passes
+  local rf=$(( bt - bp ))                                # RED-fail = baseline failures
+  cmd_decide --k "$k" --red-fail "$rf" --green-pass "$gp"
 }
 
 cmd_prune() {
@@ -190,5 +213,6 @@ case "${1:-}" in
   detect-engine) shift; cmd_detect_engine "$@";;
   scratch-harness) shift; cmd_scratch_harness "$@";;
   gen-spec) shift; cmd_gen_spec "$@";;
-  *) echo "usage: lessons {capture|cluster|decide|prune|detect-engine|scratch-harness|gen-spec} ..." >&2; exit 2;;
+  crucible-decide) shift; cmd_crucible_decide "$@";;
+  *) echo "usage: lessons {capture|cluster|decide|prune|detect-engine|scratch-harness|gen-spec|crucible-decide} ..." >&2; exit 2;;
 esac

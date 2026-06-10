@@ -104,5 +104,25 @@ else
   echo "  (no compatible crucible — skipping live validate check)"
 fi
 
+# --- Task 4: crucible-decide ----------------------------------------------
+# Output mimics `crucible query "... approach||':'||SUM(gate_passed)||'/'||COUNT(*) ..."`,
+# which prints one Python dict repr per row. crucible-decide ignores the wrapper.
+PROMOTE_IN="{'r': 'baseline:0/3'}
+{'r': 'green:3/3'}"
+NORED_IN="{'r': 'baseline:2/3'}
+{'r': 'green:3/3'}"
+NOGREEN_IN="{'r': 'baseline:0/3'}
+{'r': 'green:1/3'}"
+
+ok "promote when baseline fails majority and green passes majority" \
+  "$(printf '%s\n' "$PROMOTE_IN" | bash "$LESSONS" crucible-decide --k 3; echo $?)" "promote
+0"
+ok "reject when baseline did not fail enough (no RED)" \
+  "$(printf '%s\n' "$NORED_IN" | bash "$LESSONS" crucible-decide --k 3 >/dev/null; echo $?)" "1"
+ok "reject when green did not pass enough (no GREEN)" \
+  "$(printf '%s\n' "$NOGREEN_IN" | bash "$LESSONS" crucible-decide --k 3 >/dev/null; echo $?)" "1"
+ok "reject (exit 1) when results are unparseable" \
+  "$(printf 'garbage\n' | bash "$LESSONS" crucible-decide --k 3 >/dev/null 2>&1; echo $?)" "1"
+
 echo "lessons-crucible: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]
