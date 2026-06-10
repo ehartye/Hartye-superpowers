@@ -123,6 +123,9 @@ ok "reject when green did not pass enough (no GREEN)" \
   "$(printf '%s\n' "$NOGREEN_IN" | bash "$LESSONS" crucible-decide --k 3 >/dev/null; echo $?)" "1"
 ok "reject (exit 1) when results are unparseable" \
   "$(printf 'garbage\n' | bash "$LESSONS" crucible-decide --k 3 >/dev/null 2>&1; echo $?)" "1"
+ok "crucible-decide defaults k to 3" \
+  "$(printf '%s\n' "$PROMOTE_IN" | bash "$LESSONS" crucible-decide; echo $?)" "promote
+0"
 
 echo "lessons-crucible: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]

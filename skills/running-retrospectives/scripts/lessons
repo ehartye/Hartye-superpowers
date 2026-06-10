@@ -95,7 +95,11 @@ cmd_crucible_decide() {
   local input base green
   input="$(cat)"
   # Extract "baseline:PASSES/TOTAL" and "green:PASSES/TOTAL" regardless of any
-  # surrounding dict/quote wrapper that `crucible query` prints.
+  # surrounding dict/quote wrapper that `crucible query` prints. Assumes the
+  # approaches are named exactly "baseline" and "green" (gen-spec guarantees
+  # this) and a fresh per-run results DB (one experiment in the trials table).
+  # NOTE: --k must equal the gen-spec --trials value or the reject message
+  # denominator will be wrong (the decision itself uses real counts).
   base="$(printf '%s' "$input" | grep -oE 'baseline:[0-9]+/[0-9]+' | head -1)"
   green="$(printf '%s' "$input" | grep -oE 'green:[0-9]+/[0-9]+' | head -1)"
   [ -n "$base" ] && [ -n "$green" ] || { echo "reject: could not parse crucible results (baseline='$base' green='$green')" >&2; return 1; }
