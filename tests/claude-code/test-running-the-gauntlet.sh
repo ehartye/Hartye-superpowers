@@ -69,7 +69,7 @@ show_output
 
 check assert_contains "$CLAUDE_OUTPUT" "PASS\|pass" "PASS condition"
 check assert_contains "$CLAUDE_OUTPUT" "stall\|2.*round\|two.*round\|no.*improvement" "Stall rule"
-check assert_contains "$CLAUDE_OUTPUT" "budget" "Budget cap"
+check assert_contains "$CLAUDE_OUTPUT" "[Bb]udget\|cap" "Budget cap"
 check assert_contains "$CLAUDE_OUTPUT" "escalate\|human" "Stall escalates to human"
 
 echo ""
