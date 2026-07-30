@@ -205,7 +205,14 @@ echo ""
 # Find the session transcript
 # Session files are in ~/.claude/projects/-<working-dir>/<session-id>.jsonl
 # We run from $TEST_PROJECT, so derive from that.
-WORKING_DIR_ESCAPED=$(echo "$TEST_PROJECT" | sed 's/[\/.]/-/g')
+# Claude Code keys the projects dir by the OS-native path. On Windows
+# (Git Bash) translate the POSIX temp path to its Windows form first.
+if command -v cygpath >/dev/null 2>&1; then
+    NATIVE_PATH=$(cygpath -w "$TEST_PROJECT")
+else
+    NATIVE_PATH="$TEST_PROJECT"
+fi
+WORKING_DIR_ESCAPED=$(echo "$NATIVE_PATH" | sed 's/[:\\/.]/-/g')
 SESSION_DIR="$HOME/.claude/projects/$WORKING_DIR_ESCAPED"
 
 # Find the most recent top-level session file (created during this test run).

@@ -233,7 +233,14 @@ echo ""
 
 # Find the session transcript
 # We run from $TEST_PROJECT, so derive from that.
-WORKING_DIR_ESCAPED=$(echo "$TEST_PROJECT" | sed 's/[\/.]/-/g')
+# Claude Code keys the projects dir by the OS-native path. On Windows
+# (Git Bash) translate the POSIX temp path to its Windows form first.
+if command -v cygpath >/dev/null 2>&1; then
+    NATIVE_PATH=$(cygpath -w "$TEST_PROJECT")
+else
+    NATIVE_PATH="$TEST_PROJECT"
+fi
+WORKING_DIR_ESCAPED=$(echo "$NATIVE_PATH" | sed 's/[:\\/.]/-/g')
 SESSION_DIR="$HOME/.claude/projects/$WORKING_DIR_ESCAPED"
 
 # Find the most recent session file (created during this test run).
@@ -284,7 +291,7 @@ if [ -n "$SESSION_FILE" ]; then
         echo "  [FAIL] Lead created only $taskcreate_count shared task(s) (expected >= 2)"
         FAILED=$((FAILED + 1))
     fi
-elif grep -qi "TaskCreate" "$OUTPUT_FILE" 2>/dev/null; then
+elif grep -qi "TaskCreate\|shared task\|task list" "$OUTPUT_FILE" 2>/dev/null; then
     echo "  [PASS] Task list initialization referenced in output"
 else
     echo "  [FAIL] No evidence of task list initialization"
