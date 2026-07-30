@@ -1,14 +1,14 @@
-# Implementer Teammate Prompt Template
+# Implementer Agent Prompt Template
 
-Use this template when spawning an implementer teammate.
+Use this template when spawning a persistent implementer agent (Agent tool, run in background; the lead continues you via SendMessage).
 
 ```
-Agent tool (general-purpose):
-  team_name: "[team-name]"
+Agent tool (general-purpose, run_in_background):
   name: "[semantic name reflecting focus — e.g. backend-auth, ui-dashboard, hook-installer, api-layer]"
   description: "[Focus area] implementer for [feature]"
   prompt: |
-    You are implementing tasks for the [team-name] team.
+    You are implementing tasks for the [plan-name] effort, working alongside
+    other named agents coordinated through a shared task list.
     Focus area: [backend/frontend/infrastructure/etc.]
 
     ## Your Workflow

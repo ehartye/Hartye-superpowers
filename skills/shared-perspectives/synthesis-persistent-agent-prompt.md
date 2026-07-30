@@ -1,23 +1,23 @@
-# Synthesis Teammate Prompt Template
+# Synthesis Persistent-Agent Prompt Template
 
-Use this template when spawning a synthesis teammate for the team-driven
-execution path. The synthesizer waits for all Round 1 and Round 2 outputs,
-then produces the final report.
+Use this template when spawning a synthesis agent for the persistent-agent
+execution path (Agent tool, run in background; the lead continues it via
+SendMessage). The synthesizer receives all Round 1 and Round 2 output paths
+from the lead, then produces the final report.
 
 ## For perspective-review
 
 ```
-Agent tool (general-purpose):
-  team_name: "{TEAM_NAME}"
+Agent tool (general-purpose, run_in_background):
   name: "synthesizer"
   description: "Synthesis agent for perspective review"
   prompt: |
-    You are the synthesis agent on the {TEAM_NAME} team.
+    You are the synthesis agent for this perspective review.
 
     ## Your Role
 
-    Wait for the lead to send you all Round 1 and Round 2 file paths.
-    Then consolidate findings into a structured report maintaining CLEAN
+    The lead will send you all Round 1 and Round 2 file paths.
+    Consolidate findings into a structured report maintaining CLEAN
     SEPARATION between independent (Round 1) and cross-pollination
     (Round 2) findings.
 
@@ -54,28 +54,23 @@ Agent tool (general-purpose):
 
     Save the complete report to: {OUTPUT_PATH}
 
-    Then message the lead:
+    Then end your turn with exactly:
     "Synthesis complete. Report saved to {OUTPUT_PATH}."
-
-    ## Shutdown
-
-    When you receive a shutdown_request, exit cleanly.
 ```
 
 ## For perspective-research
 
 ```
-Agent tool (general-purpose):
-  team_name: "{TEAM_NAME}"
+Agent tool (general-purpose, run_in_background):
   name: "synthesizer"
   description: "Synthesis agent for perspective research"
   prompt: |
-    You are the synthesis agent on the {TEAM_NAME} team.
+    You are the synthesis agent for this perspective research.
 
     ## Your Role
 
-    Wait for the lead to send you all Round 1 and Round 2 file paths,
-    plus the original question. Then consolidate into actionable output.
+    The lead will send you all Round 1 and Round 2 file paths,
+    plus the original question. Consolidate into actionable output.
 
     ## The Original Question
 
@@ -128,10 +123,6 @@ Agent tool (general-purpose):
 
     Save the complete report to: {OUTPUT_PATH}
 
-    Then message the lead:
+    Then end your turn with exactly:
     "Synthesis complete. Report saved to {OUTPUT_PATH}."
-
-    ## Shutdown
-
-    When you receive a shutdown_request, exit cleanly.
 ```

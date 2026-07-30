@@ -70,9 +70,10 @@ Present the choice:
 **1. Subagent-Driven** — Parallel subagents per perspective, file-based
 cross-pollination with agent resume. Fast, efficient, proven.
 
-**2. Team-Driven** — Persistent teammate agents with direct messaging.
-Richer cross-pollination through real-time dialogue. Costs 2-4x more.
-Requires Opus 4.6+ and `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`.
+**2. Persistent-Agent** — Persistent named background agents, continued
+across rounds via SendMessage with full context retained. Richer
+cross-pollination through message-based dialogue. Costs 2-4x more
+(each agent is a full session).
 
 Which approach?"
 
@@ -152,19 +153,12 @@ Save the final report.
 
 ---
 
-## Path B: Team-Driven
+## Path B: Persistent-Agent
 
-### Step 5b: Set up team
+### Step 5b: Fan out persistent agents
 
-Create the team:
-
-```
-TeamCreate(team_name: "perspective-research", description: "Multi-perspective research on [question]")
-```
-
-Read `../shared-perspectives/perspective-teammate-prompt.md` for the research
-teammate template. For each confirmed perspective, fill the template with:
-- `{TEAM_NAME}` — the team name
+Read `../shared-perspectives/perspective-persistent-agent-prompt.md` for the
+research agent template. For each confirmed perspective, fill the template with:
 - `{PERSPECTIVE_NAME}` — the perspective name
 - `{PERSPECTIVE_SLUG}` — kebab-case name (e.g., `adversary`, `business-strategy`)
 - `{PERSPECTIVE_PROCEDURE}` — the full analytical procedure from the catalogue
@@ -173,19 +167,21 @@ teammate template. For each confirmed perspective, fill the template with:
 - `{OUTPUT_PATH_ROUND_1}` — e.g., `<workspace>/round-1/adversary.md`
 - `{OUTPUT_PATH_ROUND_2}` — e.g., `<workspace>/round-2/adversary.md`
 
-Spawn one teammate per perspective using the Agent tool with `team_name`.
+Spawn one named background agent per perspective using the Agent tool
+(`run_in_background`, name = the perspective slug).
 
-Read `../shared-perspectives/synthesis-teammate-prompt.md` for the research
-synthesis teammate template. Spawn the synthesis teammate with `team_name`.
+Read `../shared-perspectives/synthesis-persistent-agent-prompt.md` for the
+research synthesis template. Spawn the synthesis agent the same way.
 
 ### Step 6b: Round 1 + Cross-Pollination
 
-**Round 1:** Each perspective teammate independently explores the question
-and messages you when done. Wait for all perspectives to report completion.
+**Round 1:** Each perspective agent independently explores the question; its
+completion report arrives as a task notification. Wait for all perspectives
+to report completion.
 
-**Round 2:** Once all Round 1 outputs are saved, send each perspective
-teammate the file paths of all OTHER perspectives' Round 1 outputs via
-SendMessage:
+**Round 2:** Once all Round 1 outputs are saved, continue each perspective
+agent via SendMessage (it retains its full Round 1 context) with the file
+paths of all OTHER perspectives' Round 1 outputs:
 
 "Cross-pollination round. Read these other perspectives' Round 1 positions:
 - Adversary: `<workspace>/round-1/adversary.md`
@@ -195,9 +191,9 @@ Your Round 1 position is LOCKED. React only."
 
 Wait for all perspectives to report Round 2 completion.
 
-### Step 7b: Synthesis + Shutdown
+### Step 7b: Synthesis
 
-Send the synthesis teammate all file paths via SendMessage:
+Send the synthesis agent all file paths via SendMessage:
 
 "All rounds complete. Produce the synthesis report.
 Round 1 files: [list with perspective labels]
@@ -205,11 +201,8 @@ Round 2 files: [list with perspective labels]
 Original question: [question]
 Save report to: {OUTPUT_PATH}"
 
-Wait for synthesis to complete. Then shut down:
-
-1. Send `shutdown_request` to each teammate via SendMessage
-2. `Bash("sleep 30", run_in_background=true)` — the harness blocks standalone sleeps; background and wait for the completion notification before step 3
-3. `TeamDelete`
+Wait for synthesis to complete. No teardown is needed — a persistent agent
+that has finished its work simply goes idle.
 
 ---
 

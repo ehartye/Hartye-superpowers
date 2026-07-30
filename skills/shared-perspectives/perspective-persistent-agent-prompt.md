@@ -1,19 +1,21 @@
-# Perspective Teammate Prompt Template
+# Perspective Persistent-Agent Prompt Template
 
-Use this template when spawning perspective teammates for the team-driven
-execution path. Each perspective teammate handles both Round 1 (independent
+Use this template when spawning perspective agents for the persistent-agent
+execution path (Agent tool, run in background; the lead continues each agent
+via SendMessage). Each perspective agent handles both Round 1 (independent
 analysis) and Round 2 (cross-pollination) as a persistent agent with full
 context preserved across rounds.
 
 ## For perspective-review
 
 ```
-Agent tool (general-purpose):
-  team_name: "{TEAM_NAME}"
+Agent tool (general-purpose, run_in_background):
   name: "{PERSPECTIVE_SLUG}"
   description: "{PERSPECTIVE_NAME} perspective for reviewing {TARGET_SUMMARY}"
   prompt: |
-    You are the {PERSPECTIVE_NAME} perspective on the {TEAM_NAME} team.
+    You are the {PERSPECTIVE_NAME} perspective, one of several perspectives
+    reviewing this target in parallel. The lead coordinates you via messages;
+    you keep full context across rounds.
 
     ## Your Analytical Lens
 
@@ -48,7 +50,7 @@ Agent tool (general-purpose):
 
     Save your complete Round 1 output to: {OUTPUT_PATH_ROUND_1}
 
-    Then message the lead via SendMessage:
+    Then end your turn with exactly:
     "Round 1 complete. Findings saved to {OUTPUT_PATH_ROUND_1}."
 
     ## Round 2: Cross-Pollination
@@ -75,24 +77,20 @@ Agent tool (general-purpose):
 
     Save your Round 2 output to: {OUTPUT_PATH_ROUND_2}
 
-    Then message the lead:
+    Then end your turn with exactly:
     "Round 2 complete. Cross-pollination saved to {OUTPUT_PATH_ROUND_2}."
-
-    ## Shutdown
-
-    When you receive a shutdown_request, finish any in-progress work
-    and exit cleanly.
 ```
 
 ## For perspective-research
 
 ```
-Agent tool (general-purpose):
-  team_name: "{TEAM_NAME}"
+Agent tool (general-purpose, run_in_background):
   name: "{PERSPECTIVE_SLUG}"
   description: "{PERSPECTIVE_NAME} perspective for researching {QUESTION_SUMMARY}"
   prompt: |
-    You are the {PERSPECTIVE_NAME} perspective on the {TEAM_NAME} team.
+    You are the {PERSPECTIVE_NAME} perspective, one of several perspectives
+    exploring this question in parallel. The lead coordinates you via messages;
+    you keep full context across rounds.
 
     ## Your Analytical Lens
 
@@ -131,7 +129,7 @@ Agent tool (general-purpose):
 
     Save your complete Round 1 output to: {OUTPUT_PATH_ROUND_1}
 
-    Then message the lead via SendMessage:
+    Then end your turn with exactly:
     "Round 1 complete. Position saved to {OUTPUT_PATH_ROUND_1}."
 
     ## Round 2: Cross-Pollination
@@ -155,11 +153,6 @@ Agent tool (general-purpose):
 
     Save your Round 2 output to: {OUTPUT_PATH_ROUND_2}
 
-    Then message the lead:
+    Then end your turn with exactly:
     "Round 2 complete. Cross-pollination saved to {OUTPUT_PATH_ROUND_2}."
-
-    ## Shutdown
-
-    When you receive a shutdown_request, finish any in-progress work
-    and exit cleanly.
 ```

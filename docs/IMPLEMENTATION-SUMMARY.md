@@ -1,5 +1,11 @@
 # Agent Teams Support - Implementation Summary
 
+> **⚠️ Historical document.** PR summary from the retired experimental "Agent
+> Teams" era (`TeamCreate`/`TeamDelete`, `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`,
+> Opus 4.6). Kept for history; the skills it describes have since been migrated
+> to current primitives (`Agent` tool background agents + `SendMessage` +
+> shared task tools).
+
 ## Overview
 
 This PR adds comprehensive support for Claude's new Agent Teams feature (introduced in Opus 4.6) alongside the existing subagents approach. The implementation enables users to choose between traditional sequential subagent execution and collaborative agent teams with direct inter-agent communication.

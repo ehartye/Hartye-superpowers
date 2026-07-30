@@ -216,4 +216,4 @@ No performative agreement. Technical rigor always.
 
 **Referenced by:**
 - **h-superpowers:subagent-driven-development** - Implementer agents follow these patterns when receiving reviewer feedback
-- **h-superpowers:team-driven-development** - Implementer teammates follow these patterns during review loops
+- **h-superpowers:team-driven-development** - Implementer agents follow these patterns during review loops

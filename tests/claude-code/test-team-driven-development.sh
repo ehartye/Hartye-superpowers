@@ -40,7 +40,7 @@ echo "Test 2: Team vs subagent distinction..."
 run_claude "In the team-driven-development skill, what is the key difference between agent teams and subagents? Answer concisely." 90
 show_output
 
-check assert_contains "$CLAUDE_OUTPUT" "peer.*peer\|direct.*messag\|direct.*communicat\|inter-agent\|communicate.*directly\|messag.*peer\|peers* direct" "Teams have direct communication"
+check assert_contains "$CLAUDE_OUTPUT" "peer.*peer\|direct.*messag\|direct.*communicat\|inter-agent\|communicate.*directly\|messag.*peer\|peers* direct\|messag.*directly\|messag.*each other\|each other directly" "Teams have direct communication"
 check assert_contains "$CLAUDE_OUTPUT" "hub.*spoke\|through.*lead\|sequential\|independent" "Subagents are hub-and-spoke or sequential"
 
 echo ""
@@ -90,13 +90,15 @@ check assert_contains "$CLAUDE_OUTPUT" "2.*4x\|2-4x\|3x\|2x.*4x\|more.*expensive
 
 echo ""
 
-# Test 7: Verify environment prerequisite
-echo "Test 7: Environment setup..."
+# Test 7: Verify harness prerequisites
+echo "Test 7: Harness requirements..."
 
-run_claude "What environment variable must be set before using team-driven-development?" 90
+run_claude "What harness capabilities does team-driven-development require before you can use it?" 90
 show_output
 
-check assert_contains "$CLAUDE_OUTPUT" "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS" "Mentions required env var"
+check assert_contains "$CLAUDE_OUTPUT" "Agent\|background" "Mentions background agents"
+check assert_contains "$CLAUDE_OUTPUT" "SendMessage\|messag" "Mentions inter-agent messaging"
+check assert_contains "$CLAUDE_OUTPUT" "[Tt]ask" "Mentions shared task tools"
 
 echo ""
 

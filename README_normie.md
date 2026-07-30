@@ -2,7 +2,7 @@
 
 > **Looking for the real deal?** Go to [obra/superpowers](https://github.com/obra/superpowers) — Jesse Vincent's original plugin that started it all. It's excellent, well-maintained, and won't burn through your token budget like this fork will.
 
-Hartye-Superpowers is an opinionated, token-hungry fork of [Jesse Vincent's Superpowers](https://github.com/obra/superpowers) — a complete software development workflow for coding agents, built on composable "skills" and initial instructions that ensure your agent uses them. This fork adds **agent team coordination** (multiple agents working in parallel with direct peer-to-peer communication, shared task lists, and worktree isolation), **multi-perspective analysis** (independent analytical perspectives that cross-pollinate findings for deeper review and research), and other experimental enhancements.
+Hartye-Superpowers is an opinionated, token-hungry fork of [Jesse Vincent's Superpowers](https://github.com/obra/superpowers) — a complete software development workflow for coding agents, built on composable "skills" and initial instructions that ensure your agent uses them. This fork adds **multi-agent coordination** (persistent background agents working in parallel with direct peer-to-peer messaging, shared task lists, and worktree isolation), **multi-perspective analysis** (independent analytical perspectives that cross-pollinate findings for deeper review and research), and other experimental enhancements.
 
 > **Original project:** [obra/superpowers](https://github.com/obra/superpowers) by [Jesse Vincent](https://blog.fsck.com/2025/10/09/superpowers/)
 > **This fork:** [ehartye/Hartye-superpowers](https://github.com/ehartye/Hartye-superpowers) maintained by Eric Hartye
@@ -15,11 +15,11 @@ Once it's teased a spec out of the conversation, it shows it to you in chunks sh
 
 After you've signed off on the design, your agent puts together an implementation plan that's clear enough for an enthusiastic junior engineer with poor taste, no judgement, no project context, and an aversion to testing to follow. It emphasizes true red/green TDD, YAGNI (You Aren't Gonna Need It), and DRY. 
 
-Next up, once you say "go", you choose your execution style. **Subagent-driven development** dispatches a fresh agent per task with two-stage review. **Team-driven development** spins up a coordinated squad — a lead agent creates a shared task list, spawns teammates, and they communicate directly via peer-to-peer messaging. Each agent can get its own git worktree for full isolation, or they share one. The lead monitors progress, resolves blockers, and merges everything when it's done. It's not uncommon for Claude to work autonomously for a couple hours at a time without deviating from the plan you put together.
+Next up, once you say "go", you choose your execution style. **Subagent-driven development** dispatches a fresh agent per task with two-stage review. **Team-driven development** spins up a coordinated squad — a lead agent creates a shared task list, fans out persistent background agents, and they communicate directly via peer-to-peer messaging. Each agent can get its own git worktree for full isolation, or they share one. The lead monitors progress, resolves blockers, and merges everything when it's done. It's not uncommon for Claude to work autonomously for a couple hours at a time without deviating from the plan you put together.
 
 There's a bunch more to it, but that's the core of the system. And because the skills trigger automatically, you don't need to do anything special. Your coding agent just has Superpowers.
 
-> **Fair warning:** Agent teams are experimental and require Opus 4.6+. They will consume significantly more tokens than single-agent workflows. The original [obra/superpowers](https://github.com/obra/superpowers) is the sensible choice for most users.
+> **Fair warning:** Multi-agent workflows consume significantly more tokens than single-agent workflows — every persistent agent is a full session. The original [obra/superpowers](https://github.com/obra/superpowers) is the sensible choice for most users.
 
 
 ## Sponsorship
@@ -73,7 +73,7 @@ Fetch and follow instructions from https://raw.githubusercontent.com/ehartye/Har
 
 3. **writing-plans** - Activates with approved design. Breaks work into bite-sized tasks (2-5 minutes each). Every task has exact file paths, complete code, verification steps.
 
-4. **subagent-driven-development**, **team-driven-development**, or **executing-plans** - Activates with plan. Dispatches fresh subagent per task with two-stage review (spec compliance, then code quality), uses collaborative agent teams with inter-agent communication for complex coordinated work, or executes in batches with human checkpoints.
+4. **subagent-driven-development**, **team-driven-development**, or **executing-plans** - Activates with plan. Dispatches fresh subagent per task with two-stage review (spec compliance, then code quality), uses coordinated persistent agents with inter-agent messaging for complex coordinated work, or executes in batches with human checkpoints.
 
 5. **test-driven-development** - Activates during implementation. Enforces RED-GREEN-REFACTOR: write failing test, watch it fail, write minimal code, watch it pass, commit. Deletes code written before tests.
 
@@ -135,7 +135,7 @@ The whole thing — design through PR — typically runs without you touching co
 - **using-git-worktrees** - Parallel development branches
 - **finishing-a-development-branch** - Merge/PR decision workflow
 - **subagent-driven-development** - Fast iteration with two-stage review (spec compliance, then code quality)
-- **team-driven-development** - Collaborative agent teams with direct inter-agent communication for coordinated work (experimental, Opus 4.6+)
+- **team-driven-development** - Coordinated persistent agents with direct inter-agent messaging for coordinated work (token-hungry; every agent is a full session)
 
 **Agents**
 - **code-reviewer** - Bundled agent for systematic code review against plans and coding standards
