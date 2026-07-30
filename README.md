@@ -90,6 +90,7 @@ Fetch and follow instructions from https://raw.githubusercontent.com/ehartye/Har
 
 **Collaboration**
 - **brainstorming** — Socratic design refinement
+- **running-the-gauntlet** — Bar-driven development. Define what done LOOKS LIKE as ratified artifacts, then builder/blind-critic agents loop against the frozen bar until a critic who never built the thing is satisfied. Screenshots don't lie, brother.
 - **writing-plans** — Battle-tested implementation plans
 - **executing-plans** — Batch execution with human checkpoints
 - **dispatching-parallel-agents** — Concurrent subagent workflows
