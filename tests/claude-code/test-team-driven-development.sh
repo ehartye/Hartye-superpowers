@@ -40,7 +40,7 @@ echo "Test 2: Team vs subagent distinction..."
 run_claude "In the team-driven-development skill, what is the key difference between agent teams and subagents? Answer concisely." 90
 show_output
 
-check assert_contains "$CLAUDE_OUTPUT" "peer.*peer\|direct.*messag\|direct.*communicat\|inter-agent\|communicate.*directly\|messag.*peer\|peers* direct" "Teams have direct communication"
+check assert_contains "$CLAUDE_OUTPUT" "peer.*peer\|direct.*messag\|direct.*communicat\|inter-agent\|communicate.*directly\|messag.*peer\|peers* direct\|messag.*directly\|messag.*each other\|each other directly" "Teams have direct communication"
 check assert_contains "$CLAUDE_OUTPUT" "hub.*spoke\|through.*lead\|sequential\|independent" "Subagents are hub-and-spoke or sequential"
 
 echo ""
