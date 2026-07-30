@@ -101,6 +101,7 @@ else
         "test-using-superpowers.sh"
         "test-subagent-driven-development.sh"
         "test-team-driven-development.sh"
+        "test-running-the-gauntlet.sh"
     )
     if [ "$RUN_INTEGRATION" = true ]; then
         tests+=("${integration_tests[@]}")

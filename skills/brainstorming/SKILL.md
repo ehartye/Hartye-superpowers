@@ -36,7 +36,7 @@ You MUST create a task for each of these items and complete them in order:
 6. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
 7. **Spec self-review** — quick inline check for placeholders, consistency, scope, ambiguity, YAGNI (see below)
 8. **User reviews written spec** — ask user to review the spec file before proceeding
-9. **Transition to implementation** — invoke writing-plans skill to create implementation plan
+9. **Transition to implementation** — pick the path: tasks enumerable → invoke writing-plans; done only recognizable by looking (polish, parity with an exemplar, UI completeness, practices adherence) → invoke running-the-gauntlet
 
 ## Process Flow
 
@@ -52,7 +52,9 @@ digraph brainstorming {
     "Write design doc" [shape=box];
     "Spec self-review\n(fix inline)" [shape=box];
     "User reviews spec?" [shape=diamond];
+    "Tasks enumerable?" [shape=diamond];
     "Invoke writing-plans skill" [shape=doublecircle];
+    "Invoke running-the-gauntlet skill" [shape=doublecircle];
 
     "Explore project context" -> "Visual questions ahead?";
     "Visual questions ahead?" -> "Offer Visual Companion\n(own message, no other content)" [label="yes"];
@@ -66,11 +68,13 @@ digraph brainstorming {
     "Write design doc" -> "Spec self-review\n(fix inline)";
     "Spec self-review\n(fix inline)" -> "User reviews spec?";
     "User reviews spec?" -> "Write design doc" [label="changes requested"];
-    "User reviews spec?" -> "Invoke writing-plans skill" [label="approved"];
+    "User reviews spec?" -> "Tasks enumerable?" [label="approved"];
+    "Tasks enumerable?" -> "Invoke writing-plans skill" [label="yes - spec path"];
+    "Tasks enumerable?" -> "Invoke running-the-gauntlet skill" [label="no - done is recognized, not enumerated"];
 }
 ```
 
-**The terminal state is invoking writing-plans.** Do NOT invoke any domain-specific implementation skill (e.g., UI builders, scaffolding tools). The ONLY skill you invoke after brainstorming is writing-plans.
+**The terminal state is invoking writing-plans OR running-the-gauntlet.** Do NOT invoke any domain-specific implementation skill (e.g., UI builders, scaffolding tools). The fork rubric: **can you enumerate the tasks now? → writing-plans. Can you only recognize done when you see it** (polish target, parity with an exemplar, UI completeness, best-practices adherence) **→ running-the-gauntlet** (it defines and ratifies the bar before any building). When in doubt, writing-plans is the default.
 
 ## The Process
 
@@ -127,11 +131,13 @@ After writing the spec document, look at it with fresh eyes. **Calibration:** on
 Fix any real issues inline. No need to re-review — just fix and move on.
 
 **User Review Gate:**
-After the spec self-review, ask the user to review the written spec file before proceeding to writing-plans. The user may have caught something the design conversation missed once they see it on paper.
+After the spec self-review, ask the user to review the written spec file before proceeding to the implementation path (writing-plans or running-the-gauntlet). The user may have caught something the design conversation missed once they see it on paper.
 
 **Implementation:**
-- Once the user approves the spec, invoke the writing-plans skill to create a detailed implementation plan
-- Do NOT invoke any other skill. writing-plans is the next step.
+- Once the user approves the spec, pick the path by the fork rubric:
+  - **Tasks enumerable** → invoke the writing-plans skill to create a detailed implementation plan (the default)
+  - **Done only recognizable by looking** → invoke the running-the-gauntlet skill to define and ratify the bar, then loop against it
+- Do NOT invoke any other skill. writing-plans or running-the-gauntlet is the next step.
 
 ## Key Principles
 
@@ -167,7 +173,8 @@ If the user agrees to the companion, read the full guide before proceeding:
 **Invoked by:** User directly (entry point for creative work)
 
 **Hands off to:**
-- **h-superpowers:writing-plans** - Creates implementation plan from the approved design
+- **h-superpowers:writing-plans** - Creates implementation plan from the approved design (spec path — tasks enumerable)
+- **h-superpowers:running-the-gauntlet** - Defines a ratified bar and loops builder/critic agents against it (bar path — done is recognized, not enumerated)
 
 **Optional companion:**
 - **Visual companion** (this skill directory) — browser-based mockup/diagram tool for visual questions. See `visual-companion.md`.
