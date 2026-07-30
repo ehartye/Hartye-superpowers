@@ -141,7 +141,7 @@ After saving the plan, offer execution choice:
 
 **1. Subagent-Driven (this session)** - I dispatch fresh subagent per task, review between tasks, fast iteration
 
-**2. Team-Driven (this session, experimental)** - Multiple persistent agents work in parallel with direct inter-agent communication; best when tasks need coordination. Requires Opus 4.6+ and `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`. Costs 2–4x more.
+**2. Team-Driven (this session)** - Multiple persistent named background agents work in parallel with inter-agent messaging (`SendMessage`) and a shared task list; best when tasks need coordination. Each agent is a full session — costs 2–4x more.
 
 **3. Inline Execution (this session)** - Execute tasks in this session using executing-plans (no subagents); the fallback when subagent/team execution isn't desired
 

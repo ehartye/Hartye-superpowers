@@ -1,5 +1,11 @@
 # Agent Teams Support Analysis
 
+> **⚠️ Historical document.** This analysis describes the retired experimental
+> "Agent Teams" era (`TeamCreate`/`TeamDelete`, `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`,
+> Opus 4.6). Current Claude Code provides this natively: persistent background
+> agents via the `Agent` tool, inter-agent messaging via `SendMessage`, and
+> shared task tools. See `skills/team-driven-development/` for the current model.
+
 ## Executive Summary
 
 This document analyzes the work needed to add native Claude Agent Teams support to Superpowers alongside the current subagents approach. Agent Teams is a new experimental feature in Claude Code (Opus 4.6+) that enables direct inter-agent communication and collaborative AI workflows.

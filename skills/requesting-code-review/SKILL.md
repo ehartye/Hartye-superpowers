@@ -83,7 +83,7 @@ You: [Fix progress indicators]
 
 **Team-Driven Development:**
 - Review after each task completion
-- Reviewer teammate provides feedback via SendMessage
+- Reviewer agent provides feedback via SendMessage
 - Implementer follows receiving-code-review discipline when handling feedback
 
 **Executing Plans:**

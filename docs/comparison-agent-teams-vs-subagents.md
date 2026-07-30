@@ -1,5 +1,11 @@
 # Agent Teams vs Subagents: Comparison Guide
 
+> **⚠️ Historical document.** Written during the retired experimental "Agent
+> Teams" era. The decision guidance still broadly applies, but the mechanics
+> (`TeamCreate`, env vars, Opus 4.6 gating) are obsolete — current Claude Code
+> runs persistent background agents natively via the `Agent` tool and
+> `SendMessage`. See `skills/team-driven-development/` for the current model.
+
 This guide helps you choose between Claude's Agent Teams and the traditional Subagent approach for executing implementation plans.
 
 ## Quick Decision Matrix

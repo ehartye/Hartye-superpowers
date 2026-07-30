@@ -1,6 +1,6 @@
 <div align="center">
 
-![SUPERPOWERS — NOW WITH AGENT TEAMS](hsp-banner-disc.jpg)
+![SUPERPOWERS — FAN OUT THE AGENTS](hsp-banner-disc.jpg)
 
 </div>
 
@@ -20,7 +20,7 @@ The original [obra/superpowers](https://github.com/obra/superpowers) gives your 
 
 This fork looked at that and said **"WHAT IF WE TURNED IT UP TO ELEVEN?"**
 
-**AGENT TEAMS, BABY.** Multiple agents working together — a lead agent spawning teammates, assigning tasks through shared task lists, agents talking DIRECTLY to each other, each one in its own isolated git worktree so nobody steps on anybody's toes. The lead watches the board, resolves blockers, merges the branches, and delivers a finished feature while you're out getting coffee.
+**FAN OUT THE AGENTS, BABY.** Multiple agents working together — a lead spawning a crew of persistent background agents, assigning tasks through shared task lists, agents messaging each other DIRECTLY, each one in its own isolated git worktree so nobody steps on anybody's toes. The lead watches the board, resolves blockers, merges the branches, and delivers a finished feature while you're out getting coffee.
 
 **MULTI-PERSPECTIVE ANALYSIS, BROTHER.** Want a second opinion on your architecture? How about FOUR second opinions? Perspective-review spawns a squad of independently-minded analysts — an Adversary looking for exploits, an Operator imagining the 3am production fire, a Performance engineer modeling 100x load — and then makes them ARGUE WITH EACH OTHER in a cross-pollination round. Novel insights the baseline brain CANNOT produce. It's like having a whole review board, except they actually read the code.
 
@@ -36,7 +36,7 @@ Will it consume tokens like a man possessed? **YOU BET IT WILL.** That's the pri
 
 4. **EXECUTION** — And here's where you CHOOSE YOUR DESTINY:
    - **Subagent-Driven** — One agent per task, two-stage review. Fast. Clean. The classic.
-   - **Team-Driven** — A WHOLE SQUAD of agents coordinating through direct messaging and shared task lists. Each agent gets its own worktree. The lead orchestrates. It's beautiful chaos. *(Opus 4.6+ only, and your token budget WILL feel it.)*
+   - **Team-Driven** — A WHOLE SQUAD of persistent background agents coordinating through direct messaging and shared task lists. Each agent gets its own worktree. The lead orchestrates. It's beautiful chaos. *(Every agent is a full session, and your token budget WILL feel it.)*
    - **Manual** — You execute the plan yourself in a parallel session. For the control freaks. No judgment.
 
 5. **TEST-DRIVEN DEVELOPMENT** — RED. GREEN. REFACTOR. No exceptions. Write the test first or the skill will DELETE YOUR CODE. The Macho Man respects TDD.
@@ -97,7 +97,7 @@ Fetch and follow instructions from https://raw.githubusercontent.com/ehartye/Har
 - **using-git-worktrees** — Isolated development branches
 - **finishing-a-development-branch** — The clean exit
 - **subagent-driven-development** — Fast iteration with two-stage review
-- **team-driven-development** — THE MAIN EVENT. Agent teams with peer-to-peer messaging, shared task lists, and per-agent worktree isolation. *(Experimental. Opus 4.6+. Token-hungry. Glorious.)*
+- **team-driven-development** — THE MAIN EVENT. Persistent agent crews with peer-to-peer messaging, shared task lists, and per-agent worktree isolation. *(Token-hungry. Glorious.)*
 
 **Agents**
 - **code-reviewer** — Bundled agent for systematic code review against plans and standards
