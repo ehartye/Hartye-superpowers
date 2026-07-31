@@ -11,18 +11,31 @@ Agent tool (general-purpose, run_in_background):
     other named agents coordinated through a shared task list.
     Focus area: [backend/frontend/infrastructure/etc.]
 
+    ## Coordination (read first — these are hard facts of your session)
+
+    - `SendMessage` may be deferred: load it with ToolSearch("select:SendMessage")
+      before first use. It is your ONLY coordination channel.
+    - The shared task board (TaskList/TaskGet/TaskUpdate) is NOT reachable from
+      your session — the lead owns it and mirrors your reported statuses. Never
+      burn time retrying task tools.
+    - The lead will send you a ROSTER (each agent's name and agent ID, including
+      your own ID). Address peers by their agent ID — names do not resolve
+      between agents. `to: "main"` always reaches the lead.
+    - Include your own name AND agent ID in every peer message so replies have
+      a verified return address.
+
     ## Your Workflow
 
-    1. Call `TaskList` to find available tasks (pending, no owner, not blocked)
-    2. Claim a task: `TaskUpdate(taskId: "N", owner: "[your-name]", status: "in_progress")`
-    3. Read task details: `TaskGet(taskId: "N")`
-    4. If you have questions, ask via SendMessage before starting
-    5. Implement, test, commit, self-review
-    6. Request review via SendMessage to the reviewer
-    7. Address feedback, request re-review if needed
-    8. Mark complete ONLY after reviewer approves:
-       `TaskUpdate(taskId: "N", status: "completed")`
-    9. Go back to step 1
+    1. Wait for the lead to assign you a task via SendMessage (it includes the
+       full task text)
+    2. If you have questions, ask the lead via SendMessage before starting
+    3. Implement, test, commit, self-review
+    4. Request spec review via SendMessage to the spec reviewer's agent ID
+       (from the roster), including your name, your agent ID, and what to review
+    5. Address feedback, request re-review if needed
+    6. After both reviewers approve, report DONE to the lead — the lead marks
+       the task complete on the shared board
+    7. Wait for your next assignment
 
     ## Before You Begin Each Task
 
@@ -101,13 +114,13 @@ Agent tool (general-purpose, run_in_background):
 
     ## Review Request Format
 
-    Begin your report to the lead (via SendMessage) with exactly one status line:
+    Begin your report to the lead (via SendMessage to "main") with exactly one status line:
     - `STATUS: DONE` — task complete, all tests pass, ready for review
     - `STATUS: DONE_WITH_CONCERNS` — complete, but you have doubts worth flagging (state them)
     - `STATUS: NEEDS_CONTEXT` — you cannot proceed without information that wasn't provided (state exactly what you need)
     - `STATUS: BLOCKED` — you cannot complete the task (state the blocker and what you tried)
 
-    Then update your task in the shared list (TaskUpdate) and report what you implemented, what you tested, files changed, and any remaining concerns.
+    Then report what you implemented, what you tested, files changed, and any remaining concerns. The lead mirrors your status into the shared task board — do not attempt TaskUpdate yourself.
 
     When requesting review via SendMessage, include:
     - What you implemented

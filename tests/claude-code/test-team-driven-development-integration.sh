@@ -180,9 +180,9 @@ PROMPT="Execute the implementation plan at docs/plans/implementation-plan.md usi
 IMPORTANT: Follow the team-driven-development skill exactly. I will be verifying that you:
 1. Create a shared task entry for each plan task (TaskCreate)
 2. Spawn at least 2 named background agents via the Agent tool
-3. Use the shared task list for coordination (agents claim tasks via TaskUpdate)
-4. Agents communicate via SendMessage
-5. Tasks are claimed and completed by different agents
+3. Broadcast the roster (agent names -> agent IDs) so agents can address peers by ID
+4. Agents communicate via SendMessage; you mirror their reported statuses into the shared task list
+5. Tasks are worked and completed by different agents
 6. When all tasks are complete: verify TaskList, run tests, summarize, and stop
 
 The plan has 2 tasks where Task 2 depends on Task 1.
@@ -345,6 +345,22 @@ else
         echo "  [FAIL] No evidence of inter-agent communication"
         FAILED=$((FAILED + 1))
     fi
+fi
+echo ""
+
+# Test 4b: Peer addressing health (roster protocol)
+# Agents must address peers by agent ID; failed name-resolution sends mean
+# the roster protocol broke down (self-corrected or not).
+echo "Test 4b: Peer addressing health..."
+if [ -n "$SESSION_FILE" ]; then
+    name_fail_count=$(cat $ALL_SESSION_FILES 2>/dev/null | grep -o "No agent named '[^']*' is reachable" | wc -l | tr -d ' ') || name_fail_count=0
+    if [ "$name_fail_count" -eq 0 ]; then
+        echo "  [PASS] Zero failed name-addressed sends (roster protocol held)"
+    else
+        echo "  [WARN] $name_fail_count failed name-addressed send(s) — roster protocol degraded (agents recovered via lead relay or IDs)"
+    fi
+else
+    echo "  [WARN] No transcript available to verify"
 fi
 echo ""
 
