@@ -525,7 +525,7 @@ echo ""
 # the roster protocol broke down (self-corrected or not).
 echo "Test 9b: Peer addressing health..."
 if [ -n "$SESSION_FILE" ]; then
-    name_fail_count=$(cat $ALL_SESSION_FILES 2>/dev/null | grep -o "No agent named '[^']*' is reachable" | wc -l | tr -d ' ')
+    name_fail_count=$(cat $ALL_SESSION_FILES 2>/dev/null | grep -o "No agent named '[^']*' is reachable" | wc -l | tr -d ' ') || name_fail_count=0
     if [ "$name_fail_count" -eq 0 ]; then
         echo "  [PASS] Zero failed name-addressed sends (roster protocol held)"
     else
