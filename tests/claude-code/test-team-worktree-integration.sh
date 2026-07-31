@@ -17,8 +17,8 @@ echo " Integration Test: per-agent worktrees"
 echo "========================================"
 echo ""
 echo "This test exercises the worktree-based team workflow and verifies:"
-echo "  1. TeamCreate is used to initialize a team"
-echo "  2. Multiple agents are spawned as teammates"
+echo "  1. Shared task list is initialized by the lead (TaskCreate)"
+echo "  2. Multiple named background agents are spawned via the Agent tool"
 echo "  3. Per-agent worktrees are created (git worktree add)"
 echo "  4. Math module: src/math.js + tests"
 echo "  5. Text module: src/text.js + tests"
@@ -26,7 +26,7 @@ echo "  6. Barrel file: src/index.js re-exports both modules"
 echo "  7. npm test passes after merge"
 echo "  8. Merge commits or both modules present on main"
 echo "  9. Worktree cleanup (remove/prune)"
-echo " 10. Proper shutdown of team members"
+echo " 10. No retired team tools (TeamCreate/TeamDelete/shutdown ritual) are attempted"
 echo ""
 echo "WARNING: This test may take 35-60 minutes to complete."
 echo "WARNING: Each spawned agent runs as a full Claude session (sequential)."
@@ -63,12 +63,7 @@ sigterm_handler() {
 }
 trap sigterm_handler SIGTERM
 
-# Agent teams require these env vars
-if [ "${CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS:-}" != "1" ]; then
-    echo "NOTE: Setting CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 for this test"
-    export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
-fi
-
+# Shared task tools must be enabled for headless coordination
 if [ "${CLAUDE_CODE_ENABLE_TASKS:-}" != "true" ]; then
     echo "NOTE: Setting CLAUDE_CODE_ENABLE_TASKS=true for this test"
     export CLAUDE_CODE_ENABLE_TASKS=true
@@ -89,9 +84,6 @@ echo "Test project: $TEST_PROJECT"
 # Trap to cleanup
 cleanup() {
     cleanup_test_project "$TEST_PROJECT"
-    # Clean up any team artifacts created during the test
-    rm -rf "$HOME/.claude/teams/test-worktree-integration" 2>/dev/null || true
-    rm -rf "$HOME/.claude/tasks/test-worktree-integration" 2>/dev/null || true
 }
 trap cleanup EXIT
 
@@ -195,6 +187,8 @@ echo ""
 echo "  To monitor in real time, run in another terminal:"
 echo "    python3 $SCRIPT_DIR/monitor-session.py $TEST_PROJECT"
 echo ""
+RUN_START_MARKER="$TEST_PROJECT/.run-start"
+touch "$RUN_START_MARKER"
 progress "Phase 2/4: Starting team execution (this takes 15-30 min)..."
 echo ""
 
@@ -205,23 +199,21 @@ OUTPUT_FILE="$TEST_PROJECT/claude-output.txt"
 # Use --plugin-dir so skills are discovered from the plugin repo.
 PROMPT="Execute the implementation plan at docs/plans/implementation-plan.md using the team-driven-development skill.
 
-Use team name 'test-worktree-integration'.
-
 IMPORTANT: The plan specifies per-agent worktrees. Follow the team-driven-development skill exactly. I will be verifying that you:
-1. Create a team using TeamCreate
+1. Create a shared task entry for each plan task (TaskCreate)
 2. Create worktrees for each implementer (git worktree add)
-3. Spawn at least 2 implementer teammates, each working in their own worktree
+3. Spawn at least 2 named background implementer agents via the Agent tool, each working in their own worktree
 4. Each implementer creates their module, tests, and updates the barrel file
 5. After tasks complete, merge branches into main and run npm test
-6. Clean up worktrees and shut down team members
+6. Clean up worktrees, verify TaskList shows all tasks completed, summarize, and stop
 
-HEADLESS MODE: After spawning teammates, you must poll for completion:
-  1. Bash(\"sleep 15\") to stay alive
+HEADLESS MODE: After spawning agents, you must poll for completion:
+  1. Bash(\"sleep 15\", run_in_background=true) and wait for its notification to stay alive
   2. TaskList to check statuses
-  3. If all tasks completed: run tests, merge worktree branches into main, send shutdown_request to all teammates, Bash(\"sleep 30\"), TeamDelete, then summarize and stop
+  3. If all tasks completed: run tests, merge worktree branches into main, clean up worktrees, then summarize and stop. There is no shutdown ritual — finished agents simply go idle.
   4. Otherwise repeat from step 1
 
-Begin now. Execute the plan with a team using per-agent worktrees."
+Begin now. Execute the plan with your agent crew using per-agent worktrees."
 
 progress "Running Claude with team-driven-development skill (worktree mode)..."
 echo "  Output: $OUTPUT_FILE"
@@ -243,15 +235,22 @@ echo ""
 
 # Find the session transcript
 # We run from $TEST_PROJECT, so derive from that.
-WORKING_DIR_ESCAPED=$(echo "$TEST_PROJECT" | sed 's/[\/.]/-/g')
+# Claude Code keys the projects dir by the OS-native path. On Windows
+# (Git Bash) translate the POSIX temp path to its Windows form first.
+if command -v cygpath >/dev/null 2>&1; then
+    NATIVE_PATH=$(cygpath -w "$TEST_PROJECT")
+else
+    NATIVE_PATH="$TEST_PROJECT"
+fi
+WORKING_DIR_ESCAPED=$(echo "$NATIVE_PATH" | sed 's/[:\\/.]/-/g')
 SESSION_DIR="$HOME/.claude/projects/$WORKING_DIR_ESCAPED"
 
 # Find the most recent session file (created during this test run).
 # The { ... || true; } prevents pipefail from aborting if SESSION_DIR doesn't exist.
-SESSION_FILE=$({ find "$SESSION_DIR" -maxdepth 1 -name "*.jsonl" -type f -mmin -60 2>/dev/null || true; } | sort -r | head -1)
+SESSION_FILE=$({ find "$SESSION_DIR" -maxdepth 1 -name "*.jsonl" -type f -newer "$RUN_START_MARKER" 2>/dev/null || true; } | sort -r | head -1)
 
 # Also collect subagent session files (background agents write here)
-SUBAGENT_FILES=$({ find "$SESSION_DIR" -path "*/subagents/*.jsonl" -type f -mmin -60 2>/dev/null || true; } | sort)
+SUBAGENT_FILES=$({ find "$SESSION_DIR" -path "*/subagents/*.jsonl" -type f -newer "$RUN_START_MARKER" 2>/dev/null || true; } | sort)
 if [ -n "$SUBAGENT_FILES" ]; then
     SUBAGENT_COUNT=$(echo "$SUBAGENT_FILES" | wc -l | tr -d ' ')
     echo "Found $SUBAGENT_COUNT subagent session file(s)"
@@ -284,14 +283,20 @@ echo ""
 echo "=== Verification Tests ==="
 echo ""
 
-# Test 1: Team was created
-echo "Test 1: Team creation..."
-if [ -n "$SESSION_FILE" ] && grep -q '"name":"TeamCreate"' "$SESSION_FILE" 2>/dev/null; then
-    echo "  [PASS] TeamCreate tool was called"
-elif grep -qi "TeamCreate\|team.*creat\|creat.*team" "$OUTPUT_FILE" 2>/dev/null; then
-    echo "  [PASS] Team creation referenced in output"
+# Test 1: Shared task list initialized by the lead
+echo "Test 1: Task list initialization..."
+if [ -n "$SESSION_FILE" ]; then
+    taskcreate_count=$(grep -c '"name":"TaskCreate"' "$SESSION_FILE" 2>/dev/null) || taskcreate_count=0
+    if [ "$taskcreate_count" -ge 2 ]; then
+        echo "  [PASS] Lead created $taskcreate_count shared task(s) via TaskCreate"
+    else
+        echo "  [FAIL] Lead created only $taskcreate_count shared task(s) (expected >= 2)"
+        FAILED=$((FAILED + 1))
+    fi
+elif grep -qi "TaskCreate\|shared task\|task list" "$OUTPUT_FILE" 2>/dev/null; then
+    echo "  [PASS] Task list initialization referenced in output"
 else
-    echo "  [FAIL] No evidence of team creation"
+    echo "  [FAIL] No evidence of task list initialization"
     FAILED=$((FAILED + 1))
 fi
 echo ""
@@ -310,7 +315,7 @@ if [ -n "$SESSION_FILE" ]; then
         FAILED=$((FAILED + 1))
     fi
 else
-    if grep -qi "spawn\|teammate\|implementer" "$OUTPUT_FILE" 2>/dev/null; then
+    if grep -qi "spawn\|background agent\|implementer" "$OUTPUT_FILE" 2>/dev/null; then
         echo "  [PASS] Agent spawning referenced in output"
     else
         echo "  [FAIL] No evidence of agent spawning"
@@ -515,24 +520,20 @@ else
 fi
 echo ""
 
-# Test 10: Shutdown
-echo "Test 10: Team shutdown..."
+# Test 10: No retired team tools attempted
+# TeamCreate/TeamDelete/shutdown_request no longer exist; any attempt means
+# the skill is still teaching the retired flow.
+echo "Test 10: No retired team tools attempted..."
 if [ -n "$SESSION_FILE" ]; then
-    if cat $ALL_SESSION_FILES 2>/dev/null | grep -q '"type":"shutdown_request"\|"type":"shutdown_response"'; then
-        echo "  [PASS] Graceful shutdown protocol used"
-    elif cat $ALL_SESSION_FILES 2>/dev/null | grep -q '"name":"TeamDelete"'; then
-        echo "  [PASS] TeamDelete called for cleanup"
+    if cat $ALL_SESSION_FILES 2>/dev/null | grep -q '"name":"TeamCreate"\|"name":"TeamDelete"\|shutdown_request'; then
+        echo "  [FAIL] Retired team tools/protocol attempted (TeamCreate/TeamDelete/shutdown_request)"
+        FAILED=$((FAILED + 1))
     else
-        echo "  [WARN] No explicit shutdown protocol found (agents may have exited naturally)"
-        WARNED=$((WARNED + 1))
+        echo "  [PASS] No retired team tools attempted"
     fi
 else
-    if grep -qi "shutdown\|TeamDelete\|shut.*down" "$OUTPUT_FILE" 2>/dev/null; then
-        echo "  [PASS] Shutdown referenced in output"
-    else
-        echo "  [WARN] No explicit shutdown evidence (agents may have exited naturally)"
-        WARNED=$((WARNED + 1))
-    fi
+    echo "  [WARN] No transcript available to verify"
+    WARNED=$((WARNED + 1))
 fi
 echo ""
 
@@ -570,8 +571,8 @@ if [ $FAILED -eq 0 ]; then
     fi
     echo ""
     echo "The per-agent worktree workflow correctly:"
-    echo "  - Created a team with TeamCreate"
-    echo "  - Spawned multiple agent teammates"
+    echo "  - Initialized the shared task list (TaskCreate)"
+    echo "  - Spawned multiple named background agents"
     echo "  - Used per-agent worktrees for isolation"
     echo "  - Created math module (add, subtract, multiply)"
     echo "  - Created text module (capitalize, lowercase, trim)"

@@ -74,7 +74,7 @@ while [[ $# -gt 0 ]]; do
             echo ""
             echo "Integration Tests (use --integration):"
             echo "  test-subagent-driven-development-integration.sh  Full subagent workflow execution"
-            echo "  test-team-driven-development-integration.sh      Full agent team workflow execution"
+            echo "  test-team-driven-development-integration.sh      Full persistent-agent workflow execution"
             echo "  test-team-worktree-integration.sh                Per-agent worktree workflow execution"
             exit 0
             ;;
