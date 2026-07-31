@@ -202,8 +202,8 @@ PROMPT="Execute the implementation plan at docs/plans/implementation-plan.md usi
 IMPORTANT: The plan specifies per-agent worktrees. Follow the team-driven-development skill exactly. I will be verifying that you:
 1. Create a shared task entry for each plan task (TaskCreate)
 2. Create worktrees for each implementer (git worktree add)
-3. Spawn at least 2 named background implementer agents via the Agent tool, each working in their own worktree
-4. Each implementer creates their module, tests, and updates the barrel file
+3. Spawn at least 2 named background implementer agents via the Agent tool, each working in their own worktree, then broadcast the roster (agent names -> agent IDs) so agents can address peers by ID
+4. Each implementer creates their module, tests, and updates the barrel file; you mirror their reported statuses into the shared task list
 5. After tasks complete, merge branches into main and run npm test
 6. Clean up worktrees, verify TaskList shows all tasks completed, summarize, and stop
 
@@ -516,6 +516,24 @@ if [ "$remaining_wt" -le 1 ]; then
 else
     echo "  [WARN] $remaining_wt worktree(s) remaining (expected <= 1)"
     git -C "$TEST_PROJECT" worktree list 2>/dev/null | sed 's/^/    /'
+    WARNED=$((WARNED + 1))
+fi
+echo ""
+
+# Test 9b: Peer addressing health (roster protocol)
+# Agents must address peers by agent ID; failed name-resolution sends mean
+# the roster protocol broke down (self-corrected or not).
+echo "Test 9b: Peer addressing health..."
+if [ -n "$SESSION_FILE" ]; then
+    name_fail_count=$(cat $ALL_SESSION_FILES 2>/dev/null | grep -o "No agent named '[^']*' is reachable" | wc -l | tr -d ' ')
+    if [ "$name_fail_count" -eq 0 ]; then
+        echo "  [PASS] Zero failed name-addressed sends (roster protocol held)"
+    else
+        echo "  [WARN] $name_fail_count failed name-addressed send(s) — roster protocol degraded (agents recovered via lead relay or IDs)"
+        WARNED=$((WARNED + 1))
+    fi
+else
+    echo "  [WARN] No transcript available to verify"
     WARNED=$((WARNED + 1))
 fi
 echo ""

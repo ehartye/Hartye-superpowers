@@ -57,6 +57,19 @@ has "$PRS" "Path B: Persistent-Agent"
 has "$PR"  "persistent-agent-prompt.md"
 has "$PRS" "persistent-agent-prompt.md"
 
+# --- 3b. Headless coordination protocol (verified against run transcripts) ---
+# Task board is lead-only; peers address by agent ID via a lead-broadcast roster.
+has "$TDD_SKILL" "Coordination Mechanics"
+has "$TDD_SKILL" "roster"
+has "$TDD_SKILL" "lead-only"
+IMPL="$REPO_ROOT/skills/team-driven-development/implementer-prompt.md"
+SPECR="$REPO_ROOT/skills/team-driven-development/spec-reviewer-prompt.md"
+QUALR="$REPO_ROOT/skills/team-driven-development/code-quality-reviewer-prompt.md"
+has "$IMPL"  "Address peers by their agent ID"
+has "$IMPL"  "do not attempt TaskUpdate yourself"
+has "$SPECR" "names do not resolve between agents"
+has "$QUALR" "names do not resolve between agents"
+
 # --- 4. Historical docs carry the banner ---
 for doc in "docs/analysis-agent-teams.md" "docs/comparison-agent-teams-vs-subagents.md" "docs/IMPLEMENTATION-SUMMARY.md"; do
   has "$REPO_ROOT/$doc" "Historical document"
