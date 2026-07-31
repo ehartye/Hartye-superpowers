@@ -187,6 +187,8 @@ echo ""
 echo "  To monitor in real time, run in another terminal:"
 echo "    python3 $SCRIPT_DIR/monitor-session.py $TEST_PROJECT"
 echo ""
+RUN_START_MARKER="$TEST_PROJECT/.run-start"
+touch "$RUN_START_MARKER"
 progress "Phase 2/4: Starting team execution (this takes 15-30 min)..."
 echo ""
 
@@ -245,10 +247,10 @@ SESSION_DIR="$HOME/.claude/projects/$WORKING_DIR_ESCAPED"
 
 # Find the most recent session file (created during this test run).
 # The { ... || true; } prevents pipefail from aborting if SESSION_DIR doesn't exist.
-SESSION_FILE=$({ find "$SESSION_DIR" -maxdepth 1 -name "*.jsonl" -type f -mmin -60 2>/dev/null || true; } | sort -r | head -1)
+SESSION_FILE=$({ find "$SESSION_DIR" -maxdepth 1 -name "*.jsonl" -type f -newer "$RUN_START_MARKER" 2>/dev/null || true; } | sort -r | head -1)
 
 # Also collect subagent session files (background agents write here)
-SUBAGENT_FILES=$({ find "$SESSION_DIR" -path "*/subagents/*.jsonl" -type f -mmin -60 2>/dev/null || true; } | sort)
+SUBAGENT_FILES=$({ find "$SESSION_DIR" -path "*/subagents/*.jsonl" -type f -newer "$RUN_START_MARKER" 2>/dev/null || true; } | sort)
 if [ -n "$SUBAGENT_FILES" ]; then
     SUBAGENT_COUNT=$(echo "$SUBAGENT_FILES" | wc -l | tr -d ' ')
     echo "Found $SUBAGENT_COUNT subagent session file(s)"

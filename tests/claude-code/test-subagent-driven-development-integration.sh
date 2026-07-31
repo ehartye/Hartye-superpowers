@@ -160,6 +160,8 @@ echo ""
 echo "  To monitor in real time, run in another terminal:"
 echo "    python3 $SCRIPT_DIR/monitor-session.py $TEST_PROJECT"
 echo ""
+RUN_START_MARKER="$TEST_PROJECT/.run-start"
+touch "$RUN_START_MARKER"
 progress "Phase 2/4: Starting subagent execution (this takes 10-30 min)..."
 echo ""
 
@@ -218,7 +220,7 @@ SESSION_DIR="$HOME/.claude/projects/$WORKING_DIR_ESCAPED"
 # Find the most recent top-level session file (created during this test run).
 # -maxdepth 1 excludes subagent transcripts in {session}/subagents/*.jsonl.
 # The { ... || true; } prevents pipefail from aborting if SESSION_DIR doesn't exist.
-SESSION_FILE=$({ find "$SESSION_DIR" -maxdepth 1 -name "*.jsonl" -type f -mmin -60 2>/dev/null || true; } | sort -r | head -1)
+SESSION_FILE=$({ find "$SESSION_DIR" -maxdepth 1 -name "*.jsonl" -type f -newer "$RUN_START_MARKER" 2>/dev/null || true; } | sort -r | head -1)
 
 if [ -z "$SESSION_FILE" ]; then
     echo "WARNING: Could not find session transcript file"
