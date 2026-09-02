@@ -141,7 +141,6 @@ The whole thing — design through PR — typically runs without you touching co
 - **code-reviewer** - Bundled agent for systematic code review against plans and coding standards
 
 **Meta**
-- **writing-skills** - Create new skills following best practices (includes testing methodology)
 - **using-superpowers** - Introduction to the skills system
 
 ## Philosophy
@@ -160,10 +159,7 @@ Skills live directly in this repository. To contribute:
 
 1. Fork [ehartye/Hartye-superpowers](https://github.com/ehartye/Hartye-superpowers)
 2. Create a branch for your skill
-3. Follow the `writing-skills` skill for creating and testing new skills
-4. Submit a PR
-
-See `skills/writing-skills/SKILL.md` for the complete guide.
+3. Submit a PR
 
 ## Updating
 

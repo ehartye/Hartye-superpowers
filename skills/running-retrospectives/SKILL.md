@@ -114,7 +114,7 @@ not substitutes for watching the failure happen.
      added to that `MEMORY.md`. Include the **why** and **how to apply it**.
    - This is **project-local** — it only applies to this project. NEVER write the
      lesson into this plugin's shipped files (`skills/`, `CLAUDE.md`). Improving
-     the plugin itself is a different pipeline (h-superpowers:writing-skills).
+     the plugin itself is a different pipeline.
    - Prune the promoted cluster from candidates:
      `bash scripts/lessons prune <hash>`.
 5. **Recall is automatic** — your project `MEMORY.md` is already injected each
@@ -125,7 +125,7 @@ not substitutes for watching the failure happen.
 ## Scope (v1)
 
 - **Project-specific lessons only** — "how to work well in *this* project."
-- Out of scope: improving h-sup the plugin (use h-superpowers:writing-skills);
+- Out of scope: improving h-sup the plugin;
   cross-project general-behavior lessons (deferred — wider blast radius raises the
   validation bar).
 

@@ -104,7 +104,6 @@ Fetch and follow instructions from https://raw.githubusercontent.com/ehartye/Har
 - **code-reviewer** — Bundled agent for systematic code review against plans and standards
 
 **Meta**
-- **writing-skills** — Create your own skills
 - **using-superpowers** — The orientation guide
 
 ## Sponsorship
@@ -124,8 +123,7 @@ The original [obra/superpowers](https://github.com/obra/superpowers) is the proj
 
 1. Fork [ehartye/Hartye-superpowers](https://github.com/ehartye/Hartye-superpowers)
 2. Create a branch
-3. Follow the `writing-skills` skill
-4. Submit a PR
+3. Submit a PR
 
 ## License
 
