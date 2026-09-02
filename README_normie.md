@@ -159,8 +159,7 @@ Skills live directly in this repository. To contribute:
 
 1. Fork [ehartye/Hartye-superpowers](https://github.com/ehartye/Hartye-superpowers)
 2. Create a branch for your skill
-3. Follow the `hartye-skills:yoda` skill for creating and testing new skills
-4. Submit a PR
+3. Submit a PR
 
 ## Updating
 

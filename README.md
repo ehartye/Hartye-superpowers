@@ -123,8 +123,7 @@ The original [obra/superpowers](https://github.com/obra/superpowers) is the proj
 
 1. Fork [ehartye/Hartye-superpowers](https://github.com/ehartye/Hartye-superpowers)
 2. Create a branch
-3. Follow the `hartye-skills:yoda` skill when authoring or revising a skill
-4. Submit a PR
+3. Submit a PR
 
 ## License
 
