@@ -30,6 +30,18 @@ This fork ([ehartye/Hartye-superpowers](https://github.com/ehartye/Hartye-superp
 
 ---
 
+## v4.16.0 (2026-09-05)
+
+### Codex core compatibility
+
+- Added Codex references for explicit skill loading and worktree setup while retaining Claude's existing procedures.
+- Worktree setup preserves source edits, reuses existing isolation, and avoids incidental ignore-file commits and dependency installation.
+- Added live Codex smoke tests for creation and fresh-session reuse, with a control run without the fixture skills.
+- Updated installation guidance and documented the supported scope. Persistent teams and broader orchestration remain unvalidated for Codex.
+- Retired `writing-skills` from the public plugin skill library; it remains under `internal/`.
+
+---
+
 ## v4.10.0 (2026-06-02)
 
 ### Upstream skill-content adoption (v4.3.0 → v5.1.0)
