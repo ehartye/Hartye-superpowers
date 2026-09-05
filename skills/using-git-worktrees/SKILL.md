@@ -5,6 +5,8 @@ description: Use when starting feature work that needs isolation from current wo
 
 # Using Git Worktrees
 
+**Codex:** Read [Codex worktrees](codex.md) and use that procedure for setup and handoff. It covers existing isolation, manual Git, and PowerShell without requiring the startup skill. The procedure below remains the Claude Code path.
+
 ## Overview
 
 Git worktrees create isolated workspaces sharing the same repository, allowing work on multiple branches simultaneously without switching.

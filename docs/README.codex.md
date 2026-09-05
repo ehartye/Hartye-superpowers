@@ -49,7 +49,11 @@ Codex has native skill discovery — it scans `~/.agents/skills/` at startup, pa
 ~/.agents/skills/superpowers/ → ~/.codex/superpowers/skills/
 ```
 
-The `using-superpowers` skill is discovered automatically and enforces skill usage discipline — no additional configuration needed.
+Discovery makes `using-superpowers` available; it does not guarantee its full
+body runs at every session start. Explicitly select it or use
+`$using-superpowers` to start a workflow. Its adjacent `codex.md` explains skill
+loading and host tool boundaries. This skills-directory installation does not
+register Claude hooks, commands, or agent definitions.
 
 ## Usage
 
@@ -57,6 +61,52 @@ Skills are discovered automatically. Codex activates them when:
 - You mention a skill by name (e.g., "use brainstorming")
 - The task matches a skill's description
 - The `using-superpowers` skill directs Codex to use one
+
+For a predictable entry point:
+
+```text
+Use using-superpowers. Read its Codex guidance and explain how you load a named skill here.
+```
+
+For worktree setup, `$using-git-worktrees` also works directly: its own Codex
+reference covers PowerShell, existing app worktrees, and manual Git. No global
+`AGENTS.md` modification is required.
+
+### Supported scope
+
+The first Codex compatibility slice covers entry guidance, explicit skill
+loading, and worktree setup. Shared workflow text remains available, but
+persistent teams, shared task boards, delegated review, and branch-finishing
+automation have not been validated for Codex. Do not infer full plugin parity
+from successful skill discovery.
+
+Keep only one installation of this library active (skills link or plugin) to
+avoid duplicate skill names.
+
+### Verification
+
+From the repository, with Node.js, Git, and an authenticated Codex CLI:
+
+```bash
+node tests/codex/run-smoke-tests.mjs
+node tests/codex/run-smoke-tests.mjs --baseline
+```
+
+These are live model tests and consume tokens. They copy the two entry skills
+into a temporary workspace's native `.agents/skills/` directory and run Codex
+with its normal tools and a writable sandbox scoped to the temporary workspace.
+The baseline omits those fixture skills. Both create a worktree from a dirty
+checkout, run a dependency-free test, and then reuse the
+existing worktree. Assertions check source preservation, no incidental commits,
+a clean destination, and no nested worktree. Transcripts and fixtures are
+retained at the printed temporary path; your global installation is unchanged.
+
+The reuse check invokes the worktree skill directly in a fresh session, without
+invoking the startup skill. The runs otherwise inherit your Codex configuration.
+Use an environment without another installed copy of this library for a valid
+with/without comparison. Windows
+uses the active CLI shell; the shared references also support Bash. Passing
+these checks establishes only the scope above, not the rest of the library.
 
 ### Personal Skills
 
