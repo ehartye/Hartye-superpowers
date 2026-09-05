@@ -26,6 +26,19 @@ tests/
 
 ## Running Tests
 
+### Codex entry and worktree smoke tests
+
+```bash
+node tests/codex/run-smoke-tests.mjs
+node tests/codex/run-smoke-tests.mjs --baseline
+```
+
+These live Codex CLI tests cover explicit skill/reference loading, creation from
+a dirty checkout, and reuse of an existing worktree. They assert preservation of
+source edits and history and a clean destination. The second command omits the
+fixture skills for comparison. Both retain temporary fixtures and transcripts;
+see [Codex verification](README.codex.md#verification) for prerequisites and scope.
+
 ### Integration Tests
 
 Integration tests execute real Claude Code sessions with actual skills:

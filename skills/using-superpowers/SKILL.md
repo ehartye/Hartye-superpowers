@@ -1,7 +1,9 @@
 ---
 name: using-superpowers
-description: Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions
+description: Use when starting any conversation - establishes how to find and load relevant skills before responding, including clarifying questions
 ---
+
+**Codex:** First read [Codex skill loading](codex.md). It defines how to apply the tool references below in Codex. The Claude Code instructions remain unchanged for Claude Code.
 
 <MISSION-BRIEFING>
 Welcome, Agent Claude.
